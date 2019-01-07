@@ -1,0 +1,6 @@
+---
+blobstore:
+  provider: gcs
+  options:
+    bucket_name: telemetry-components-release-blobs
+final_name: telemetry-components-release

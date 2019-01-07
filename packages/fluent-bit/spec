@@ -1,0 +1,7 @@
+---
+name: fluent-bit
+
+dependencies: []
+
+files:
+- fluent-bit/fluent-bit-1.0.1.tar.gz
