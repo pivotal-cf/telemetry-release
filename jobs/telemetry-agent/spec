@@ -1,0 +1,17 @@
+---
+name: telemetry-agent
+
+templates:
+  ctl.erb: bin/ctl
+  config.erb: config/fluent.cnf
+
+packages:
+- fluent-bit
+
+consumes:
+- name: telemetry-aggregator
+  type: telemetry-agent-connection
+
+properties:
+  telemetry-agent-config:
+    description: Configurations for telemetry-agent process

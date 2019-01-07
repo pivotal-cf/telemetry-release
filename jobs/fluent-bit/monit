@@ -1,5 +1,0 @@
-check process fluent-bit
-  with pidfile /var/vcap/sys/run/fluent-bit/pid
-  start program "/var/vcap/jobs/fluent-bit/bin/ctl start"
-  stop program "/var/vcap/jobs/fluent-bit/bin/ctl stop"
-  group vcap

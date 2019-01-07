@@ -29,5 +29,11 @@
     HTTP_Listen  0.0.0.0
     HTTP_Port    2020
 
-<%= p('fluent-bit-config') %>
+<%= p('telemetry-agent-config') %>
+
+[OUTPUT]
+    Name forward
+    Match *
+    Port <%= link('telemetry-aggregator').p('port') %>
+    Host <%= link('telemetry-aggregator').instances[0].address %>
 

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+RUN_DIR=/var/vcap/sys/run/telemetry-agent
+LOG_DIR=/var/vcap/sys/log/telemetry-agent
+PIDFILE=${RUN_DIR}/pid
+
+case $1 in
+
+  start)
+    mkdir -p $RUN_DIR $LOG_DIR
+    chown -R vcap:vcap $RUN_DIR $LOG_DIR
+
+    echo $$ > $PIDFILE
+
+    cd /var/vcap/packages/fluent-bit
+
+    exec /var/vcap/packages/fluent-bit/bin/fluent-bit \
+      --config=/var/vcap/jobs/telemetry-agent/config/fluent.cnf \
+      >>  $LOG_DIR/telemetry-agent.stdout.log \
+      2>> $LOG_DIR/telemetry-agent.stderr.log
+
+    ;;
+
+  stop)
+    kill -9 `cat $PIDFILE`
+    rm -f $PIDFILE
+
+    ;;
+
+  *)
+    echo "Usage: ctl {start|stop}" ;;
+
+esac

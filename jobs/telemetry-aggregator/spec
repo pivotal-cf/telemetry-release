@@ -1,0 +1,20 @@
+---
+name: telemetry-aggregator
+
+provides:
+- name: telemetry-aggregator
+  type: telemetry-agent-connection
+  properties:
+  - port
+
+templates:
+  ctl.erb: bin/ctl
+  config.erb: config/fluent.cnf
+
+packages:
+- fluent-bit
+
+properties:
+  port:
+    default: 9876
+    description: Port to listen on for fluent forward protocol
