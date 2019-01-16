@@ -1,0 +1,36 @@
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/-
+  value:
+    name: telemetry-agent
+    properties:
+      telemetry-agent-config: |
+        [INPUT]
+            Name tail
+            Path /var/vcap/sys/log/route_emitter/route_emitter.*.log
+            DB /var/vcap/data/route_emitter/tail-input-state.db
+            Tag route-emitter-logs
+
+        [FILTER]
+            Name grep
+            Match route-emitter-logs
+            Regex log route-emitter.watcher.sync.complete
+
+    release: telemetry-components-release
+- type: replace
+  path: /instance_groups/name=telemetry-aggregator?
+  value:
+    vm_type: minimal
+    stemcell: default
+    networks:
+      - name: default
+    azs: [z1]
+    instances: 1
+    name: telemetry-aggregator
+    jobs:
+      - name: telemetry-aggregator
+        release: telemetry-components-release
+- type: replace
+  path: /releases/-
+  value:
+    name: telemetry-components-release
+    version: latest
