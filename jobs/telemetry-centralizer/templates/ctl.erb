@@ -1,7 +1,7 @@
 #!/bin/bash
 
-RUN_DIR=/var/vcap/sys/run/telemetry-aggregator
-LOG_DIR=/var/vcap/sys/log/telemetry-aggregator
+RUN_DIR=/var/vcap/sys/run/telemetry-centralizer
+LOG_DIR=/var/vcap/sys/log/telemetry-centralizer
 PIDFILE=${RUN_DIR}/pid
 
 case $1 in
@@ -15,9 +15,9 @@ case $1 in
     cd /var/vcap/packages/fluent-bit
 
     exec /var/vcap/packages/fluent-bit/bin/fluent-bit \
-      --config=/var/vcap/jobs/telemetry-aggregator/config/fluent.cnf \
-      >>  $LOG_DIR/telemetry-aggregator.stdout.log \
-      2>> $LOG_DIR/telemetry-aggregator.stderr.log
+      --config=/var/vcap/jobs/telemetry-centralizer/config/fluent.cnf \
+      >>  $LOG_DIR/telemetry-centralizer.stdout.log \
+      2>> $LOG_DIR/telemetry-centralizer.stderr.log
 
     ;;
 

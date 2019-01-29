@@ -1,0 +1,5 @@
+check process telemetry-centralizer
+  with pidfile /var/vcap/sys/run/telemetry-centralizer/pid
+  start program "/var/vcap/jobs/telemetry-centralizer/bin/ctl start"
+  stop program "/var/vcap/jobs/telemetry-centralizer/bin/ctl stop"
+  group vcap

@@ -1,5 +1,0 @@
-check process telemetry-aggregator
-  with pidfile /var/vcap/sys/run/telemetry-aggregator/pid
-  start program "/var/vcap/jobs/telemetry-aggregator/bin/ctl start"
-  stop program "/var/vcap/jobs/telemetry-aggregator/bin/ctl stop"
-  group vcap

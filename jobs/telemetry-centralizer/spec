@@ -1,8 +1,8 @@
 ---
-name: telemetry-aggregator
+name: telemetry-centralizer
 
 provides:
-- name: telemetry-aggregator
+- name: telemetry-centralizer
   type: telemetry-agent-connection
   properties:
   - port

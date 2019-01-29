@@ -9,7 +9,7 @@ packages:
 - fluent-bit
 
 consumes:
-- name: telemetry-aggregator
+- name: telemetry-centralizer
   type: telemetry-agent-connection
 
 properties:

@@ -17,7 +17,7 @@
 
     release: telemetry-components-release
 - type: replace
-  path: /instance_groups/name=telemetry-aggregator?
+  path: /instance_groups/name=telemetry-centralizer?
   value:
     vm_type: minimal
     stemcell: default
@@ -25,9 +25,9 @@
       - name: default
     azs: [z1]
     instances: 1
-    name: telemetry-aggregator
+    name: telemetry-centralizer
     jobs:
-      - name: telemetry-aggregator
+      - name: telemetry-centralizer
         release: telemetry-components-release
 - type: replace
   path: /releases/-
