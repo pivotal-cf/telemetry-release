@@ -4,6 +4,9 @@ name: telemetry-agent
 templates:
   ctl.erb: bin/ctl
   config.erb: config/fluent.cnf
+  ca_cert.pem.erb: config/ca_cert.pem
+  cert.pem.erb: config/cert.pem
+  private_key.pem.erb: config/private_key.pem
 
 packages:
 - fluent-bit
@@ -13,5 +16,7 @@ consumes:
   type: telemetry-agent-connection
 
 properties:
-  telemetry-agent-config:
-    description: Configurations for telemetry-agent process
+  tls.cert:
+    description: TLS Certificate for the Agent
+  tls.private_key:
+    description: TLS Private Key for the Agent

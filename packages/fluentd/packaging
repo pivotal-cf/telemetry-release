@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cd fluentd
+
+source /var/vcap/packages/ruby-2.4-r5/bosh/compile.env
+
+bosh_bundle_local
+bosh_generate_runtime_env
+

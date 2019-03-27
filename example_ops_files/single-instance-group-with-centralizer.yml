@@ -1,0 +1,69 @@
+- type: replace
+  path: /instance_groups/name=compute/jobs/- #replace with instance group you would like to add telemetry to
+  value:
+    name: telemetry-agent
+    properties:
+      tls:
+        cert: ((telemetry-agent-cert.certificate))
+        private_key: ((telemetry-agent-cert.private_key))
+    release: telemetry-components-release
+
+- type: replace
+  path: /instance_groups/name=telemetry-centralizer?
+  value:
+    vm_type: minimal
+    stemcell: default
+    networks:
+      - name: default
+    azs: [z1]
+    instances: 1
+    name: telemetry-centralizer
+    jobs:
+      - name: telemetry-centralizer
+        release: telemetry-components-release
+        provides:
+          telemetry-centralizer-address:
+            as: my-custom-telemetry-centralizer-address
+        custom_provider_definitions:
+          - name: telemetry-centralizer-address
+            type: address
+    properties:
+      tls:
+        ca_cert: ((telemetry-ca-cert.certificate))
+        cert: ((telemetry-centralizer-cert.certificate))
+        private_key: ((telemetry-centralizer-cert.private_key))
+
+- type: replace
+  path: /variables/name=telemetry-ca-cert?
+  value:
+    name: telemetry-ca-cert
+    type: certificate
+    options:
+      is_ca: true
+      common_name: 'Telemetry CA'
+
+- type: replace
+  path: /variables/name=telemetry-centralizer-cert?
+  value:
+    name: telemetry-centralizer-cert
+    type: certificate
+    options:
+      ca: telemetry-ca-cert
+      common_name: Telemetry centralizer
+    consumes:
+      alternative_name: { from: my-custom-telemetry-centralizer-address }
+
+- type: replace
+  path: /variables/name=telemetry-agent-cert?
+  value:
+    name: telemetry-agent-cert
+    type: certificate
+    options:
+      common_name: telemetry-agent
+      ca: telemetry-ca-cert
+
+- type: replace
+  path: /releases/-
+  value:
+    name: telemetry-components-release
+    version: latest

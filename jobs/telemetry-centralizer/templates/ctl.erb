@@ -12,9 +12,10 @@ case $1 in
 
     echo $$ > $PIDFILE
 
-    cd /var/vcap/packages/fluent-bit
+    source /var/vcap/packages/ruby-2.4-r5/bosh/runtime.env
+    source /var/vcap/packages/fluentd/bosh/runtime.env
 
-    exec /var/vcap/packages/fluent-bit/bin/fluent-bit \
+    exec fluentd \
       --config=/var/vcap/jobs/telemetry-centralizer/config/fluent.cnf \
       >>  $LOG_DIR/telemetry-centralizer.stdout.log \
       2>> $LOG_DIR/telemetry-centralizer.stderr.log

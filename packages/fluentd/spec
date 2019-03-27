@@ -1,0 +1,15 @@
+---
+name: fluentd
+
+dependencies:
+- ruby-2.4-r5
+
+files:
+- fluentd/**/*
+
+#HOW TO UPDATE: make sure to run bundle before:
+# BUNDLE_WITHOUT=development:test bundle package --all --all-platforms --no-install --path ./vendor/cache
+# rm -rf ./vendor/cache/ruby
+# rm -rf ./vendor/cache/vendor
+# bundle config --delete NO_INSTALL
+# rm -rf .bundle/

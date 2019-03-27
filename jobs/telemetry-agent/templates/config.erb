@@ -29,11 +29,24 @@
     HTTP_Listen  0.0.0.0
     HTTP_Port    2020
 
-<%= p('telemetry-agent-config') %>
+[INPUT]
+    Name tail
+    Path /var/vcap/sys/log/**/*
+    DB /var/vcap/data/telemetry-agent/tail-input-state.db
+
+[FILTER]
+    Name   grep
+    Match  *
+    Regex  log telemetry-source
 
 [OUTPUT]
     Name forward
     Match *
     Port <%= link('telemetry-centralizer').p('port') %>
-    Host <%= link('telemetry-centralizer').instances[0].address %>
+    Host <%= link('telemetry-centralizer').address %>
+    tls           on
+    tls.verify    on
+    tls.ca_file  /var/vcap/jobs/telemetry-agent/config/ca_cert.pem
+    tls.crt_file /var/vcap/jobs/telemetry-agent/config/cert.pem
+    tls.key_file /var/vcap/jobs/telemetry-agent/config/private_key.pem
 
