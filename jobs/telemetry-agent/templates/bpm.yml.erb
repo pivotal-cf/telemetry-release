@@ -1,0 +1,9 @@
+processes:
+  - name: telemetry-agent
+    additional_volumes:
+    - path: /var/vcap/sys/log
+    - path: /var/vcap/data/telemetry-agent/db-state
+      writable: true
+    executable: /var/vcap/packages/fluent-bit/bin/fluent-bit
+    args:
+    - --config=/var/vcap/jobs/telemetry-agent/config/fluent.cnf

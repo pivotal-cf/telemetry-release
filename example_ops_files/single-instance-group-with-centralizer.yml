@@ -9,6 +9,12 @@
     release: telemetry-components-release
 
 - type: replace
+  path: /instance_groups/name=compute/jobs/- #replace with instance group you would like to add telemetry to
+  value:
+    name: bpm
+    release: bpm
+
+- type: replace
   path: /instance_groups/name=telemetry-centralizer?
   value:
     vm_type: minimal
@@ -19,6 +25,8 @@
     instances: 1
     name: telemetry-centralizer
     jobs:
+      - name: bpm
+        release: bpm
       - name: telemetry-centralizer
         release: telemetry-components-release
         provides:
@@ -27,11 +35,11 @@
         custom_provider_definitions:
           - name: telemetry-centralizer-address
             type: address
-    properties:
-      tls:
-        ca_cert: ((telemetry-ca-cert.certificate))
-        cert: ((telemetry-centralizer-cert.certificate))
-        private_key: ((telemetry-centralizer-cert.private_key))
+        properties:
+          tls:
+            ca_cert: ((telemetry-ca-cert.certificate))
+            cert: ((telemetry-centralizer-cert.certificate))
+            private_key: ((telemetry-centralizer-cert.private_key))
 
 - type: replace
   path: /variables/name=telemetry-ca-cert?
@@ -66,4 +74,10 @@
   path: /releases/-
   value:
     name: telemetry-components-release
+    version: latest
+
+- type: replace
+  path: /releases/-
+  value:
+    name: bpm
     version: latest

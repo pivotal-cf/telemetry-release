@@ -1,0 +1,5 @@
+processes:
+  - name: telemetry-centralizer
+    executable: /var/vcap/jobs/telemetry-centralizer/bin/telemetry_centralizer
+    args:
+    - --config=/var/vcap/jobs/telemetry-centralizer/config/fluent.cnf

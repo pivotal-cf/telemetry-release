@@ -2,7 +2,7 @@
 name: telemetry-agent
 
 templates:
-  ctl.erb: bin/ctl
+  bpm.yml.erb: config/bpm.yml
   config.erb: config/fluent.cnf
   ca_cert.pem.erb: config/ca_cert.pem
   cert.pem.erb: config/cert.pem

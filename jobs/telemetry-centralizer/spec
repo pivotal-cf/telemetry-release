@@ -9,7 +9,8 @@ provides:
   - tls.ca_cert
 
 templates:
-  ctl.erb: bin/ctl
+  bpm.yml.erb: config/bpm.yml
+  telemetry_centralizer.erb: bin/telemetry_centralizer
   config.erb: config/fluent.cnf
   ca_cert.pem.erb: config/ca_cert.pem
   cert.pem.erb: config/cert.pem
@@ -21,7 +22,7 @@ packages:
 
 properties:
   port:
-    default: 9876
+    default: 24224
     description: Port to listen on for fluent forward protocol
   tls.cert:
     description: TLS Certificate for the Centralizer

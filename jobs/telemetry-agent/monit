@@ -1,5 +1,5 @@
 check process telemetry-agent
-  with pidfile /var/vcap/sys/run/telemetry-agent/pid
-  start program "/var/vcap/jobs/telemetry-agent/bin/ctl start"
-  stop program "/var/vcap/jobs/telemetry-agent/bin/ctl stop"
+  with pidfile /var/vcap/sys/run/bpm/telemetry-agent/telemetry-agent.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start telemetry-agent"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop telemetry-agent"
   group vcap
