@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ubuntu
+    tag: latest
+
+inputs:
+- name: telemetry-components-release
+- name: bosh-cli-github-release
+
+outputs:
+- name: release-tarball
+
+run:
+  path: telemetry-components-release/ci/tasks/create-and-upload-release

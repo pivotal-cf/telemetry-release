@@ -1,0 +1,80 @@
+resource_types:
+- name: bbl-state-resource
+  type: docker-image
+  source:
+    repository: cfinfrastructure/bbl-state-resource
+- name: bosh-deployment
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+
+resources:
+- name: bosh-cli-github-release
+  type: github-release
+  source:
+    owner: cloudfoundry
+    repository: bosh-cli
+    release: true
+- name: bbl-state
+  type: bbl-state-resource
+  source:
+    bucket: ((bbl-state-bucket))
+    iaas: gcp
+    gcp_region: us-central1
+    gcp_service_account_key: ((telemetry-components-gcp-service-account-key))
+- name: xenial-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-xenial-go_agent
+- name: telemetry-components-deployment
+  type: bosh-deployment
+  source:
+    deployment: telemetry-components-acceptance
+    skip_check: true
+- name: manifest
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:pivotal-cf/telemetry-components-release
+    private_key: ((telemetry-components-git-deploy-private-key))
+    paths:
+    - ci/manifest/telemetry-components.yml
+- name: telemetry-components-release
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:pivotal-cf/telemetry-components-release
+    private_key: ((telemetry-components-git-deploy-private-key))
+
+jobs:
+- name: bbl-up
+  plan:
+    - get: bbl-state
+    - put: bbl-state
+      params:
+        command: up
+        name: telemetry-components-bosh-director
+- name: deploy-telemetry-components-release
+  plan:
+  - aggregate:
+    - get: bbl-state
+      passed: [bbl-up]
+    - get: xenial-stemcell
+    - get: bosh-cli-github-release
+      params:
+        globs:
+        - "**/bosh-cli-*-linux-amd64"
+    - get: manifest
+      trigger: true
+    - get: telemetry-components-release
+      trigger: true
+  - task: create-release
+    file: telemetry-components-release/ci/tasks/create-release.yml
+  - put: telemetry-components-deployment
+    params:
+      manifest: manifest/ci/manifest/telemetry-components.yml
+      source_file: bbl-state/bdr-source-file
+      releases:
+        - release-tarball/*.tgz
+      stemcells:
+        - xenial-stemcell/*.tgz

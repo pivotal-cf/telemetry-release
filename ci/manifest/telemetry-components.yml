@@ -1,0 +1,75 @@
+releases:
+- name: telemetry-components
+  version: latest
+
+stemcells:
+- alias: default
+  os: ubuntu-xenial
+  version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 10
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+instance_groups:
+- name: telemetry-agent
+  vm_type: minimal
+    stemcell: default
+    networks:
+    - name: default
+    azs: [z1]
+    instances: 1
+    jobs:
+    - name: bpm
+      release: bpm
+    - name: telemetry-agent
+      release: telemetry-components
+      properties:
+        tls:
+          cert: ((telemetry-agent-cert.certificate))
+          private_key: ((telemetry-agent-cert.private_key))
+
+- name: telemetry-centralizer
+  vm_type: minimal
+    stemcell: default
+    networks:
+      - name: default
+    azs: [z1]
+    instances: 1
+    jobs:
+      - name: bpm
+        release: bpm
+      - name: telemetry-centralizer
+        release: telemetry-components
+        provides:
+          telemetry-centralizer-address:
+            as: my-custom-telemetry-centralizer-address
+        custom_provider_definitions:
+          - name: telemetry-centralizer-address
+            type: address
+        properties:
+          tls:
+            ca_cert: ((telemetry-ca-cert.certificate))
+            cert: ((telemetry-centralizer-cert.certificate))
+            private_key: ((telemetry-centralizer-cert.private_key))
+
+variables:
+- name: telemetry-ca-cert
+  type: certificate
+  options:
+    is_ca: true
+    common_name: 'Telemetry CA'
+- name: telemetry-centralizer-cert
+  type: certificate
+  options:
+    ca: telemetry-ca-cert
+    common_name: Telemetry centralizer
+  consumes:
+    alternative_name: { from: my-custom-telemetry-centralizer-address }
+- name: telemetry-agent-cert
+  type: certificate
+  options:
+    common_name: telemetry-agent
+    ca: telemetry-ca-cert
