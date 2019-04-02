@@ -15,4 +15,4 @@ outputs:
 - name: release-tarball
 
 run:
-  path: telemetry-components-release/ci/tasks/create-release
+  path: telemetry-components-release/ci/tasks/create-release.sh
