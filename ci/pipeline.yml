@@ -15,6 +15,7 @@ resources:
     owner: cloudfoundry
     repository: bosh-cli
     release: true
+    access_token: ((telemetry-components-github-access-token))
 - name: bbl-state
   type: bbl-state-resource
   source:
@@ -54,7 +55,7 @@ jobs:
       params:
         command: up
         name: telemetry-components-bosh-director
-- name: deploy-telemetry-components-release
+- name: deploy-telemetry-components-acceptance
   plan:
   - aggregate:
     - get: bbl-state
