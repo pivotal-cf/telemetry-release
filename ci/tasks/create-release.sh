@@ -9,4 +9,4 @@ chmod 755 "$BOSH_CLI"
 apt-get update
 apt-get -y install git
 pushd telemetry-components-release
-"$BOSH_CLI" create-release --force --tarball "$TASK_DIR/release-tarball/release.tgz"
+"$BOSH_CLI" create-release --force --timestamp-version --tarball "$TASK_DIR/release-tarball/release.tgz"
