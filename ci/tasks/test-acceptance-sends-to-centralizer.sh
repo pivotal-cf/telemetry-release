@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+apt-get update
+apt-get -y install ssh
+
 BOSH_CLI=("$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
 chmod 755 "$BOSH_CLI"
 
