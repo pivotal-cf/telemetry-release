@@ -2,13 +2,13 @@
 
 set -euo pipefail
 
-TASK_DIR="$PWD"
 BOSH_CLI=("$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
 chmod 755 "$BOSH_CLI"
 
 BBL_CLI=("$PWD"/bbl-cli-github-release/bbl-v*_linux_x86-64)
 chmod 755 "$BBL_CLI"
 
+cd bbl-state
 eval "$("$BBL_CLI" print-env)"
 
 echo Testing that logs matching telemetry-source are sent to centralizer
