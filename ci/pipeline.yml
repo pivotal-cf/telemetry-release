@@ -27,6 +27,10 @@ resources:
   type: bosh-io-stemcell
   source:
     name: bosh-google-kvm-ubuntu-xenial-go_agent
+- name: bpm-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/bpm-release
 - name: telemetry-components-deployment
   type: bosh-deployment
   source:
@@ -61,6 +65,7 @@ jobs:
     - get: bbl-state
       passed: [bbl-up]
     - get: xenial-stemcell
+    - get: bpm-release
     - get: bosh-cli-github-release
       params:
         globs:
@@ -77,5 +82,6 @@ jobs:
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
+        - bpm-release/*.tgz
       stemcells:
         - xenial-stemcell/*.tgz

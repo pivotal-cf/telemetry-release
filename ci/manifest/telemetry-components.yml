@@ -2,6 +2,8 @@ name: telemetry-components-acceptance
 releases:
 - name: telemetry-components
   version: latest
+- name: bpm
+  version: latest
 
 stemcells:
 - alias: default
