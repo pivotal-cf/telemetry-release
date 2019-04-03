@@ -16,6 +16,13 @@ resources:
     repository: bosh-cli
     release: true
     access_token: ((telemetry-components-github-access-token))
+- name: bbl-cli-github-release
+  type: github-release
+  source:
+    owner: cloudfoundry
+    repository: bosh-bootloader
+    release: true
+    access_token: ((telemetry-components-github-access-token))
 - name: bbl-state
   type: bbl-state-resource
   source:
@@ -85,3 +92,20 @@ jobs:
         - bpm-release/*.tgz
       stemcells:
         - xenial-stemcell/*.tgz
+- name: test-acceptance-sends-to-centralizer
+  plan:
+  - aggregate:
+    - get: bbl-state
+    - get: telemetry-components-release
+      passed: [deploy-telemetry-components-acceptance]
+      trigger: true
+    - get: bosh-cli-github-release
+      params:
+        globs:
+          - bosh-cli-*-linux-amd64
+    - get: bbl-cli-github-release
+      params:
+        globs:
+          - bbl-v*_linux_x86-64
+  - task: test-acceptance-sends-to-centralizer
+    file: telemetry-components-release/ci/tasks/test-acceptance-sends-to-centralizer.yml

@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ubuntu
+    tag: latest
+
+inputs:
+  - name: bbl-state
+  - name: bosh-cli-github-release
+  - name: bbl-cli-github-release
+
+run:
+  path: telemetry-components-release/ci/tasks/test-acceptance-sends-to-centralizer.sh
