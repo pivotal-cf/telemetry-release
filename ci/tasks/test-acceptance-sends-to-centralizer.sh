@@ -3,7 +3,7 @@
 set -euo pipefail
 
 apt-get update
-apt-get -y install ssh
+apt-get -y install ssh netcat-openbsd
 
 BOSH_CLI=("$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
 chmod 755 "$BOSH_CLI"
@@ -25,9 +25,9 @@ sleep 5
 
 
 echo Testing that logs not matching telemetry-source are not sent to centralizer
-EXPECTED_LOG="this is a non telemetry message test at $(date +%s)"
+EXPECTED_LOG="NOT a telemetry msg test at $(date +%s)"
 INSERT_AGENT_LOG_CMD="echo \"$EXPECTED_LOG\" | sudo tee -a /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log"
-ASSERT_CENTRALIZER_LOG_CMD="sudo grep \"this is a non telemetry message\" /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log | grep -v \"$EXPECTED_LOG\""
+ASSERT_CENTRALIZER_LOG_CMD="if sudo grep \"$EXPECTED_LOG\" /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log; then exit 1; fi"
 
 "$BOSH_CLI" -d telemetry-components-acceptance ssh telemetry-agent -c "$INSERT_AGENT_LOG_CMD"
 sleep 5
