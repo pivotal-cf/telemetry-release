@@ -28,6 +28,6 @@ ASSERT_CENTRALIZER_LOG_CMD="sudo grep \"$EXPECTED_LOG\" /var/vcap/sys/log/teleme
 assert_centralizer_log "$INPUT_LOG" "$ASSERT_CENTRALIZER_LOG_CMD"
 
 echo Testing that logs not matching the expected structure are filtered out by the centralizer
-EXPECTED_LOG="NOT a telemetry-source msg test at $(date +%s)"
-ASSERT_CENTRALIZER_LOG_CMD="if sudo grep \"$EXPECTED_LOG\" /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log; then exit 1; fi"
+INPUT_LOG="NOT a telemetry-source msg test at $(date +%s)"
+ASSERT_CENTRALIZER_LOG_CMD="if sudo grep \"$INPUT_LOG\" /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log; then exit 1; fi"
 assert_centralizer_log "$INPUT_LOG" "$ASSERT_CENTRALIZER_LOG_CMD"
