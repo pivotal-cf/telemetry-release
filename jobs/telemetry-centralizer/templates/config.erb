@@ -11,6 +11,11 @@
   </transport>
 </source>
 
+## accept and extract only telemetry messages
+<filter **>
+  @type telemetry
+</filter>
+
 ## match all and dump to console
 <match **>
   @type stdout

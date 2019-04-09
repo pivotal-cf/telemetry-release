@@ -3,3 +3,4 @@ processes:
     executable: /var/vcap/jobs/telemetry-centralizer/bin/telemetry_centralizer
     args:
     - --config=/var/vcap/jobs/telemetry-centralizer/config/fluent.cnf
+    - --plugin=/var/vcap/packages/fluentd/telemetry-filter-plugin/lib/fluent/plugin

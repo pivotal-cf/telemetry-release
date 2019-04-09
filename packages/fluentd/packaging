@@ -9,3 +9,5 @@ source /var/vcap/packages/ruby-2.4-r5/bosh/compile.env
 bosh_bundle_local
 bosh_generate_runtime_env
 
+mkdir -p ${BOSH_INSTALL_TARGET}/telemetry-filter-plugin
+cp -r telemetry-filter-plugin/lib ${BOSH_INSTALL_TARGET}/telemetry-filter-plugin/lib
