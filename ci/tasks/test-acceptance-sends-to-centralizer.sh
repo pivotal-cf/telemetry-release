@@ -25,9 +25,9 @@ echo Testing that logs matching telemetry-source embedded as a string value in a
 INPUT_LOG='{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": 42}, \"telemetry-source\": \"my-origin\"}'
 EXPECTED_LOG='{"data":{"app":"da\"ta","counter":42},"telemetry-source":"my-origin"}'
 ASSERT_CENTRALIZER_LOG_CMD="sudo grep \"$EXPECTED_LOG\" /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log"
-assert_centralizer_log "$EXPECTED_LOG" "$ASSERT_CENTRALIZER_LOG_CMD"
+assert_centralizer_log "$INPUT_LOG" "$ASSERT_CENTRALIZER_LOG_CMD"
 
 echo Testing that logs not matching the expected structure are filtered out by the centralizer
 EXPECTED_LOG="NOT a telemetry-source msg test at $(date +%s)"
 ASSERT_CENTRALIZER_LOG_CMD="if sudo grep \"$EXPECTED_LOG\" /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log; then exit 1; fi"
-assert_centralizer_log "$EXPECTED_LOG" "$ASSERT_CENTRALIZER_LOG_CMD"
+assert_centralizer_log "$INPUT_LOG" "$ASSERT_CENTRALIZER_LOG_CMD"
