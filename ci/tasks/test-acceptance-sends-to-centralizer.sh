@@ -22,8 +22,9 @@ assert_centralizer_log() {
 }
 
 echo Testing that logs matching telemetry-source embedded as a string value in a JSON object are extracted and sent to centralizer
-INPUT_LOG='{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": 42}, \"telemetry-source\": \"my-origin\"}'
-EXPECTED_LOG='{"data":{"app":"da\"ta","counter":42},"telemetry-source":"my-origin"}'
+TIME_VAL=$(date +%s)
+INPUT_LOG='{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"'$TIME_VAL'\"}, \"telemetry-source\": \"my-origin\"}'
+EXPECTED_LOG='{"data":{"app":"da\\"ta","counter":"'$TIME_VAL'"},"telemetry-source":"my-origin"}'
 ASSERT_CENTRALIZER_LOG_CMD="sudo grep '$EXPECTED_LOG' /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log"
 assert_centralizer_log "$INPUT_LOG" "$ASSERT_CENTRALIZER_LOG_CMD"
 
