@@ -29,9 +29,12 @@ module Fluent::Plugin
       @scanner = JSONObjectBorderScanner.new(@log_line, start_pos: match[:index])
       return unless (object_end_index = @scanner.find_end_of_json_obj(match[:escaped]))
 
+      begin
       potential_message = @log_line[object_start_index, object_end_index - object_start_index]
       potential_message = JSON.parse("\"#{potential_message}\"") if match[:escaped]
       JSON.parse(potential_message)
+      rescue
+      end
     end
 
     def match_telemetry_token

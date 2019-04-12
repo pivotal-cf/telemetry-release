@@ -19,6 +19,7 @@ describe 'Filters telemetry messages' do
     driver.run {
       driver.feed("filter.test", @time, message)
     }
+    expect(driver.error_events).to(be_empty)
     driver.filtered_records
   end
 
@@ -65,6 +66,11 @@ describe 'Filters telemetry messages' do
       records = filter({"log" => '{ \"data\": {\"}app\": \"d}ata\"}, \"telemetry-source\": \"my-{origin\"} maybe some junk here'})
       expect(records).to(eq([{ "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
     end
+  end
+
+  it 'reject messages with correct number of object closing braces that is not valid JSON' do
+      records = filter({"log" => '{"telemetry-source": "somethign", {"invalid-object": "missing-close"}}'})
+      expect(records).to(be_empty)
   end
 
   it 'rejects messages without a log key' do
