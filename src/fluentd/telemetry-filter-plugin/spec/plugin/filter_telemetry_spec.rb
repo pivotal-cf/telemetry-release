@@ -5,17 +5,13 @@ require_relative '../../lib/fluent/plugin/filter_telemetry'
 describe 'Filters telemetry messages' do
   include Fluent::Test::Helpers
 
+  let(:driver) { Fluent::Test::Driver::Filter.new(Fluent::Plugin::FilterTelemetry).configure('') }
   before do
     Fluent::Test.setup
     @time = event_time
   end
 
-  def create_filter_driver
-    Fluent::Test::Driver::Filter.new(Fluent::Plugin::FilterTelemetry).configure('')
-  end
-
   def filter(message)
-    driver = create_filter_driver
     driver.run {
       driver.feed("filter.test", @time, message)
     }
@@ -68,9 +64,11 @@ describe 'Filters telemetry messages' do
     end
   end
 
-  it 'reject messages with correct number of object closing braces that is not valid JSON' do
-      records = filter({"log" => '{"telemetry-source": "somethign", {"invalid-object": "missing-close"}}'})
-      expect(records).to(be_empty)
+  it 'reject messages with correct number of object closing braces that is not valid JSON and logs the details of the failure' do
+    candidate_extracted_message = '{"telemetry-source": "somethign", {"invalid-object": "object-has-no-key"}}'
+    records = filter({"log" => "wrapping text #{candidate_extracted_message}"})
+    expect(records).to(be_empty)
+    expect(driver.logs).to(include(/Failed parsing potential message <#{candidate_extracted_message}> from event <wrapping text #{candidate_extracted_message}>. Cause: .+/))
   end
 
   it 'rejects messages without a log key' do

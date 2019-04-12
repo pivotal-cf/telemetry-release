@@ -6,7 +6,12 @@ module Fluent::Plugin
 
     def filter(tag, time, record)
       if log_line = record["log"]
-        LogTelemetryMessageExtractor.new(log_line).extract_message
+        begin
+          LogTelemetryMessageExtractor.new(log_line).extract_message
+        rescue => e
+          log.info e
+          nil
+        end
       end
     end
   end
@@ -30,10 +35,11 @@ module Fluent::Plugin
       return unless (object_end_index = @scanner.find_end_of_json_obj(match[:escaped]))
 
       begin
-      potential_message = @log_line[object_start_index, object_end_index - object_start_index]
-      potential_message = JSON.parse("\"#{potential_message}\"") if match[:escaped]
-      JSON.parse(potential_message)
-      rescue
+        potential_message = @log_line[object_start_index, object_end_index - object_start_index]
+        potential_message = JSON.parse("\"#{potential_message}\"") if match[:escaped]
+        JSON.parse(potential_message)
+      rescue => e
+        raise StandardError.new("Failed parsing potential message <#{potential_message}> from event <#{@log_line}>. Cause: #{e.inspect}")
       end
     end
 
