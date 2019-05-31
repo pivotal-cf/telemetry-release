@@ -68,7 +68,7 @@ jobs:
         name: telemetry-components-bosh-director
 - name: deploy-telemetry-components-acceptance
   plan:
-  - aggregate:
+  - in_parallel:
     - get: bbl-state
       passed: [bbl-up]
     - get: xenial-stemcell
@@ -94,7 +94,7 @@ jobs:
         - xenial-stemcell/*.tgz
 - name: test-acceptance-sends-to-centralizer
   plan:
-  - aggregate:
+  - in_parallel:
     - get: bbl-state
     - get: telemetry-components-release
       passed: [deploy-telemetry-components-acceptance]
