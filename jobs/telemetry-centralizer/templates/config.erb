@@ -18,6 +18,26 @@
 
 ## match all and dump to console
 <match **>
-  @type stdout
-  @id stdout_output
+  @type copy
+  <store>
+    @type stdout
+    @id stdout_output
+  </store>
+
+  <store>
+    @type exec
+
+    command curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <
+    <format>
+      @type json
+    </format>
+
+    <buffer>
+      @type file
+      path /var/vcap/data/telemetry-centralizer/tmp/output-buffer
+#     flush_interval 3600s
+      flush_interval 10s
+      chunk_limit_size 100KB
+    </buffer>
+  </store>
 </match>

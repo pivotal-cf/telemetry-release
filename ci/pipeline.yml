@@ -92,6 +92,8 @@ jobs:
         - bpm-release/*.tgz
       stemcells:
         - xenial-stemcell/*.tgz
+      vars:
+        loader_api_key: ((acceptance-loader-api-key))
 - name: test-acceptance-sends-to-centralizer
   plan:
   - in_parallel:

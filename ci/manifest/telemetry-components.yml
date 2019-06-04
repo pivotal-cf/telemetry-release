@@ -53,6 +53,9 @@ instance_groups:
     - name: telemetry-centralizer-address
       type: address
     properties:
+      telemetry:
+        endpoint: https://aqueduct-loader-staging.cfapps.io/components
+        api_key: ((loader_api_key))
       tls:
         ca_cert: ((telemetry-ca-cert.certificate))
         cert: ((telemetry-centralizer-cert.certificate))
