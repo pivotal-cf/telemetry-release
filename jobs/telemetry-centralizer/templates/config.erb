@@ -35,8 +35,7 @@
     <buffer>
       @type file
       path /var/vcap/data/telemetry-centralizer/tmp/output-buffer
-#     flush_interval 3600s
-      flush_interval 10s
+      flush_interval <%= p('flush_interval') %>s
       chunk_limit_size 100KB
     </buffer>
   </store>

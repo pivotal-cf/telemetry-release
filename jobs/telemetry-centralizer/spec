@@ -26,6 +26,9 @@ properties:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.endpoint:
     description: HTTP endpoint to send telemetry batches to
+  flush_interval:
+    default: 3600
+    description: Time in seconds for the Centralizer to forward a telemetry batch
   port:
     default: 24224
     description: Port to listen on for fluent forward protocol
