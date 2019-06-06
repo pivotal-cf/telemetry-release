@@ -16,6 +16,14 @@
   @type telemetry
 </filter>
 
+## add telemetry centralizer version
+<filter **>
+  @type record_transformer
+  <record>
+    telemetry-centralizer-version "0.0.1"
+  </record>
+</filter>
+
 ## match all and dump to console
 <match **>
   @type copy
