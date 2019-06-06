@@ -66,6 +66,12 @@ jobs:
       params:
         command: up
         name: telemetry-components-bosh-director
+- name: run-centralizer-unit-tests
+  plan:
+    - get: telemetry-components-release
+      trigger: true
+    - task: run-centralizer-unit-tests
+      file: telemetry-components-release/ci/tasks/run-centralizer-unit-tests.yml
 - name: deploy-telemetry-components-acceptance
   plan:
   - in_parallel:
@@ -80,6 +86,7 @@ jobs:
     - get: manifest
       trigger: true
     - get: telemetry-components-release
+      passed: [run-centralizer-unit-tests]
       trigger: true
   - task: create-release
     file: telemetry-components-release/ci/tasks/create-release.yml

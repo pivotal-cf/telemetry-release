@@ -1,0 +1,14 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ruby
+    tag: latest
+
+inputs:
+  - name: telemetry-components-release
+
+run:
+  path: telemetry-components-release/ci/tasks/run-centralizer-unit-tests.sh
