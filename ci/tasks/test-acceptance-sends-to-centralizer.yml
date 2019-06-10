@@ -15,3 +15,12 @@ inputs:
 
 run:
   path: telemetry-components-release/ci/tasks/test-acceptance-sends-to-centralizer.sh
+
+params:
+  CF_API:
+  CF_ORG:
+  CF_SPACE:
+  CF_USERNAME:
+  CF_PASSWORD:
+  APP_NAME:
+  COMPONENTS_BOSH_DEPLOYMENT:

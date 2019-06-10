@@ -23,6 +23,14 @@ resources:
     repository: bosh-bootloader
     release: true
     access_token: ((telemetry-components-github-access-token))
+- name: testing-loader-app
+  type: cf
+  source:
+    api: ((cf-api-url))
+    username: ((cf-username))
+    password: ((cf-password))
+    organization: ((cf-org))
+    space: staging
 - name: bbl-state
   type: bbl-state-resource
   source:
@@ -118,5 +126,16 @@ jobs:
       params:
         globs:
           - bbl-v*_linux_x86-64
+  - put: testing-loader-app
+    params:
+      manifest: telemetry-components-release/src/acceptance_tests/telemetry_receiver/manifest.yml
   - task: test-acceptance-sends-to-centralizer
     file: telemetry-components-release/ci/tasks/test-acceptance-sends-to-centralizer.yml
+    params:
+      CF_API: ((cf-api-url))
+      CF_ORG: ((cf-org))
+      CF_SPACE: staging
+      CF_USERNAME: ((cf-username))
+      CF_PASSWORD: ((cf-password))
+      APP_NAME: telemetry-components-acceptance-loader
+      COMPONENTS_BOSH_DEPLOYMENT: telemetry-components-acceptance

@@ -1,0 +1,4 @@
+---
+applications:
+  - name: telemetry-components-acceptance-loader
+    path: .
