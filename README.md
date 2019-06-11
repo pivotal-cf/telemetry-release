@@ -50,11 +50,6 @@ D) Message is embedded in a text log message
 Tue 14-Mar-2019 [Thread-14] com.java.SomeClassThatLogs myhostname {"telemetry-source": "my-component", "data": {"create-instance": { "cluster-size": 42, "cool-feature-enabled": true }}} maybe some junk here
 ```
 
-**Expected centralizer stdout logfile output:**
-```
-2019-04-12 16:05:12.624003617 +0000 tail.0: {"telemetry-source": "my-component", "data": {"create-instance": { "cluster-size": 42, "cool-feature-enabled": true }}}
-```
-
 ## Requirements
 - The telemetry-agent must be colocated in the same instance group as your job
 - Your job must either be owned by vcap or run with bpm for the agent to be able to scrape your log files
