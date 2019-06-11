@@ -1,4 +1,7 @@
 header = "Authorization: Bearer <%= p('telemetry.api_key') %>"
+header = "Telemetry-Env-Type: <%= p('telemetry.env_type') %>"
+header = "Telemetry-IaaS-Type: <%= p('telemetry.iaas_type') %>"
+header = "Telemetry-Foundation-ID: <%= p('telemetry.foundation_id') %>"
 request = "POST"
 data = "@-"
 url = "<%= p('telemetry.endpoint') %>"

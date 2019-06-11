@@ -56,6 +56,9 @@ EOF
     sent_http_request = extract_json_from_log_line_matching(logged_messages, line_match_regex)
     expect(sent_http_request["body"]).to eq(expected_telemetry_message)
     expect(sent_http_request["headers"]["authorization"]).to include(match(/Bearer \w+/))
+    expect(sent_http_request["headers"]["env_type"]).to include("development")
+    expect(sent_http_request["headers"]["iaas_type"]).to include("some-iaas")
+    expect(sent_http_request["headers"]["foundation_id"]).to include("some-id")
   end
 
   it "tests that logs not matching the expected structure are filtered out by the centralizer" do

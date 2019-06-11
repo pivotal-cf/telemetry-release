@@ -54,9 +54,12 @@ instance_groups:
       type: address
     properties:
       telemetry:
-        endpoint: ((loader_endpoint))
-        api_key: ((loader_api_key))
-      flush_interval: ((centralizer_flush_interval))
+        endpoint: ((acceptance-loader-endpoint))
+        api_key: ((acceptance-loader-api-key))
+        env_type: ((acceptance-env-type))
+        iaas_type: ((acceptance-iaas-type))
+        foundation_id: ((acceptance-foundation-id))
+      flush_interval: ((acceptance-centralizer-flush-interval))
       tls:
         ca_cert: ((telemetry-ca-cert.certificate))
         cert: ((telemetry-centralizer-cert.certificate))

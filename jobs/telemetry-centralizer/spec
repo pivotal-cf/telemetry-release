@@ -26,6 +26,12 @@ properties:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.endpoint:
     description: HTTP endpoint to send telemetry batches to
+  telemetry.env_type:
+    description: The environment type of the foundation
+  telemetry.iaas_type:
+    description: The IaaS type of the foundation
+  telemetry.foundation_id:
+    description: The unique ID of the foundation
   flush_interval:
     default: 3600
     description: Time in seconds for the Centralizer to forward a telemetry batch
