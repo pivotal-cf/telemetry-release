@@ -109,8 +109,8 @@ jobs:
         - xenial-stemcell/*.tgz
       vars:
         loader_api_key: ((acceptance-loader-api-key))
-        loader_endpoint: ((loader-endpoint))
-        centralizer_flush_interval: ((centralizer-flush-interval))
+        loader_endpoint: ((acceptance-loader-endpoint))
+        centralizer_flush_interval: ((acceptance-centralizer-flush-interval))
 - name: test-acceptance-sends-to-centralizer
   plan:
   - in_parallel:
