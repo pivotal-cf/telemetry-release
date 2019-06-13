@@ -20,7 +20,7 @@ describe 'Agent to centralizer communication' do
   end
 
   def extract_json_from_log_line_matching(messages, regex)
-    message = messages.find { |message| message =~ regex }
+    message = messages.find {|message| message =~ regex}
     json_extract_regex = /({.*})\s*$/
     json_part = json_extract_regex.match(message)[1]
     JSON.parse(json_part)
@@ -47,18 +47,18 @@ EOF
       },
       "telemetry-source" => "my-origin",
       "telemetry-agent-version" => "0.0.1",
-      "telemetry-centralizer-version" => "0.0.1"
+      "telemetry-centralizer-version" => "0.0.1",
+      "telemetry-env-type" => ENV["EXPECTED_ENV_TYPE"],
+      "telemetry-iaas-type" => ENV["EXPECTED_IAAS_TYPE"],
+      "telemetry-foundation-id" => ENV["EXPECTED_FOUNDATION_ID"],
     }
 
     logged_messages = fetch_loader_logs
     line_match_regex = /#{time_value}/
-    expect(logged_messages).to include(an_object_satisfying { |message| message =~ line_match_regex })
+    expect(logged_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
     sent_http_request = extract_json_from_log_line_matching(logged_messages, line_match_regex)
     expect(sent_http_request["body"]).to eq(expected_telemetry_message)
     expect(sent_http_request["headers"]["authorization"]).to include(match(/Bearer \w+/))
-    expect(sent_http_request["headers"]["telemetry-env-type"]).to include("development")
-    expect(sent_http_request["headers"]["telemetry-iaas-type"]).to include("some-iaas")
-    expect(sent_http_request["headers"]["telemetry-foundation-id"]).to include("some-id")
   end
 
   it "tests that logs not matching the expected structure are filtered out by the centralizer" do
@@ -72,6 +72,6 @@ EOF
 
     logged_messages = get_centralizer_logs
     line_match_regex = /#{time_value}/
-    expect(logged_messages).not_to include(an_object_satisfying { |message| message =~ line_match_regex })
+    expect(logged_messages).not_to include(an_object_satisfying {|message| message =~ line_match_regex})
   end
 end

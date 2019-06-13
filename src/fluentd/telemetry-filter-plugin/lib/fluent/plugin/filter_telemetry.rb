@@ -18,7 +18,6 @@ module Fluent::Plugin
     end
   end
 
-
   class LogTelemetryMessageExtractor
     QUOTED_TOKEN = '"telemetry-source"'
     ESCAPED_QUOTED_TOKEN = '\"telemetry-source\"'

@@ -144,3 +144,6 @@ jobs:
       CF_PASSWORD: ((cf-password))
       APP_NAME: telemetry-components-acceptance-loader
       COMPONENTS_BOSH_DEPLOYMENT: telemetry-components-acceptance
+      EXPECTED_ENV_TYPE: ((acceptance-env-type))
+      EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
+      EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
