@@ -46,10 +46,15 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry-incubator/bpm-release
-- name: telemetry-components-deployment
+- name: telemetry-components-acceptance-deployment
   type: bosh-deployment
   source:
-    deployment: telemetry-components-acceptance
+    deployment: ((acceptance-deployment-name))
+    skip_check: true
+- name: telemetry-components-staging-deployment
+  type: bosh-deployment
+  source:
+    deployment: ((staging-deployment-name))
     skip_check: true
 - name: manifest
   type: git
@@ -98,7 +103,7 @@ jobs:
       trigger: true
   - task: create-release
     file: telemetry-components-release/ci/tasks/create-release.yml
-  - put: telemetry-components-deployment
+  - put: telemetry-components-acceptance-deployment
     params:
       manifest: manifest/ci/manifest/telemetry-components.yml
       source_file: bbl-state/bdr-source-file
@@ -108,6 +113,7 @@ jobs:
       stemcells:
         - xenial-stemcell/*.tgz
       vars:
+        deployment_name: ((acceptance-deployment-name))
         loader_api_key: ((acceptance-loader-api-key))
         loader_endpoint: ((acceptance-loader-endpoint))
         env_type: ((acceptance-env-type))
@@ -147,3 +153,38 @@ jobs:
       EXPECTED_ENV_TYPE: ((acceptance-env-type))
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
       EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
+- name: deploy-telemetry-components-staging
+  plan:
+  - in_parallel:
+      - get: bbl-state
+        passed: [bbl-up]
+      - get: xenial-stemcell
+      - get: bpm-release
+      - get: bosh-cli-github-release
+        params:
+          globs:
+            - bosh-cli-*-linux-amd64
+      - get: manifest
+        trigger: true
+      - get: telemetry-components-release
+        passed: [test-acceptance-sends-to-centralizer]
+        trigger: true
+  - task: create-release
+    file: telemetry-components-release/ci/tasks/create-release.yml
+  - put: telemetry-components-staging-deployment
+    params:
+      manifest: manifest/ci/manifest/telemetry-components.yml
+      source_file: bbl-state/bdr-source-file
+      releases:
+        - release-tarball/*.tgz
+        - bpm-release/*.tgz
+      stemcells:
+        - xenial-stemcell/*.tgz
+      vars:
+        deployment_name: ((staging-deployment-name))
+        loader_api_key: ((staging-loader-api-key))
+        loader_endpoint: ((staging-loader-endpoint))
+        env_type: ((staging-env-type))
+        iaas_type: ((staging-iaas-type))
+        foundation_id: ((staging-foundation-id))
+        flush_interval: ((staging-centralizer-flush-interval))

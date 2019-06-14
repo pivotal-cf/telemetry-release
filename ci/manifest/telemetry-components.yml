@@ -1,4 +1,4 @@
-name: telemetry-components-acceptance
+name: ((deployment_name))
 releases:
 - name: telemetry-components
   version: latest

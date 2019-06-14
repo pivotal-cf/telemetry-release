@@ -1,4 +1,5 @@
 header = "Authorization: Bearer <%= p('telemetry.api_key') %>"
+header = "Content-Type: application/x-telemetry-json-batch"
 request = "POST"
 data = "@-"
 url = "<%= p('telemetry.endpoint') %>"
