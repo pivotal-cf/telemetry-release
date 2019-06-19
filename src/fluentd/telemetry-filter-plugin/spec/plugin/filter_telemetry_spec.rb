@@ -28,45 +28,45 @@ describe 'Filters telemetry messages' do
   it 'returns telemetry messages with the agent version merged in' do
     records = filter({"agent-version" => "0.0.1", "log" => '{ "telemetry-source": "my-origin", "data": {"app": "da\"ta", "counter": 42, "array": [ {"cool":"value"} ]}}'})
 
-    expect(records).to(eq([{ "telemetry-agent-version" => "0.0.1", "data" => {"app" => 'da"ta', "counter" => 42, "array" => [{"cool" => "value"}]}, "telemetry-source" => "my-origin"}]))
+    expect(records).to(eq([{ "agent-version" => "0.0.1", "data" => {"app" => 'da"ta', "counter" => 42, "array" => [{"cool" => "value"}]}, "telemetry-source" => "my-origin"}]))
   end
 
   it 'returns telemetry messages when the telemetry message has object chars in the keys or values after the telemetry-source key' do
     records = filter({"agent-version" => "0.0.1", "log" => '{ "telemetry-source": "my-{origin", "data": {"}app": "d}ata"}} maybe some junk here'})
-    expect(records).to(eq([{ "telemetry-agent-version" => "0.0.1", "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
+    expect(records).to(eq([{ "agent-version" => "0.0.1", "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
   end
 
   it 'returns telemetry messages when the telemetry message has object chars in the keys or values before the telemetry-source key' do
     records = filter({"agent-version" => "0.0.1", "log" => '{ "data": {"}app": "d}ata"}, "telemetry-source": "my-{origin"} maybe some junk here'})
-    expect(records).to(eq([{ "telemetry-agent-version" => "0.0.1", "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
+    expect(records).to(eq([{ "agent-version" => "0.0.1", "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
   end
 
   context 'when telemetry messages appears as a JSON object embedded in other log lines' do
     it 'returns messages when nested in another JSON object' do
       records = filter({"agent-version" => "0.0.1", "log" => '{ "time": 12341234123412, "level": "info", "message": "whatever", "data": { "something": "else", "telemetry-thing": { "telemetry-source": "my-origin", "data": {"app": "da\"ta", "counter": 42, "array": [ {"cool":"value"} ]}}, "more": "otherthings"}'})
-      expect(records).to(eq([{ "telemetry-agent-version" => "0.0.1", "data" => {"app" => 'da"ta', "counter" => 42, "array" => [ { "cool" => "value" }]}, "telemetry-source" => "my-origin"}]))
+      expect(records).to(eq([{ "agent-version" => "0.0.1", "data" => {"app" => 'da"ta', "counter" => 42, "array" => [ { "cool" => "value" }]}, "telemetry-source" => "my-origin"}]))
     end
 
     it 'returns messages embedded in an arbitrary string' do
       records = filter({"agent-version" => "0.0.1", "log" => 'Tue 14-Mar-2019 [Thread-14] com.java.SillyClass myhostname { "telemetry-source": "my-origin", "data": {"app": "data"}} maybe some junk here'})
-      expect(records).to(eq([{ "telemetry-agent-version" => "0.0.1", "data" => {"app" => "data"}, "telemetry-source" => "my-origin"}]))
+      expect(records).to(eq([{ "agent-version" => "0.0.1", "data" => {"app" => "data"}, "telemetry-source" => "my-origin"}]))
     end
   end
 
   context 'when telemetry messages are embedded as escaped json strings' do
     it 'returns messages' do
       records = filter({"agent-version" => "0.0.1", "log" => '{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\\\"ta\", \"counter\": 42}, \"telemetry-source\": \"my-origin\"}" }'})
-      expect(records).to(eq([{ "telemetry-agent-version" => "0.0.1", "data" => {"app" => 'da"ta', "counter" => 42}, "telemetry-source" => "my-origin"}]))
+      expect(records).to(eq([{ "agent-version" => "0.0.1", "data" => {"app" => 'da"ta', "counter" => 42}, "telemetry-source" => "my-origin"}]))
     end
 
     it 'returns messages that have object chars in the keys or values after the telemetry-source key' do
       records = filter({"agent-version" => "0.0.1", "log" => '{ \"telemetry-source\": \"my-{origin\", \"data\": {\"}app\": \"d}ata\"}} maybe some junk here'})
-      expect(records).to(eq([{ "telemetry-agent-version" => "0.0.1", "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
+      expect(records).to(eq([{ "agent-version" => "0.0.1", "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
     end
 
     it 'returns messages that have object chars in the keys or values after the telemetry-source key' do
       records = filter({"agent-version" => "0.0.1", "log" => '{ \"data\": {\"}app\": \"d}ata\"}, \"telemetry-source\": \"my-{origin\"} maybe some junk here'})
-      expect(records).to(eq([{ "telemetry-agent-version" => "0.0.1", "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
+      expect(records).to(eq([{ "agent-version" => "0.0.1", "data" => {"}app" => "d}ata"}, "telemetry-source" => "my-{origin"}]))
     end
   end
 

@@ -7,7 +7,7 @@ module Fluent::Plugin
     def filter(tag, time, record)
       if log_line = record["log"]
         version_info = {}
-        version_info["telemetry-agent-version"] = record["agent-version"] if record["agent-version"]
+        version_info["agent-version"] = record["agent-version"] if record["agent-version"]
         begin
           LogTelemetryMessageExtractor.new(log_line).extract_message.merge(version_info)
         rescue => e
