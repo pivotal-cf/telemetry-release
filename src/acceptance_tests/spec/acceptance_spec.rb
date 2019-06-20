@@ -46,11 +46,11 @@ EOF
         "counter" => time_value.to_s
       },
       "telemetry-source" => "my-origin",
-      "agent-version" => "0.0.1",
-      "centralizer-version" => "0.0.1",
-      "env-type" => ENV["EXPECTED_ENV_TYPE"],
-      "iaas-type" => ENV["EXPECTED_IAAS_TYPE"],
-      "foundation-id" => ENV["EXPECTED_FOUNDATION_ID"],
+      "telemetry-agent-version" => "0.0.1",
+      "telemetry-centralizer-version" => "0.0.1",
+      "telemetry-env-type" => ENV["EXPECTED_ENV_TYPE"],
+      "telemetry-iaas-type" => ENV["EXPECTED_IAAS_TYPE"],
+      "telemetry-foundation-id" => ENV["EXPECTED_FOUNDATION_ID"],
     }
 
     logged_messages = fetch_loader_logs
