@@ -34,22 +34,22 @@ Let's say your source is `my-component` and you want to log a message type `crea
 
 A) Message is exactly the telemetry message
 ```
-{ "telemetry-source": "my-component","create-instance": { "cluster-size": 42, "cool-feature-enabled": true }}
+{ "telemetry-source": "my-component","telemetry-time": "2009-11-10T23:00:00Z", create-instance": { "cluster-size": 42, "cool-feature-enabled": true }}
 ```
 
 B) Message is embedded as a string value in a JSON object log message
 ```
-{ "time": 12341234123412, "level": "info", "message": "{\"create-instance\": { \"cluster-size\": 42, \"cool-feature-enabled\": true}, \"telemetry-source\": \"my-component\"}"}
+{ "time": 12341234123412, "level": "info", "message": "{\"create-instance\": { \"cluster-size\": 42, \"cool-feature-enabled\": true}, \"telemetry-source\": \"my-component\", \"telemetry-time\": \"2009-11-10T23:00:00Z\"}"}
 ```
 
 C) Message is embedded as a JSON object within another JSON object log message
 ```
-{ "time": 12341234123412, "level": "info", "message": "whatever", "data": { "something": "else", "telemetry-thing": { "telemetry-source": "my-component", "create-instance": { "cluster-size": 42, "cool-feature-enabled": true } }, "more": "otherthings"} }
+{ "time": 12341234123412, "level": "info", "message": "whatever", "data": { "something": "else", "telemetry-thing": { "telemetry-source": "my-component", "telemetry-time": "2009-11-10T23:00:00Z", "create-instance": { "cluster-size": 42, "cool-feature-enabled": true } }, "more": "otherthings"} }
 ```
 
 D) Message is embedded in a text log message
 ```
-Tue 14-Mar-2019 [Thread-14] com.java.SomeClassThatLogs myhostname {"telemetry-source": "my-component", "create-instance": { "cluster-size": 42, "cool-feature-enabled": true }} maybe some junk here
+Tue 14-Mar-2019 [Thread-14] com.java.SomeClassThatLogs myhostname {"telemetry-source": "my-component", "telemetry-time": "2009-11-10T23:00:00Z", "create-instance": { "cluster-size": 42, "cool-feature-enabled": true }} maybe some junk here
 ```
 
 ## Recommendations for telemetry messages
