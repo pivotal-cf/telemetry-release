@@ -1,5 +1,6 @@
 require 'rspec'
 require 'json'
+require 'net/http'
 
 describe 'Agent to centralizer communication' do
   def insert_agent_log(message)
@@ -13,13 +14,20 @@ describe 'Agent to centralizer communication' do
     return logs.split("\n")
   end
 
-  def fetch_loader_logs
-    logs = `#{ENV["CF_CLI"]} logs #{ENV["APP_NAME"]} --recent`
-    expect($?).to(be_success)
-    return logs.split("\n")
+  def fetch_messages
+    uri = URI(ENV["LOADER_URL"])
+    client = Net::HTTP.new(uri.hostname, uri.port)
+    client.use_ssl = true
+    res = client.get("/received_messages", {'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
+    expect(res.code).to eq("200")
+    messages = JSON.parse(res.body)
+
+    res = client.post("/clear_messages", nil,{'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
+    expect(res.code).to eq("200")
+    return messages
   end
 
-  def extract_json_from_log_line_matching(messages, regex)
+  def extract_json_from_message_line_matching(messages, regex)
     message = messages.find {|message| message =~ regex}
     json_extract_regex = /({.*})\s*$/
     json_part = json_extract_regex.match(message)[1]
@@ -28,14 +36,13 @@ describe 'Agent to centralizer communication' do
 
   before do
     fail("Need BOSH_CLI set to execute BOSH commands") unless ENV["BOSH_CLI"]
-    fail("Need CF_CLI set to execute CF commands") unless ENV["CF_CLI"]
   end
 
-  it "sends logs matching 'telemetry-source' to the centralizer, adding agent and centralizer versions to the message" do
+  it "sends logs matching 'telemetry-source' to the centralizer which sends to a loader, adding agent and centralizer versions to the message" do
     time_value = Time.now.tv_sec
     message_format = <<-'EOF'
 { "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"%s\"}, \"telemetry-source\": \"my-origin\"}
-EOF
+    EOF
     insert_agent_log(sprintf(message_format, time_value))
 
     sleep 15 # wait for flush from centralizer to loader
@@ -53,10 +60,10 @@ EOF
       "telemetry-foundation-id" => ENV["EXPECTED_FOUNDATION_ID"],
     }
 
-    logged_messages = fetch_loader_logs
+    received_messages = fetch_messages
     line_match_regex = /#{time_value}/
-    expect(logged_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
-    sent_http_request = extract_json_from_log_line_matching(logged_messages, line_match_regex)
+    expect(received_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
+    sent_http_request = extract_json_from_message_line_matching(received_messages, line_match_regex)
     expect(sent_http_request["body"]).to eq(expected_telemetry_message)
     expect(sent_http_request["headers"]["authorization"]).to include(match(/Bearer \w+/))
   end
@@ -65,7 +72,7 @@ EOF
     time_value = Time.now.tv_sec
     message_format = <<-'EOF'
 NOT a telemetry-source msg
-EOF
+    EOF
     insert_agent_log(sprintf(message_format, time_value))
 
     sleep 5

@@ -115,7 +115,7 @@ jobs:
       vars:
         deployment_name: ((acceptance-deployment-name))
         loader_api_key: ((acceptance-loader-api-key))
-        loader_endpoint: ((acceptance-loader-endpoint))
+        loader_endpoint: "((acceptance-loader-endpoint))/components"
         env_type: ((acceptance-env-type))
         iaas_type: ((acceptance-iaas-type))
         foundation_id: ((acceptance-foundation-id))
@@ -139,16 +139,13 @@ jobs:
     params:
       manifest: telemetry-components-release/src/acceptance_tests/telemetry_receiver/manifest.yml
       environment_variables:
-        expected_api_key: ((acceptance-loader-api-key))
+        VALID_API_KEYS: ((acceptance-loader-api-keys))
+        MESSAGE_LIMIT: 50
   - task: test-acceptance-sends-to-centralizer
     file: telemetry-components-release/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:
-      CF_API: ((cf-api-url))
-      CF_ORG: ((cf-org))
-      CF_SPACE: staging
-      CF_USERNAME: ((cf-username))
-      CF_PASSWORD: ((cf-password))
-      APP_NAME: telemetry-components-acceptance-loader
+      LOADER_URL: ((acceptance-loader-endpoint))
+      LOADER_API_KEY: ((acceptance-loader-api-key))
       COMPONENTS_BOSH_DEPLOYMENT: telemetry-components-acceptance
       EXPECTED_ENV_TYPE: ((acceptance-env-type))
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
