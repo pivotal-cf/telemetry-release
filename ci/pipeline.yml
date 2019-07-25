@@ -140,7 +140,7 @@ jobs:
       manifest: telemetry-components-release/src/acceptance_tests/telemetry_receiver/manifest.yml
       environment_variables:
         VALID_API_KEYS: ((acceptance-loader-api-keys))
-        MESSAGE_LIMIT: 50
+        MESSAGE_LIMIT: "50"
   - task: test-acceptance-sends-to-centralizer
     file: telemetry-components-release/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:

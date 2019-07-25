@@ -3,6 +3,12 @@ require 'json'
 require 'net/http'
 
 describe 'Agent to centralizer communication' do
+  let(:client) {
+    uri = URI(ENV["LOADER_URL"])
+    client = Net::HTTP.new(uri.hostname, uri.port)
+    client.use_ssl = true
+    client
+  }
   def insert_agent_log(message)
     `#{ENV["BOSH_CLI"]} -d #{ENV["COMPONENTS_BOSH_DEPLOYMENT"]} ssh telemetry-agent -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
     expect($?).to(be_success)
@@ -15,16 +21,9 @@ describe 'Agent to centralizer communication' do
   end
 
   def fetch_messages
-    uri = URI(ENV["LOADER_URL"])
-    client = Net::HTTP.new(uri.hostname, uri.port)
-    client.use_ssl = true
     res = client.get("/received_messages", {'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
     expect(res.code).to eq("200")
-    messages = JSON.parse(res.body)
-
-    res = client.post("/clear_messages", nil,{'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
-    expect(res.code).to eq("200")
-    return messages
+    JSON.parse(res.body)
   end
 
   def extract_json_from_message_line_matching(messages, regex)
@@ -36,6 +35,9 @@ describe 'Agent to centralizer communication' do
 
   before do
     fail("Need BOSH_CLI set to execute BOSH commands") unless ENV["BOSH_CLI"]
+
+    res = client.post("/clear_messages", nil,{'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
+    expect(res.code).to eq("200")
   end
 
   it "sends logs matching 'telemetry-source' to the centralizer which sends to a loader, adding agent and centralizer versions to the message" do
@@ -61,11 +63,7 @@ describe 'Agent to centralizer communication' do
     }
 
     received_messages = fetch_messages
-    line_match_regex = /#{time_value}/
-    expect(received_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
-    sent_http_request = extract_json_from_message_line_matching(received_messages, line_match_regex)
-    expect(sent_http_request["body"]).to eq(expected_telemetry_message)
-    expect(sent_http_request["headers"]["authorization"]).to include(match(/Bearer \w+/))
+    expect(received_messages).to include(expected_telemetry_message)
   end
 
   it "tests that logs not matching the expected structure are filtered out by the centralizer" do
