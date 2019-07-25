@@ -11,12 +11,13 @@ import (
 	"os/exec"
 	"strconv"
 
+	. "telemetry_receiver"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	. "telemetry_receiver"
 )
 
 var (
@@ -223,6 +224,15 @@ var _ = Describe("Main", func() {
 		)
 		Eventually(errorSession).Should(gexec.Exit(1))
 		Expect(errorSession.Out).To(gbytes.Say(fmt.Sprintf(FailedUnmarshalErrorFormat, ApiKeysEnvVar)))
+	})
+
+	It("when the message limit cannot be converted to an int, it exits nonzero", func() {
+		errorSession := startServer(
+			binaryPath, "2020", map[string]string{MessageLimitEnvVar: "{}"},
+		)
+		Eventually(errorSession).Should(gexec.Exit(1))
+		Expect(errorSession.Out).To(gbytes.Say(InvalidMessageLimitError))
+		Expect(errorSession.Out).To(gbytes.Say(`parsing "{}"`))
 	})
 
 	DescribeTable("fails to start when required configuration is missing",

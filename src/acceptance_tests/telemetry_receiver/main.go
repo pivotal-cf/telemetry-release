@@ -21,6 +21,7 @@ const (
 
 	RequiredEnvVarNotSetErrorFormat = "%s environment variable not set"
 	FailedUnmarshalErrorFormat      = "%s failed to json unmarshal"
+	InvalidMessageLimitError        = "message limit configuration invalid"
 )
 
 var (
@@ -142,7 +143,7 @@ func validateEnvConfigured() error {
 
 	messageLimit, err = strconv.Atoi(os.Getenv(MessageLimitEnvVar))
 	if err != nil {
-		panic("HALP")
+		return errors.Wrap(err, InvalidMessageLimitError)
 	}
 
 	return nil

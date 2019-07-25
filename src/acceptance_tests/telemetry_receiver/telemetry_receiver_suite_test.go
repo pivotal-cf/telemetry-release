@@ -13,7 +13,6 @@ func TestTelemetryReceiver(t *testing.T) {
 	RunSpecs(t, "Main Suite")
 }
 
-
 var binaryPath string
 
 var _ = BeforeSuite(func() {
