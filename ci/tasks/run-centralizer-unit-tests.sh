@@ -2,5 +2,5 @@
 
 set -euo pipefail
 
-cd telemetry-components-release/src/fluentd/telemetry-filter-plugin
+cd telemetry-release/src/fluentd/telemetry-filter-plugin
 bundle && rspec .

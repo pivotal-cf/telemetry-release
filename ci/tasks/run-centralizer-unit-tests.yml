@@ -8,7 +8,7 @@ image_resource:
     tag: latest
 
 inputs:
-  - name: telemetry-components-release
+  - name: telemetry-release
 
 run:
-  path: telemetry-components-release/ci/tasks/run-centralizer-unit-tests.sh
+  path: telemetry-release/ci/tasks/run-centralizer-unit-tests.sh

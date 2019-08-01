@@ -8,11 +8,11 @@ image_resource:
     tag: latest
 
 inputs:
-- name: telemetry-components-release
+- name: telemetry-release
 - name: bosh-cli-github-release
 
 outputs:
 - name: release-tarball
 
 run:
-  path: telemetry-components-release/ci/tasks/create-release.sh
+  path: telemetry-release/ci/tasks/create-release.sh

@@ -11,10 +11,10 @@ inputs:
   - name: bbl-state
   - name: bosh-cli-github-release
   - name: bbl-cli-github-release
-  - name: telemetry-components-release
+  - name: telemetry-release
 
 run:
-  path: telemetry-components-release/ci/tasks/test-acceptance-sends-to-centralizer.sh
+  path: telemetry-release/ci/tasks/test-acceptance-sends-to-centralizer.sh
 
 params:
   LOADER_URL:

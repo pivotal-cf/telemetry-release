@@ -15,6 +15,6 @@ popd
 export BOSH_CLI=$(find "$PWD"/bosh-cli-github-release -name bosh-cli-*-linux-amd64)
 chmod 755 "$BOSH_CLI"
 
-cd telemetry-components-release/src/acceptance_tests
+cd telemetry-release/src/acceptance_tests
 bundle
 rspec spec

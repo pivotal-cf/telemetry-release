@@ -15,14 +15,14 @@ resources:
     owner: cloudfoundry
     repository: bosh-cli
     release: true
-    access_token: ((telemetry-components-github-access-token))
+    access_token: ((telemetry-release-github-access-token))
 - name: bbl-cli-github-release
   type: github-release
   source:
     owner: cloudfoundry
     repository: bosh-bootloader
     release: true
-    access_token: ((telemetry-components-github-access-token))
+    access_token: ((telemetry-release-github-access-token))
 - name: telemetry-receiver-app
   type: cf
   source:
@@ -37,7 +37,7 @@ resources:
     bucket: ((bbl-state-bucket))
     iaas: gcp
     gcp_region: us-central1
-    gcp_service_account_key: ((telemetry-components-gcp-service-account-key))
+    gcp_service_account_key: ((telemetry-release-gcp-service-account-key))
 - name: xenial-stemcell
   type: bosh-io-stemcell
   source:
@@ -46,12 +46,12 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry-incubator/bpm-release
-- name: telemetry-components-acceptance-deployment
+- name: telemetry-acceptance-deployment
   type: bosh-deployment
   source:
     deployment: ((acceptance-deployment-name))
     skip_check: true
-- name: telemetry-components-staging-deployment
+- name: telemetry-staging-deployment
   type: bosh-deployment
   source:
     deployment: ((staging-deployment-name))
@@ -60,25 +60,25 @@ resources:
   type: git
   source:
     branch: master
-    uri: git@github.com:pivotal-cf/telemetry-components-release
-    private_key: ((telemetry-components-git-deploy-private-key))
+    uri: git@github.com:pivotal-cf/telemetry-release
+    private_key: ((telemetry-release-git-deploy-private-key))
     paths:
-    - ci/manifest/telemetry-components.yml
-- name: telemetry-components-release
+    - ci/manifest/telemetry.yml
+- name: telemetry-release
   type: git
   source:
     branch: master
-    uri: git@github.com:pivotal-cf/telemetry-components-release
-    private_key: ((telemetry-components-git-deploy-private-key))
+    uri: git@github.com:pivotal-cf/telemetry-release
+    private_key: ((telemetry-release-git-deploy-private-key))
 - name: telemetry-receiver-source
   type: git
   source:
     branch: master
-    uri: git@github.com:pivotal-cf/telemetry-components-release
+    uri: git@github.com:pivotal-cf/telemetry-release
     paths:
     - src/acceptance_tests/telemetry_receiver
     - ci/tasks/run-telemetry-receiver-tests.*
-    private_key: ((telemetry-components-git-deploy-private-key))
+    private_key: ((telemetry-release-git-deploy-private-key))
 
 jobs:
 - name: bbl-up
@@ -87,14 +87,14 @@ jobs:
     - put: bbl-state
       params:
         command: up
-        name: telemetry-components-bosh-director
+        name: telemetry-bosh-director
 - name: run-centralizer-unit-tests
   plan:
-    - get: telemetry-components-release
+    - get: telemetry-release
       trigger: true
     - task: run-centralizer-unit-tests
-      file: telemetry-components-release/ci/tasks/run-centralizer-unit-tests.yml
-- name: deploy-telemetry-components-acceptance
+      file: telemetry-release/ci/tasks/run-centralizer-unit-tests.yml
+- name: deploy-telemetry-acceptance
   serial_groups: [acceptance]
   plan:
   - in_parallel:
@@ -108,14 +108,14 @@ jobs:
         - bosh-cli-*-linux-amd64
     - get: manifest
       trigger: true
-    - get: telemetry-components-release
+    - get: telemetry-release
       passed: [run-centralizer-unit-tests]
       trigger: true
   - task: create-release
-    file: telemetry-components-release/ci/tasks/create-release.yml
-  - put: telemetry-components-acceptance-deployment
+    file: telemetry-release/ci/tasks/create-release.yml
+  - put: telemetry-acceptance-deployment
     params:
-      manifest: manifest/ci/manifest/telemetry-components.yml
+      manifest: manifest/ci/manifest/telemetry.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -135,14 +135,14 @@ jobs:
   serial_groups: [telemetry-receiver]
   plan:
   - in_parallel:
-    - get: telemetry-components-release
+    - get: telemetry-release
       resource: telemetry-receiver-source
       trigger: true
   - task: test-telemetry-receiver
-    file: telemetry-components-release/ci/tasks/run-telemetry-receiver-tests.yml
+    file: telemetry-release/ci/tasks/run-telemetry-receiver-tests.yml
   - put: telemetry-receiver-app
     params:
-      manifest: telemetry-components-release/src/acceptance_tests/telemetry_receiver/manifest.yml
+      manifest: telemetry-release/src/acceptance_tests/telemetry_receiver/manifest.yml
       environment_variables:
         VALID_API_KEYS: ((acceptance-loader-api-keys))
         MESSAGE_LIMIT: "50"
@@ -152,8 +152,8 @@ jobs:
   plan:
   - in_parallel:
     - get: bbl-state
-    - get: telemetry-components-release
-      passed: [deploy-telemetry-components-acceptance]
+    - get: telemetry-release
+      passed: [deploy-telemetry-acceptance]
       trigger: true
     - get: bosh-cli-github-release
       params:
@@ -164,16 +164,16 @@ jobs:
         globs:
           - bbl-v*_linux_x86-64
   - task: test-acceptance-sends-to-centralizer
-    file: telemetry-components-release/ci/tasks/test-acceptance-sends-to-centralizer.yml
+    file: telemetry-release/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:
       LOADER_URL: ((acceptance-loader-url))
       LOADER_API_KEY: ((acceptance-loader-api-key))
-      COMPONENTS_BOSH_DEPLOYMENT: telemetry-components-acceptance
+      COMPONENTS_BOSH_DEPLOYMENT: telemetry-acceptance
       EXPECTED_ENV_TYPE: ((acceptance-env-type))
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
       EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
 
-- name: deploy-telemetry-components-staging
+- name: deploy-telemetry-staging
   plan:
   - in_parallel:
       - get: bbl-state
@@ -186,14 +186,14 @@ jobs:
             - bosh-cli-*-linux-amd64
       - get: manifest
         trigger: true
-      - get: telemetry-components-release
+      - get: telemetry-release
         passed: [test-acceptance-sends-to-centralizer]
         trigger: true
   - task: create-release
-    file: telemetry-components-release/ci/tasks/create-release.yml
-  - put: telemetry-components-staging-deployment
+    file: telemetry-release/ci/tasks/create-release.yml
+  - put: telemetry-staging-deployment
     params:
-      manifest: manifest/ci/manifest/telemetry-components.yml
+      manifest: manifest/ci/manifest/telemetry.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz

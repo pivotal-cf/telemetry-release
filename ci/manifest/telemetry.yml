@@ -1,6 +1,6 @@
 name: ((deployment_name))
 releases:
-- name: telemetry-components
+- name: telemetry
   version: latest
 - name: bpm
   version: latest
@@ -28,7 +28,7 @@ instance_groups:
   - name: bpm
     release: bpm
   - name: telemetry-agent
-    release: telemetry-components
+    release: telemetry
     properties:
       tls:
         cert: ((telemetry-agent-cert.certificate))
@@ -45,7 +45,7 @@ instance_groups:
   - name: bpm
     release: bpm
   - name: telemetry-centralizer
-    release: telemetry-components
+    release: telemetry
     provides:
       telemetry-centralizer-address:
         as: my-custom-telemetry-centralizer-address

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-cd telemetry-components-release/src/acceptance_tests/telemetry_receiver
+cd telemetry-release/src/acceptance_tests/telemetry_receiver
 
 go version
 

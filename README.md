@@ -1,4 +1,4 @@
-# Telemetry Components Release
+# Telemetry Release
 
 ## Overview
 The Telemetry System uses an agent job to scrape logs from co-located bosh jobs to find possible telemetry messages. The
@@ -67,4 +67,4 @@ These collisions could cause undefined behavior when your telemetry data is proc
 - Your job must either be owned by vcap or run with bpm for the agent to be able to scrape your log files
 
 ## How to Deploy
-See [example manifest](https://github.com/pivotal-cf/telemetry-components-release/blob/master/ci/manifest/telemetry-components.yml) for how we deploy the agent and centralizer in a standalone scenario.
+See [example manifest](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/telemetry.yml) for how we deploy the agent and centralizer in a standalone scenario.
