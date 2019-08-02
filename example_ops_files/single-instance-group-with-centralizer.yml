@@ -6,7 +6,7 @@
       tls:
         cert: ((telemetry-agent-cert.certificate))
         private_key: ((telemetry-agent-cert.private_key))
-    release: telemetry-release
+    release: telemetry
 
 - type: replace
   path: /instance_groups/name=compute/jobs/- #replace with instance group you would like to add telemetry to
@@ -28,7 +28,7 @@
       - name: bpm
         release: bpm
       - name: telemetry-centralizer
-        release: telemetry-release
+        release: telemetry
         provides:
           telemetry-centralizer-address:
             as: my-custom-telemetry-centralizer-address
@@ -73,7 +73,7 @@
 - type: replace
   path: /releases/-
   value:
-    name: telemetry-release
+    name: telemetry
     version: latest
 
 - type: replace
