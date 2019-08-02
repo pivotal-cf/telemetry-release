@@ -1,8 +1,4 @@
-fluent-bit/fluent-bit-1.0.1.tar.gz:
-  size: 11633563
-  object_id: 0c60b8c1-8d26-4f58-519f-dac3f7c55e1d
-  sha: c4f2de8effa1c530ed85cf9b7e7d2f99ff65497e
 fluent-bit/fluent-bit-1.0.5.tar.gz:
   size: 11640607
-  object_id: 71ac2b29-d0b0-4d2e-69e1-b4e6dc95c4a6
-  sha: 0cf109853e2333ac0a0b7321fd1b7e56f1bb5a21
+  object_id: a5698658-0d20-4820-427d-d324b1673780
+  sha: sha256:ec0ff0ade5e67ab2014825722ad8ace78c2e2fce40be78f3b61531e2f381ed39

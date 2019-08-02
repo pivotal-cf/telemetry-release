@@ -87,7 +87,7 @@ jobs:
     - put: bbl-state
       params:
         command: up
-        name: telemetry-bosh-director
+        name: telemetry-release-bosh-director
 - name: run-centralizer-unit-tests
   plan:
     - get: telemetry-release
