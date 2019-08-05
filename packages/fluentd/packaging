@@ -6,7 +6,8 @@ cd fluentd
 
 source /var/vcap/packages/ruby-2.4.6-r0.16.0/bosh/compile.env
 
-bosh_bundle_local
+cp -R Gemfile Gemfile.lock vendor "${BOSH_INSTALL_TARGET}"
+bosh_bundle_local --gemfile="${BOSH_INSTALL_TARGET}/Gemfile"
 bosh_generate_runtime_env
 
 mkdir -p ${BOSH_INSTALL_TARGET}/telemetry-filter-plugin

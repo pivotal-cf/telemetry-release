@@ -7,7 +7,8 @@ dependencies:
 files:
 - fluentd/**/*
 
-#HOW TO UPDATE: make sure to run bundle before:
+# HOW TO UPDATE:
+# bundle
 # BUNDLE_WITHOUT=development:test bundle package --all --all-platforms --no-install --path ./vendor/cache
 # rm -rf ./vendor/cache/ruby
 # rm -rf ./vendor/cache/vendor
