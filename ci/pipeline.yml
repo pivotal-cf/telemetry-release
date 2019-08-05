@@ -79,29 +79,56 @@ resources:
     - src/acceptance_tests/telemetry_receiver
     - ci/tasks/run-telemetry-receiver-tests.*
     private_key: ((telemetry-release-git-deploy-private-key))
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:pivotal-cf/telemetry-release
+    branch: version
+    file: VERSION
+    private_key: ((telemetry-release-git-deploy-private-key))
 
 jobs:
 - name: bbl-up
   plan:
-    - get: bbl-state
-    - put: bbl-state
-      params:
-        command: up
-        name: telemetry-release-bosh-director
+  - get: bbl-state
+  - put: bbl-state
+    params:
+      command: up
+      name: telemetry-release-bosh-director
 - name: run-centralizer-unit-tests
   plan:
+  - get: telemetry-release
+    trigger: true
+  - task: run-centralizer-unit-tests
+    file: telemetry-release/ci/tasks/run-centralizer-unit-tests.yml
+
+- name: deploy-telemetry-receiver-app
+  serial_groups: [telemetry-receiver]
+  plan:
+  - in_parallel:
     - get: telemetry-release
+      resource: telemetry-receiver-source
       trigger: true
-    - task: run-centralizer-unit-tests
-      file: telemetry-release/ci/tasks/run-centralizer-unit-tests.yml
+  - task: test-telemetry-receiver
+    file: telemetry-release/ci/tasks/run-telemetry-receiver-tests.yml
+  - put: telemetry-receiver-app
+    params:
+      manifest: telemetry-release/src/acceptance_tests/telemetry_receiver/manifest.yml
+      environment_variables:
+        VALID_API_KEYS: ((acceptance-loader-api-keys))
+        MESSAGE_LIMIT: "50"
+
 - name: deploy-telemetry-acceptance
-  serial_groups: [acceptance]
+  serial_groups: [acceptance, version]
   plan:
   - in_parallel:
     - get: bbl-state
       passed: [bbl-up]
     - get: xenial-stemcell
     - get: bpm-release
+    - get: version
+      params: {pre: build}
     - get: bosh-cli-github-release
       params:
         globs:
@@ -113,6 +140,8 @@ jobs:
       trigger: true
   - task: create-release
     file: telemetry-release/ci/tasks/create-release.yml
+  - put: version
+    params: {file: version/version}
   - put: telemetry-acceptance-deployment
     params:
       manifest: manifest/ci/manifest/telemetry.yml
@@ -131,22 +160,6 @@ jobs:
         foundation_id: ((acceptance-foundation-id))
         flush_interval: ((acceptance-centralizer-flush-interval))
 
-- name: deploy-telemetry-receiver-app
-  serial_groups: [telemetry-receiver]
-  plan:
-  - in_parallel:
-    - get: telemetry-release
-      resource: telemetry-receiver-source
-      trigger: true
-  - task: test-telemetry-receiver
-    file: telemetry-release/ci/tasks/run-telemetry-receiver-tests.yml
-  - put: telemetry-receiver-app
-    params:
-      manifest: telemetry-release/src/acceptance_tests/telemetry_receiver/manifest.yml
-      environment_variables:
-        VALID_API_KEYS: ((acceptance-loader-api-keys))
-        MESSAGE_LIMIT: "50"
-
 - name: test-acceptance-sends-to-centralizer
   serial_groups: [telemetry-receiver, acceptance]
   plan:
@@ -155,14 +168,16 @@ jobs:
     - get: telemetry-release
       passed: [deploy-telemetry-acceptance]
       trigger: true
+    - get: version
+      passed: [deploy-telemetry-acceptance]
     - get: bosh-cli-github-release
       params:
         globs:
-          - bosh-cli-*-linux-amd64
+        - bosh-cli-*-linux-amd64
     - get: bbl-cli-github-release
       params:
         globs:
-          - bbl-v*_linux_x86-64
+        - bbl-v*_linux_x86-64
   - task: test-acceptance-sends-to-centralizer
     file: telemetry-release/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:
@@ -176,19 +191,21 @@ jobs:
 - name: deploy-telemetry-staging
   plan:
   - in_parallel:
-      - get: bbl-state
-        passed: [bbl-up]
-      - get: xenial-stemcell
-      - get: bpm-release
-      - get: bosh-cli-github-release
-        params:
-          globs:
-            - bosh-cli-*-linux-amd64
-      - get: manifest
-        trigger: true
-      - get: telemetry-release
-        passed: [test-acceptance-sends-to-centralizer]
-        trigger: true
+    - get: bbl-state
+      passed: [bbl-up]
+    - get: xenial-stemcell
+    - get: bpm-release
+    - get: version
+      passed: [test-acceptance-sends-to-centralizer]
+    - get: bosh-cli-github-release
+      params:
+        globs:
+        - bosh-cli-*-linux-amd64
+    - get: manifest
+      trigger: true
+    - get: telemetry-release
+      passed: [test-acceptance-sends-to-centralizer]
+      trigger: true
   - task: create-release
     file: telemetry-release/ci/tasks/create-release.yml
   - put: telemetry-staging-deployment
@@ -208,3 +225,59 @@ jobs:
         iaas_type: ((staging-iaas-type))
         foundation_id: ((staging-foundation-id))
         flush_interval: ((staging-centralizer-flush-interval))
+
+- name: finalize-release
+  serial_groups: [version]
+  plan:
+  - in_parallel:
+    - get: version
+      params: {bump: final}
+      passed: [deploy-telemetry-staging]
+    - get: bosh-cli-github-release
+      params:
+        globs:
+        - bosh-cli-*-linux-amd64
+    - get: telemetry-release
+      passed: [deploy-telemetry-staging]
+  - task: create-final-release
+    file: telemetry-release/ci/tasks/create-final-release.yml
+    params:
+      GCS_SERVICE_ACCOUNT_KEY: ((gcs-service-account-key))
+  - put: telemetry-release
+    params:
+      repository: final-release-repo
+      tag: version/version
+
+- name: auto-patch
+  serial_groups: [version]
+  plan:
+  - get: version
+    passed: [finalize-release]
+    params: {bump: patch, pre: build}
+    trigger: true
+  - put: version
+    params: {file: version/version}
+
+- name: major
+  serial_groups: [version]
+  plan:
+  - get: version
+    params: {bump: major, pre: build}
+  - put: version
+    params: {file: version/version}
+
+- name: minor
+  serial_groups: [version]
+  plan:
+  - get: version
+    params: {bump: minor, pre: build}
+  - put: version
+    params: {file: version/version}
+
+- name: patch
+  serial_groups: [version]
+  plan:
+  - get: version
+    params: {bump: patch, pre: build}
+  - put: version
+    params: {file: version/version}

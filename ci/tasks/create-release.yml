@@ -10,6 +10,7 @@ image_resource:
 inputs:
 - name: telemetry-release
 - name: bosh-cli-github-release
+- name: version
 
 outputs:
 - name: release-tarball

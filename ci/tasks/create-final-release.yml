@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ubuntu
+    tag: latest
+
+inputs:
+  - name: telemetry-release
+  - name: bosh-cli-github-release
+  - name: version
+
+outputs:
+  - name: final-release-repo
+
+run:
+  path: telemetry-release/ci/tasks/create-final-release.sh
