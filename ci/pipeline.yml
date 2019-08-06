@@ -243,6 +243,8 @@ jobs:
     file: telemetry-release/ci/tasks/create-final-release.yml
     params:
       GCS_SERVICE_ACCOUNT_KEY: ((gcs-service-account-key))
+      GITHUB_NAME: ((github-name))
+      GITHUB_EMAIL: ((github-email))
   - put: telemetry-release
     params:
       repository: final-release-repo

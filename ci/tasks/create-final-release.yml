@@ -20,3 +20,5 @@ run:
 
 params:
   GCS_SERVICE_ACCOUNT_KEY:
+  GITHUB_NAME:
+  GITHUB_EMAIL:

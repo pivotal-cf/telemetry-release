@@ -22,6 +22,10 @@ blobstore:
 EOM
 
 "$BOSH_CLI" create-release --final --version "$VERSION"
+
 git add .
+git config --global user.name $GITHUB_NAME
+git config --global user.email $GITHUB_EMAIL
 git commit -m "Create final release $VERSION"
+
 cp -R . "$TASK_DIR"/final-release-repo
