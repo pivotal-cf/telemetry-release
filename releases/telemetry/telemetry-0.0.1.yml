@@ -1,0 +1,39 @@
+name: telemetry
+version: 0.0.1
+commit_hash: "0540672"
+uncommitted_changes: false
+jobs:
+- name: telemetry-agent
+  version: faeb9be895f85b7557804f2289d0645b91bbffe64b527a5c8f13f85955a5ca2d
+  fingerprint: faeb9be895f85b7557804f2289d0645b91bbffe64b527a5c8f13f85955a5ca2d
+  sha1: sha256:c642382a0ed6dfb7848fa6405dbc1ee31c1d6a6b398e6fe542b63579227843f4
+  packages:
+  - fluent-bit
+- name: telemetry-centralizer
+  version: 8050d1ba74f0a2e4406fc780a0296a5c5296152e37c7da05bb86c879f408d6a8
+  fingerprint: 8050d1ba74f0a2e4406fc780a0296a5c5296152e37c7da05bb86c879f408d6a8
+  sha1: sha256:221a9afaae016db559248e0e806f600f53a9f1a6c9305155f1bf0318680b0df5
+  packages:
+  - fluentd
+  - ruby-2.4.6-r0.16.0
+packages:
+- name: fluent-bit
+  version: 22318127e7e149b95d63a2282943a9ff3ff257890987f03a2ed4019f4ac9f8f4
+  fingerprint: 22318127e7e149b95d63a2282943a9ff3ff257890987f03a2ed4019f4ac9f8f4
+  sha1: sha256:d72a2ef4227ec259b32e84cb05c6254a11e2bd4ab02cb3e56c205f444bd3d28a
+  dependencies: []
+- name: fluentd
+  version: 563493df6fd919c9ee8d72f2bcc4368e6087dfd7e971ca0f8396f43e018a0cb7
+  fingerprint: 563493df6fd919c9ee8d72f2bcc4368e6087dfd7e971ca0f8396f43e018a0cb7
+  sha1: sha256:a19809658a6d34451b70e79c431bb04d4da07667d1ce023914214697725509f0
+  dependencies:
+  - ruby-2.4.6-r0.16.0
+- name: ruby-2.4.6-r0.16.0
+  version: c24971a29319aa3b84ab520498b144379dcfce1b44643f5d22d4b2533e7e11ac
+  fingerprint: c24971a29319aa3b84ab520498b144379dcfce1b44643f5d22d4b2533e7e11ac
+  sha1: sha256:4999dacdeee2f0a06040546327b680266cc5650b3b62b90b32104a741b221506
+  dependencies: []
+license:
+  version: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  fingerprint: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  sha1: sha256:c0530f924ad3c8dbf25ad3bb423534b9a110a6663b5a40c79d2572a75d3af456
