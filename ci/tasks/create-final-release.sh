@@ -12,7 +12,7 @@ apt-get update
 apt-get -y install git
 pushd telemetry-release
 
-cat > private.yml <<EOM
+cat > config/private.yml <<EOM
 ---
 blobstore:
   options:
