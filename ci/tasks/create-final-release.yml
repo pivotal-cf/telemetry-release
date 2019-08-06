@@ -17,3 +17,6 @@ outputs:
 
 run:
   path: telemetry-release/ci/tasks/create-final-release.sh
+
+params:
+  GCS_SERVICE_ACCOUNT_KEY:
