@@ -34,7 +34,7 @@ Let's say your source is `my-component` and you want to log a message type `crea
 
 A) Message is exactly the telemetry message
 ```
-{ "telemetry-source": "my-component","telemetry-time": "2009-11-10T23:00:00Z", create-instance": { "cluster-size": 42, "cool-feature-enabled": true }}
+{ "telemetry-source": "my-component","telemetry-time": "2009-11-10T23:00:00Z", "create-instance": { "cluster-size": 42, "cool-feature-enabled": true }}
 ```
 
 B) Message is embedded as a string value in a JSON object log message
