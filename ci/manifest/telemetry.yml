@@ -46,12 +46,6 @@ instance_groups:
     release: bpm
   - name: telemetry-centralizer
     release: telemetry
-    provides:
-      telemetry-centralizer-address:
-        as: my-custom-telemetry-centralizer-address
-    custom_provider_definitions:
-    - name: telemetry-centralizer-address
-      type: address
     properties:
       telemetry:
         endpoint: ((loader_endpoint))
@@ -77,7 +71,7 @@ variables:
     ca: telemetry-ca-cert
     common_name: Telemetry centralizer
   consumes:
-    alternative_name: { from: my-custom-telemetry-centralizer-address }
+    alternative_name: { from: telemetry-centralizer }
 - name: telemetry-agent-cert
   type: certificate
   options:

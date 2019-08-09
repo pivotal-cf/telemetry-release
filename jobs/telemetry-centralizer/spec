@@ -7,6 +7,8 @@ provides:
   properties:
   - port
   - tls.ca_cert
+- name: telemetry-centralizer-address
+  type: address
 
 templates:
   bpm.yml.erb: config/bpm.yml
