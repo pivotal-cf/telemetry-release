@@ -71,7 +71,7 @@ variables:
     ca: telemetry-ca-cert
     common_name: Telemetry centralizer
   consumes:
-    alternative_name: { from: telemetry-centralizer }
+    alternative_name: { from: telemetry-centralizer-address }
 - name: telemetry-agent-cert
   type: certificate
   options:
