@@ -35,6 +35,12 @@ describe 'Agent to centralizer communication' do
 
   before do
     fail("Need BOSH_CLI set to execute BOSH commands") unless ENV["BOSH_CLI"]
+    fail("Missing LOADER_URL") unless ENV["LOADER_URL"]
+    fail("Missing LOADER_API_KEY") unless ENV["LOADER_API_KEY"]
+    fail("Missing EXPECTED_ENV_TYPE") unless ENV["EXPECTED_ENV_TYPE"]
+    fail("Missing EXPECTED_IAAS_TYPE") unless ENV["EXPECTED_IAAS_TYPE"]
+    fail("Missing EXPECTED_FOUNDATION_ID") unless ENV["EXPECTED_FOUNDATION_ID"]
+    fail("Missing COMPONENTS_BOSH_DEPLOYMENT") unless ENV["COMPONENTS_BOSH_DEPLOYMENT"]
 
     res = client.post("/clear_messages", nil,{'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
     expect(res.code).to eq("200")
@@ -43,7 +49,7 @@ describe 'Agent to centralizer communication' do
   it "sends logs matching 'telemetry-source' to the centralizer which sends to a loader, adding agent and centralizer versions to the message" do
     time_value = Time.now.tv_sec
     message_format = <<-'EOF'
-{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"%s\"}, \"telemetry-source\": \"my-origin\"}
+{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"%s\"}, \"telemetry-source\": \"my-origin\"}"
     EOF
     insert_agent_log(sprintf(message_format, time_value))
 

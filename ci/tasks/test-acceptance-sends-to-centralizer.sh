@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+base="$(dirname "$BASH_SOURCE[0]")/../.."
+
 apt-get update
 apt-get -y install ssh netcat-openbsd
 
@@ -15,6 +17,4 @@ popd
 export BOSH_CLI=$(find "$PWD"/bosh-cli-github-release -name bosh-cli-*-linux-amd64)
 chmod 755 "$BOSH_CLI"
 
-cd telemetry-release/src/acceptance_tests
-bundle
-rspec spec
+"$base/ci/tasks/run-acceptance-tests.sh"
