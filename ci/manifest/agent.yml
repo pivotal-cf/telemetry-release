@@ -30,4 +30,4 @@ instance_groups:
       - name: telemetry-agent
         release: telemetry
         consumes:
-          telemetry-centralizer: {from: telemetry-centralizer, deployment: (( centralizer_deployment_name ))}
+          telemetry-centralizer: {from: telemetry-centralizer, deployment: ((centralizer_deployment_name))}

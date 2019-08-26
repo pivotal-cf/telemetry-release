@@ -190,6 +190,8 @@ jobs:
     - get: telemetry-release
       passed: [deploy-telemetry-acceptance]
       trigger: true
+    - get: manifest
+      passed: [deploy-telemetry-acceptance]
     - get: version
       passed: [deploy-telemetry-acceptance]
     - get: bosh-cli-github-release
@@ -225,6 +227,7 @@ jobs:
         globs:
         - bosh-cli-*-linux-amd64
     - get: manifest
+      passed: [test-acceptance-sends-to-centralizer]
       trigger: true
     - get: telemetry-release
       passed: [test-acceptance-sends-to-centralizer]
