@@ -7,6 +7,8 @@ provides:
   properties:
   - port
   - tls.ca_cert
+  - tls.agent_cert
+  - tls.agent_private_key
 - name: telemetry-centralizer-address
   type: address
 
@@ -46,3 +48,7 @@ properties:
     description: TLS Private Key for the Centralizer
   tls.ca_cert:
     description: TLS CA for telemetry certificates
+  tls.agent_cert:
+    description: TLS Certificate for telemetry agents to consume
+  tls.agent_private_key:
+    description: TLS Private Key for telemetry agents to consume

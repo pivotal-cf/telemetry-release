@@ -14,9 +14,3 @@ packages:
 consumes:
 - name: telemetry-centralizer
   type: telemetry-agent-connection
-
-properties:
-  tls.cert:
-    description: TLS Certificate for the Agent
-  tls.private_key:
-    description: TLS Private Key for the Agent

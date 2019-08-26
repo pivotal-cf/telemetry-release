@@ -68,3 +68,4 @@ These collisions could cause undefined behavior when your telemetry data is proc
 
 ## How to Deploy
 See [example manifest](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/telemetry.yml) for how we deploy the agent and centralizer in a standalone scenario.
+See [centralizer](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/agent.yml) and [agent](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/agent.yml) manifests for how we deploy the agent and centralizer in separate deployments.

@@ -46,15 +46,25 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry-incubator/bpm-release
-- name: telemetry-acceptance-deployment
+- name: telemetry-centralizer-acceptance-deployment
   type: bosh-deployment
   source:
-    deployment: ((acceptance-deployment-name))
+    deployment: ((centralizer-acceptance-deployment-name))
     skip_check: true
-- name: telemetry-staging-deployment
+- name: telemetry-agent-acceptance-deployment
   type: bosh-deployment
   source:
-    deployment: ((staging-deployment-name))
+    deployment: ((agent-acceptance-deployment-name))
+    skip_check: true
+- name: telemetry-centralizer-staging-deployment
+  type: bosh-deployment
+  source:
+    deployment: ((centralizer-staging-deployment-name))
+    skip_check: true
+- name: telemetry-agent-staging-deployment
+  type: bosh-deployment
+  source:
+    deployment: ((agent-staging-deployment-name))
     skip_check: true
 - name: manifest
   type: git
@@ -63,7 +73,7 @@ resources:
     uri: git@github.com:pivotal-cf/telemetry-release
     private_key: ((telemetry-release-git-deploy-private-key))
     paths:
-    - ci/manifest/telemetry.yml
+    - ci/manifest/centralizer.yml
 - name: telemetry-release
   type: git
   source:
@@ -142,9 +152,9 @@ jobs:
     file: telemetry-release/ci/tasks/create-release.yml
   - put: version
     params: {file: version/version}
-  - put: telemetry-acceptance-deployment
+  - put: telemetry-centralizer-acceptance-deployment
     params:
-      manifest: manifest/ci/manifest/telemetry.yml
+      manifest: manifest/ci/manifest/centralizer.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -152,13 +162,25 @@ jobs:
       stemcells:
         - xenial-stemcell/*.tgz
       vars:
-        deployment_name: ((acceptance-deployment-name))
+        deployment_name: ((centralizer-acceptance-deployment-name))
         loader_api_key: ((acceptance-loader-api-key))
         loader_endpoint: "((acceptance-loader-url))/components"
         env_type: ((acceptance-env-type))
         iaas_type: ((acceptance-iaas-type))
         foundation_id: ((acceptance-foundation-id))
         flush_interval: ((acceptance-centralizer-flush-interval))
+  - put: telemetry-agent-acceptance-deployment
+    params:
+      manifest: manifest/ci/manifest/agent.yml
+      source_file: bbl-state/bdr-source-file
+      releases:
+        - release-tarball/*.tgz
+        - bpm-release/*.tgz
+      stemcells:
+        - xenial-stemcell/*.tgz
+      vars:
+        agent_deployment_name: ((agent-acceptance-deployment-name))
+        centralizer_deployment_name: ((centralizer-acceptance-deployment-name))
 
 - name: test-acceptance-sends-to-centralizer
   serial_groups: [telemetry-receiver, acceptance]
@@ -183,7 +205,8 @@ jobs:
     params:
       LOADER_URL: ((acceptance-loader-url))
       LOADER_API_KEY: ((acceptance-loader-api-key))
-      COMPONENTS_BOSH_DEPLOYMENT: telemetry-acceptance
+      CENTRALIZER_BOSH_DEPLOYMENT: ((centralizer-acceptance-deployment-name))
+      AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-deployment-name))
       EXPECTED_ENV_TYPE: ((acceptance-env-type))
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
       EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
@@ -208,9 +231,9 @@ jobs:
       trigger: true
   - task: create-release
     file: telemetry-release/ci/tasks/create-release.yml
-  - put: telemetry-staging-deployment
+  - put: telemetry-centralizer-staging-deployment
     params:
-      manifest: manifest/ci/manifest/telemetry.yml
+      manifest: manifest/ci/manifest/centralizer.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -218,14 +241,25 @@ jobs:
       stemcells:
         - xenial-stemcell/*.tgz
       vars:
-        deployment_name: ((staging-deployment-name))
+        deployment_name: ((centralizer-staging-deployment-name))
         loader_api_key: ((staging-loader-api-key))
         loader_endpoint: ((staging-loader-endpoint))
         env_type: ((staging-env-type))
         iaas_type: ((staging-iaas-type))
         foundation_id: ((staging-foundation-id))
         flush_interval: ((staging-centralizer-flush-interval))
-
+  - put: telemetry-agent-staging-deployment
+    params:
+      manifest: manifest/ci/manifest/agent.yml
+      source_file: bbl-state/bdr-source-file
+      releases:
+        - release-tarball/*.tgz
+        - bpm-release/*.tgz
+      stemcells:
+        - xenial-stemcell/*.tgz
+      vars:
+        agent_deployment_name: ((agent-staging-deployment-name))
+        centralizer_deployment_name: ((centralizer-staging-deployment-name))
 - name: finalize-release
   serial_groups: [version]
   plan:

@@ -17,19 +17,6 @@ update:
   update_watch_time: 1000-30000
 
 instance_groups:
-- name: telemetry-agent
-  vm_type: minimal
-  stemcell: default
-  networks:
-  - name: default
-  azs: [z1]
-  instances: 1
-  jobs:
-  - name: bpm
-    release: bpm
-  - name: telemetry-agent
-    release: telemetry
-
 - name: telemetry-centralizer
   vm_type: minimal
   stemcell: default
@@ -42,6 +29,9 @@ instance_groups:
     release: bpm
   - name: telemetry-centralizer
     release: telemetry
+    provides:
+      telemetry-centralizer: {as: telemetry-centralizer, shared: true}
+      telemetry-centralizer-address: {as: telemetry-centralizer-address}
     properties:
       telemetry:
         endpoint: ((loader_endpoint))

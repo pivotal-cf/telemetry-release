@@ -1,0 +1,33 @@
+name: ((agent_deployment_name))
+releases:
+  - name: telemetry
+    version: latest
+  - name: bpm
+    version: latest
+
+stemcells:
+  - alias: default
+    os: ubuntu-xenial
+    version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 10
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+instance_groups:
+  - name: telemetry-agent
+    vm_type: minimal
+    stemcell: default
+    networks:
+      - name: default
+    azs: [z1]
+    instances: 1
+    jobs:
+      - name: bpm
+        release: bpm
+      - name: telemetry-agent
+        release: telemetry
+        consumes:
+          telemetry-centralizer: {from: telemetry-centralizer, deployment: (( centralizer_deployment_name ))}

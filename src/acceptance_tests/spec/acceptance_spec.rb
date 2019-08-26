@@ -10,12 +10,12 @@ describe 'Agent to centralizer communication' do
     client
   }
   def insert_agent_log(message)
-    `#{ENV["BOSH_CLI"]} -d #{ENV["COMPONENTS_BOSH_DEPLOYMENT"]} ssh telemetry-agent -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
+    `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh telemetry-agent -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
     expect($?).to(be_success)
   end
 
   def get_centralizer_logs
-    logs = `#{ENV["BOSH_CLI"]} -d #{ENV["COMPONENTS_BOSH_DEPLOYMENT"]} ssh telemetry-centralizer -c 'sudo tail -20 /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log'`
+    logs = `#{ENV["BOSH_CLI"]} -d #{ENV["CENTRALIZER_BOSH_DEPLOYMENT"]} ssh telemetry-centralizer -c 'sudo tail -20 /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log'`
     expect($?).to(be_success)
     return logs.split("\n")
   end
@@ -40,7 +40,8 @@ describe 'Agent to centralizer communication' do
     fail("Missing EXPECTED_ENV_TYPE") unless ENV["EXPECTED_ENV_TYPE"]
     fail("Missing EXPECTED_IAAS_TYPE") unless ENV["EXPECTED_IAAS_TYPE"]
     fail("Missing EXPECTED_FOUNDATION_ID") unless ENV["EXPECTED_FOUNDATION_ID"]
-    fail("Missing COMPONENTS_BOSH_DEPLOYMENT") unless ENV["COMPONENTS_BOSH_DEPLOYMENT"]
+    fail("Missing CENTRALIZER_BOSH_DEPLOYMENT") unless ENV["CENTRALIZER_BOSH_DEPLOYMENT"]
+    fail("Missing AGENT_BOSH_DEPLOYMENT") unless ENV["AGENT_BOSH_DEPLOYMENT"]
 
     res = client.post("/clear_messages", nil,{'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
     expect(res.code).to eq("200")
