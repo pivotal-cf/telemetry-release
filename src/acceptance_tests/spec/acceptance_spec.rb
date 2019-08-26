@@ -10,7 +10,7 @@ describe 'Agent to centralizer communication' do
     client
   }
   def insert_agent_log(message)
-    `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh telemetry-agent -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
+    `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh #{ENV["AGENT_BOSH_INSTANCE"]} -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
     expect($?).to(be_success)
   end
 
@@ -42,6 +42,7 @@ describe 'Agent to centralizer communication' do
     fail("Missing EXPECTED_FOUNDATION_ID") unless ENV["EXPECTED_FOUNDATION_ID"]
     fail("Missing CENTRALIZER_BOSH_DEPLOYMENT") unless ENV["CENTRALIZER_BOSH_DEPLOYMENT"]
     fail("Missing AGENT_BOSH_DEPLOYMENT") unless ENV["AGENT_BOSH_DEPLOYMENT"]
+    fail("Missing AGENT_BOSH_INSTANCE") unless ENV["AGENT_BOSH_INSTANCE"]
 
     res = client.post("/clear_messages", nil,{'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
     expect(res.code).to eq("200")

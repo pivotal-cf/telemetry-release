@@ -66,14 +66,6 @@ resources:
   source:
     deployment: ((agent-staging-deployment-name))
     skip_check: true
-- name: manifest
-  type: git
-  source:
-    branch: master
-    uri: git@github.com:pivotal-cf/telemetry-release
-    private_key: ((telemetry-release-git-deploy-private-key))
-    paths:
-    - ci/manifest/centralizer.yml
 - name: telemetry-release
   type: git
   source:
@@ -143,8 +135,6 @@ jobs:
       params:
         globs:
         - bosh-cli-*-linux-amd64
-    - get: manifest
-      trigger: true
     - get: telemetry-release
       passed: [run-centralizer-unit-tests]
       trigger: true
@@ -154,7 +144,7 @@ jobs:
     params: {file: version/version}
   - put: telemetry-centralizer-acceptance-deployment
     params:
-      manifest: manifest/ci/manifest/centralizer.yml
+      manifest: telemetry-release/ci/manifest/centralizer.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -171,7 +161,7 @@ jobs:
         flush_interval: ((acceptance-centralizer-flush-interval))
   - put: telemetry-agent-acceptance-deployment
     params:
-      manifest: manifest/ci/manifest/agent.yml
+      manifest: telemetry-release/ci/manifest/agent.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -190,8 +180,6 @@ jobs:
     - get: telemetry-release
       passed: [deploy-telemetry-acceptance]
       trigger: true
-    - get: manifest
-      passed: [deploy-telemetry-acceptance]
     - get: version
       passed: [deploy-telemetry-acceptance]
     - get: bosh-cli-github-release
@@ -209,6 +197,7 @@ jobs:
       LOADER_API_KEY: ((acceptance-loader-api-key))
       CENTRALIZER_BOSH_DEPLOYMENT: ((centralizer-acceptance-deployment-name))
       AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-deployment-name))
+      AGENT_BOSH_INSTANCE: ((agent-acceptance-instance-name))
       EXPECTED_ENV_TYPE: ((acceptance-env-type))
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
       EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
@@ -226,8 +215,6 @@ jobs:
       params:
         globs:
         - bosh-cli-*-linux-amd64
-    - get: manifest
-      passed: [test-acceptance-sends-to-centralizer]
       trigger: true
     - get: telemetry-release
       passed: [test-acceptance-sends-to-centralizer]
@@ -236,7 +223,7 @@ jobs:
     file: telemetry-release/ci/tasks/create-release.yml
   - put: telemetry-centralizer-staging-deployment
     params:
-      manifest: manifest/ci/manifest/centralizer.yml
+      manifest: telemetry-release/ci/manifest/centralizer.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -253,7 +240,7 @@ jobs:
         flush_interval: ((staging-centralizer-flush-interval))
   - put: telemetry-agent-staging-deployment
     params:
-      manifest: manifest/ci/manifest/agent.yml
+      manifest: telemetry-release/ci/manifest/agent.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
