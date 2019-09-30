@@ -1,0 +1,13 @@
+---
+url: <%= p('opsmanager.url') %>
+username: <%= p('opsmanager.username') %>
+password: <%= p('opsmanager.password') %>
+env-type: <%= p('telemetry.env_type') %>
+output-dir: /var/vcap/data/telemetry-collector/
+insecure-skip-tls-verify: <%= p('opsmanager.insecure_skip_tls_verify') %>
+
+<% if_p('cf.api_url') do |p| %>cf-api-url: <%= p %> <% end %>
+<% if_p('usage_service.url') do |p| %>usage-service-url: <%= p %> <% end %>
+<% if_p('usage_service.client_id') do |p| %>usage-service-client-id: <%= p %> <% end %>
+<% if_p('usage_service.client_secret') do |p| %>usage-service-client-secret: <%= p %> <% end %>
+<% if_p('usage_service.insecure_skip_tls_verify') do |p| %>usage-service-insecure-skip-tls-verify: <%= p %> <% end %>

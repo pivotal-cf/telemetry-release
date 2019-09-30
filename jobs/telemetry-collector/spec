@@ -1,0 +1,41 @@
+---
+name: telemetry-collector
+
+templates:
+  pre-start.erb: bin/pre-start
+  post-stop.erb: bin/post-stop
+  telemetry-collect-send.erb: bin/telemetry-collect-send
+  telemetry-collector-cron.erb: config/telemetry-collector-cron
+  collect.yml.erb: config/collect.yml
+
+packages:
+  - telemetry-collector
+
+properties:
+  schedule:
+    description: Schedule in cron format to run collect and send of telemetry data
+    default: "0 0 * * *"
+  telemetry.api_key:
+    description: Bearer token for authenticating against telemetry endpoint
+  telemetry.env_type:
+    description: The environment type of the foundation
+  telemetry.loader_endpoint:
+    description: HTTP(s) endpoint to send telemetry data to
+  opsmanager.url:
+    description: Ops Manager URL
+  opsmanager.username:
+    description: Ops Manager username
+  opsmanager.password:
+    description: Ops Manager password
+  opsmanager.insecure_skip_tls_verify:
+    description: Skip TLS validation on http requests to Ops Manager
+  cf.api_url:
+    description: CF API URL for UAA authentication to access Usage Service
+  usage_service.url:
+    description: Usage Service URL
+  usage_service.client_id:
+    description: Usage Service client ID
+  usage_service.client_secret:
+    description: Usage Service client secret
+  usage_service.insecure_skip_tls_verify:
+    description: Skip TLS validation for Usage Service components
