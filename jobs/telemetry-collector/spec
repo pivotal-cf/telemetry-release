@@ -27,6 +27,10 @@ properties:
     description: Ops Manager username
   opsmanager.password:
     description: Ops Manager password
+  opsmanager.client_id:
+    description: Ops Manager client ID
+  opsmanager.client_secret:
+    description: Ops Manager client secret
   opsmanager.insecure_skip_tls_verify:
     description: Skip TLS validation on http requests to Ops Manager
   cf.api_url:
