@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/tar"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -25,8 +27,10 @@ const (
 )
 
 var (
-	userApiKeys  map[string][]string
-	messages     map[string][]map[string]interface{}
+	userApiKeys map[string][]string
+	messages    map[string][]map[string]interface{}
+	batchMessages map[string][]map[string]interface{}
+
 	messageLimit int
 )
 
@@ -39,8 +43,11 @@ func main() {
 	bindAddr := fmt.Sprintf(":%s", os.Getenv(PortEnvVar))
 
 	messages = map[string][]map[string]interface{}{}
-	http.HandleFunc("/components", components)
-	http.HandleFunc("/received_messages", receivedMessages)
+	batchMessages = map[string][]map[string]interface{}{}
+	http.HandleFunc("/collections/batch", postMessageHandler(readTarBatch, batchMessages))
+	http.HandleFunc("/components", postMessageHandler(readJSONBatch, messages))
+	http.HandleFunc("/received_messages", readMessagesForUser(messages))
+	http.HandleFunc("/received_batch_messages", readMessagesForUser(batchMessages))
 	http.HandleFunc("/clear_messages", clearMessages)
 
 	err := http.ListenAndServe(bindAddr, nil)
@@ -50,45 +57,60 @@ func main() {
 	}
 }
 
-func components(w http.ResponseWriter, r *http.Request) {
-	userID, authed := authenticated(r.Header, userApiKeys)
-	if !authed {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	reqBody, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-	recMessages, err := readJSONBatch(reqBody)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	updateMessages(userID, recMessages)
-
-	w.WriteHeader(http.StatusCreated)
-}
-
-func receivedMessages(w http.ResponseWriter, r *http.Request) {
-	userID, authed := authenticated(r.Header, userApiKeys)
-	if !authed {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	userMessages, ok := messages[userID]
-	if ok {
-		msgBytes, err := json.Marshal(&userMessages)
+func postMessageHandler(
+	messageReader func(contents []byte) ([]map[string]interface{}, error),
+	messagesToUpdate map[string][]map[string]interface{}) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, authed := authenticated(r.Header, userApiKeys)
+		if !authed {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		reqBody, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		w.Write(msgBytes)
-	} else {
-		w.Write([]byte("[]"))
+		defer r.Body.Close()
+		recMessages, err := messageReader(reqBody)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		updateMessages(userID, messagesToUpdate, recMessages)
+
+		w.WriteHeader(http.StatusCreated)
+	}
+}
+
+func updateMessages(userID string, messagesToUpdate map[string][]map[string]interface{}, receivedMessages []map[string]interface{}) {
+	messagesToRemove := len(receivedMessages) + len(messagesToUpdate[userID]) - messageLimit
+	currMessages := messagesToUpdate[userID]
+	if messagesToRemove > 0 {
+		currMessages = currMessages[messagesToRemove:]
+	}
+	messagesToUpdate[userID] = append(currMessages, receivedMessages...)
+}
+
+func readMessagesForUser(receivedMessages map[string][]map[string]interface{}) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, authed := authenticated(r.Header, userApiKeys)
+		if !authed {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		userMessages, ok := receivedMessages[userID]
+		if ok {
+			msgBytes, err := json.Marshal(&userMessages)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.Write(msgBytes)
+		} else {
+			w.Write([]byte("[]"))
+		}
 	}
 }
 
@@ -99,6 +121,7 @@ func clearMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	delete(messages, userID)
+	delete(batchMessages, userID)
 }
 
 func authenticated(h http.Header, validUserApiKeys map[string][]string) (string, bool) {
@@ -166,11 +189,39 @@ func readJSONBatch(batchContents []byte) ([]map[string]interface{}, error) {
 	return jsonObjSlice, nil
 }
 
-func updateMessages(userID string, receivedMessages []map[string]interface{}) {
-	messagesToRemove := len(receivedMessages) + len(messages[userID]) - messageLimit
-	currMessages := messages[userID]
-	if messagesToRemove > 0 {
-		currMessages = currMessages[messagesToRemove:]
+func readTarBatch(contents []byte) ([]map[string]interface{}, error) {
+	tarReader := tar.NewReader(bytes.NewReader(contents))
+
+	var messagesInTar []map[string]interface{}
+	for {
+		hdr, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read header")
+		}
+
+		if hdr.Typeflag == tar.TypeReg {
+			if strings.HasSuffix(hdr.Name, "metadata") {
+				metadata := struct {
+					CollectedAt  string
+					FoundationId string
+				}{}
+
+				err := json.NewDecoder(tarReader).Decode(&metadata)
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to read file contents %s", hdr.Name)
+				}
+
+				messagesInTar = append(messagesInTar, map[string]interface{}{
+					"FoundationId": metadata.FoundationId,
+					"CollectedAt":  metadata.CollectedAt,
+					"Dataset":      filepath.Dir(hdr.Name),
+				})
+			}
+		}
 	}
-	messages[userID] = append(currMessages, receivedMessages...)
+
+	return messagesInTar, nil
 }

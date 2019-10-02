@@ -1,6 +1,8 @@
 require 'rspec'
 require 'json'
 require 'net/http'
+require 'date'
+require 'time'
 
 describe 'Agent to centralizer communication' do
   let(:client) {
@@ -9,6 +11,7 @@ describe 'Agent to centralizer communication' do
     client.use_ssl = true
     client
   }
+
   def insert_agent_log(message)
     `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh #{ENV["AGENT_BOSH_INSTANCE"]} -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
     expect($?).to(be_success)
@@ -22,6 +25,12 @@ describe 'Agent to centralizer communication' do
 
   def fetch_messages
     res = client.get("/received_messages", {'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
+    expect(res.code).to eq("200")
+    JSON.parse(res.body)
+  end
+
+  def fetch_batch_messages
+    res = client.get("/received_batch_messages", {'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
     expect(res.code).to eq("200")
     JSON.parse(res.body)
   end
@@ -44,7 +53,7 @@ describe 'Agent to centralizer communication' do
     fail("Missing AGENT_BOSH_DEPLOYMENT") unless ENV["AGENT_BOSH_DEPLOYMENT"]
     fail("Missing AGENT_BOSH_INSTANCE") unless ENV["AGENT_BOSH_INSTANCE"]
 
-    res = client.post("/clear_messages", nil,{'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
+    res = client.post("/clear_messages", nil, {'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
     expect(res.code).to eq("200")
   end
 
@@ -86,5 +95,19 @@ NOT a telemetry-source msg
     logged_messages = get_centralizer_logs
     line_match_regex = /#{time_value}/
     expect(logged_messages).not_to include(an_object_satisfying {|message| message =~ line_match_regex})
+  end
+
+  it "can collect and send ops manager telemetry data via the telemetry-collector job" do
+    sleep 120
+    received_messages = fetch_batch_messages
+
+    messagesForFoundation = received_messages.select do |message|
+      collected_at = DateTime.parse(message["CollectedAt"]).to_time
+      received_within_the_last_three_minutes = collected_at - Time.now.utc <= 180
+      true if message["FoundationId"] == ENV["EXPECTED_FOUNDATION_ID"] && received_within_the_last_three_minutes
+    end
+
+    expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "opsmanager" })
+    expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "usage_service" })
   end
 end

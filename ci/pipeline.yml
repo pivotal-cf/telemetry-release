@@ -159,6 +159,16 @@ jobs:
         iaas_type: ((acceptance-iaas-type))
         foundation_id: ((acceptance-foundation-id))
         flush_interval: ((acceptance-centralizer-flush-interval))
+        collector_cron_schedule: ((collector-cron-schedule))
+        opsmanager_url: ((opsmanager-url))
+        opsmanager_username: ((opsmanager-username))
+        opsmanager_password: ((opsmanager-password))
+        opsmanager_insecure_skip_tls_verify: ((opsmanager-insecure-skip-tls-verify))
+        cf_api_url: ((usage-service-cf-api-url))
+        usage_service_url: ((usage-service-url))
+        usage_service_client_id: ((usage-service-client-id))
+        usage_service_client_secret: ((usage-service-client-secret))
+        usage_service_insecure_skip_tls_verify: ((usage-service-insecure-skip-tls-verify))
   - put: telemetry-agent-acceptance-deployment
     params:
       manifest: telemetry-release/ci/manifest/agent.yml
@@ -233,11 +243,21 @@ jobs:
       vars:
         deployment_name: ((centralizer-staging-deployment-name))
         loader_api_key: ((staging-loader-api-key))
-        loader_endpoint: ((staging-loader-endpoint))
+        loader_endpoint: "((staging-loader-endpoint))/components"
         env_type: ((staging-env-type))
         iaas_type: ((staging-iaas-type))
         foundation_id: ((staging-foundation-id))
         flush_interval: ((staging-centralizer-flush-interval))
+        collector_cron_schedule: "0 0 * * *"
+        opsmanager_url: ((opsmanager-url))
+        opsmanager_username: ((opsmanager-username))
+        opsmanager_password: ((opsmanager-password))
+        opsmanager_insecure_skip_tls_verify: ((opsmanager-insecure-skip-tls-verify))
+        cf_api_url: ((usage-service-cf-api-url))
+        usage_service_url: ((usage-service-url))
+        usage_service_client_id: ((usage-service-client-id))
+        usage_service_client_secret: ((usage-service-client-secret))
+        usage_service_insecure_skip_tls_verify: ((usage-service-insecure-skip-tls-verify))
   - put: telemetry-agent-staging-deployment
     params:
       manifest: telemetry-release/ci/manifest/agent.yml
