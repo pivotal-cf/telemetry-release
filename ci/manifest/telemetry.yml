@@ -44,7 +44,7 @@ instance_groups:
     release: telemetry
     properties:
       telemetry:
-        endpoint: ((loader_endpoint))
+        endpoint: "((loader_endpoint))/components"
         api_key: ((loader_api_key))
         env_type: ((env_type))
         iaas_type: ((iaas_type))
@@ -62,7 +62,7 @@ instance_groups:
       telemetry:
         env_type: ((env_type))
         api_key: ((loader_api_key))
-        loader_endpoint: ((loader_endpoint))
+        endpoint_override: ((loader_endpoint))
       schedule: ((collector_cron_schedule))
       opsmanager:
         url:  ((opsmanager_url))

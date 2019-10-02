@@ -9,4 +9,4 @@ COLLECTOR_BIN=/var/vcap/packages/telemetry-collector/telemetry-collector-linux
 $COLLECTOR_BIN collect --config /var/vcap/jobs/telemetry-collector/config/collect.yml
 
 TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar")
-$COLLECTOR_BIN send --path $TAR_FILE --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.loader_endpoint") do |loader_endpoint| %> --override-telemetry-endpoint <%= loader_endpoint %> <% end %>
+$COLLECTOR_BIN send --path $TAR_FILE --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %>

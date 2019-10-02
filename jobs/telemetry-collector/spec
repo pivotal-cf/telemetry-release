@@ -19,8 +19,8 @@ properties:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.env_type:
     description: The environment type of the foundation
-  telemetry.loader_endpoint:
-    description: HTTP(s) endpoint to send telemetry data to
+  telemetry.endpoint_override:
+    description: Override HTTP(s) endpoint to send telemetry data to
   opsmanager.url:
     description: Ops Manager URL
   opsmanager.username:
