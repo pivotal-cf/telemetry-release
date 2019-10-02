@@ -46,6 +46,26 @@ instance_groups:
         private_key: ((telemetry-centralizer-cert.private_key))
         agent_cert: ((telemetry-agent-cert.certificate))
         agent_private_key: ((telemetry-agent-cert.private_key))
+  - name: telemetry-collector
+    release: telemetry
+    properties:
+      telemetry:
+        env_type: ((env_type))
+        api_key: ((loader_api_key))
+        loader_endpoint: ((loader_endpoint))
+      schedule: ((collector_cron_schedule))
+      opsmanager:
+        url:  ((opsmanager_url))
+        username: ((opsmanager_username))
+        password: ((opsmanager_password))
+        insecure_skip_tls_verify: ((opsmanager_insecure_skip_tls_verify))
+      cf:
+        api_url: ((cf_api_url))
+      usage_service:
+        url: ((usage_service_url))
+        client_id: ((usage_service_client_id))
+        client_secret: ((usage_service_client_secret))
+        insecure_skip_tls_verify: ((usage_service_insecure_skip_tls_verify))
 
 variables:
 - name: telemetry-ca-cert
