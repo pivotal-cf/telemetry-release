@@ -102,8 +102,8 @@ NOT a telemetry-source msg
     received_messages = fetch_batch_messages
 
     messagesForFoundation = received_messages.select do |message|
-      collected_at = DateTime.parse(message["CollectedAt"]).to_time
-      received_within_the_last_three_minutes = collected_at - Time.now.utc <= 180
+      collected_at = DateTime.parse(message["CollectedAt"]).to_time.utc
+      received_within_the_last_three_minutes = Time.now.utc - collected_at <= 180
       true if message["FoundationId"] == ENV["EXPECTED_FOUNDATION_ID"] && received_within_the_last_three_minutes
     end
 
