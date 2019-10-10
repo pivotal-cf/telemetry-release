@@ -55,7 +55,7 @@ instance_groups:
         endpoint_override: ((loader_endpoint))
       schedule: ((collector_cron_schedule))
       opsmanager:
-        url:  ((opsmanager_url))
+        hostname:  ((opsmanager_hostname))
         username: ((opsmanager_username))
         password: ((opsmanager_password))
         insecure_skip_tls_verify: ((opsmanager_insecure_skip_tls_verify))

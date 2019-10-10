@@ -160,7 +160,7 @@ jobs:
         foundation_id: ((acceptance-foundation-id))
         flush_interval: ((acceptance-centralizer-flush-interval))
         collector_cron_schedule: ((collector-cron-schedule))
-        opsmanager_url: ((opsmanager-url))
+        opsmanager_hostname: ((opsmanager-hostname))
         opsmanager_username: ((opsmanager-username))
         opsmanager_password: ((opsmanager-password))
         opsmanager_insecure_skip_tls_verify: ((opsmanager-insecure-skip-tls-verify))
@@ -249,7 +249,7 @@ jobs:
         foundation_id: ((staging-foundation-id))
         flush_interval: ((staging-centralizer-flush-interval))
         collector_cron_schedule: "0 0 * * *"
-        opsmanager_url: ((opsmanager-url))
+        opsmanager_hostname: ((opsmanager-hostname))
         opsmanager_username: ((opsmanager-username))
         opsmanager_password: ((opsmanager-password))
         opsmanager_insecure_skip_tls_verify: ((opsmanager-insecure-skip-tls-verify))

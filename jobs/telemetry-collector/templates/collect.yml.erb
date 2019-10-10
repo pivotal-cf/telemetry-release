@@ -1,9 +1,9 @@
 ---
-url: <%= p('opsmanager.url') %>
+url: https://<%= p('opsmanager.hostname') %>
 <% if_p('opsmanager.username') do |p| %>username: <%= p %> <% end %>
 <% if_p('opsmanager.password') do |p| %>password: <%= p %> <% end %>
-<% if_p('opsmanager.client_id') do |p| %>client-id: <%= p %> <% end %>
-<% if_p('opsmanager.client_secret') do |p| %>client-secret: <%= p %> <% end %>
+<% if_p('opsmanager.uaa_client_name') do |p| %>client-id: <%= p %> <% end %>
+<% if_p('opsmanager.uaa_client_secret') do |p| %>client-secret: <%= p %> <% end %>
 env-type: <%= p('telemetry.env_type') %>
 output-dir: /var/vcap/data/telemetry-collector/
 <% if_p('opsmanager.insecure_skip_tls_verify') do |p| %>insecure-skip-tls-verify: <%= p %> <% end %>
