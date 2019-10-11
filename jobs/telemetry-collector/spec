@@ -21,15 +21,15 @@ properties:
     description: The environment type of the foundation
   telemetry.endpoint_override:
     description: Override HTTP(s) endpoint to send telemetry data to
-  opsmanager.hostname:
+  opsmanager.auth.hostname:
     description: Ops Manager Hostname
-  opsmanager.username:
+  opsmanager.auth.username:
     description: Ops Manager username
-  opsmanager.password:
+  opsmanager.auth.password:
     description: Ops Manager password
-  opsmanager.uaa_client_name:
+  opsmanager.auth.uaa_client_name:
     description: Ops Manager client ID
-  opsmanager.uaa_client_secret:
+  opsmanager.auth.uaa_client_secret:
     description: Ops Manager client secret
   opsmanager.insecure_skip_tls_verify:
     description: Skip TLS validation on http requests to Ops Manager
