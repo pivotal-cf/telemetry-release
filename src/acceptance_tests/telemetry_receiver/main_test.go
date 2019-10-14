@@ -88,6 +88,29 @@ var _ = Describe("Main", func() {
 				}))
 			})
 
+			It("returns empty array when the only messages sent to /components were empty", func() {
+				resp := makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
+				defer resp.Body.Close()
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+				respBody, err := ioutil.ReadAll(resp.Body)
+				Expect(err).NotTo(HaveOccurred())
+				var messages []map[string]interface{}
+				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
+				Expect(messages).To(Equal([]map[string]interface{}{}))
+
+				resp = makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, []byte{})
+				defer resp.Body.Close()
+				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
+
+				resp = makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
+				defer resp.Body.Close()
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+				respBody, err = ioutil.ReadAll(resp.Body)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(respBody)).To(Equal("[]"))
+			})
+
 			It("appends to previous messages", func() {
 				telemetryMsg := generateTelemetryMsg()
 				resp := makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, telemetryMsg)

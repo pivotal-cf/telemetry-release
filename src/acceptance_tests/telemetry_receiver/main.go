@@ -85,8 +85,13 @@ func postMessageHandler(
 }
 
 func updateMessages(userID string, messagesToUpdate map[string][]map[string]interface{}, receivedMessages []map[string]interface{}) {
-	messagesToRemove := len(receivedMessages) + len(messagesToUpdate[userID]) - messageLimit
-	currMessages := messagesToUpdate[userID]
+	currMessages, ok := messagesToUpdate[userID]
+	if !ok {
+		currMessages = []map[string]interface{}{}
+	}
+
+	messagesToRemove := len(receivedMessages) + len(currMessages) - messageLimit
+
 	if messagesToRemove > 0 {
 		currMessages = currMessages[messagesToRemove:]
 	}
