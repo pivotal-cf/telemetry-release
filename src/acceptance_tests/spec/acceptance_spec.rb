@@ -23,6 +23,12 @@ describe 'Agent to centralizer communication' do
     return logs.split("\n")
   end
 
+  def get_agent_logs
+    logs = `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh telemetry-agent -c 'sudo tail -20 /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
+    expect($?).to(be_success)
+    return logs.split("\n")
+  end
+
   def fetch_messages
     res = client.get("/received_messages", {'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
     expect(res.code).to eq("200")
@@ -81,7 +87,12 @@ describe 'Agent to centralizer communication' do
 
     received_messages = fetch_messages
     expect(received_messages).to include(expected_telemetry_message)
+
+    logged_agent_messages = get_agent_logs
+    line_match_regex = /Message Sent:.*#{time_value}/
+    expect(logged_agent_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
   end
+
 
   it "tests that logs not matching the expected structure are filtered out by the centralizer" do
     time_value = Time.now.tv_sec

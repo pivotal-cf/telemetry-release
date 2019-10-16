@@ -45,6 +45,13 @@
     Set agent-version 0.0.1
 
 [OUTPUT]
+    Name file
+    Path /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log
+    Match *
+    Format template
+    Template {time} Message Sent: {log}
+
+[OUTPUT]
     Name forward
     Match *
     Port <%= link('telemetry-centralizer').p('port') %>
