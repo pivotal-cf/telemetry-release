@@ -67,5 +67,4 @@ These collisions could cause undefined behavior when your telemetry data is proc
 - Your job must either be owned by vcap or run with bpm for the agent to be able to scrape your log files
 
 ## How to Deploy
-See [example manifest](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/telemetry.yml) for how we deploy the agent and centralizer in a standalone scenario.
-See [centralizer](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/agent.yml) and [agent](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/agent.yml) manifests for how we deploy the agent and centralizer in separate deployments.
+See [centralizer](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/centralizer.yml) and [agent](https://github.com/pivotal-cf/telemetry-release/blob/master/ci/manifest/agent.yml) manifests for how we deploy the agent and centralizer in separate deployments.
