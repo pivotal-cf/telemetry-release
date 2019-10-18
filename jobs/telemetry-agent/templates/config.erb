@@ -32,6 +32,7 @@
 [INPUT]
     Name tail
     Path /var/vcap/sys/log/**/*
+    Exclude_Path  /var/vcap/sys/log/telemetry-agent/*
     DB /var/vcap/data/telemetry-agent/db-state/tail-input-state.db
 
 [FILTER]
@@ -49,7 +50,7 @@
     Path /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log
     Match *
     Format template
-    Template {time} Message Sent: {log}
+    Template {time} Message forwarded: {log}
 
 [OUTPUT]
     Name forward

@@ -12,8 +12,8 @@ describe 'Agent to centralizer communication' do
     client
   }
 
-  def insert_agent_log(message)
-    `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh #{ENV["AGENT_BOSH_INSTANCE"]} -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
+  def insert_telemetry_msg_log(message)
+    `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh #{ENV["AGENT_BOSH_INSTANCE"]} -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/bpm/telemetry-messages.stdout.log'`
     expect($?).to(be_success)
   end
 
@@ -68,7 +68,7 @@ describe 'Agent to centralizer communication' do
     message_format = <<-'EOF'
 { "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"%s\"}, \"telemetry-source\": \"my-origin\"}"
     EOF
-    insert_agent_log(sprintf(message_format, time_value))
+    insert_telemetry_msg_log(sprintf(message_format, time_value))
 
     sleep 15 # wait for flush from centralizer to loader
 
@@ -89,7 +89,7 @@ describe 'Agent to centralizer communication' do
     expect(received_messages).to include(expected_telemetry_message)
 
     logged_agent_messages = get_agent_logs
-    line_match_regex = /Message Sent:.*#{time_value}/
+    line_match_regex = /Message forwarded:.*#{time_value}/
     expect(logged_agent_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
   end
 
@@ -99,7 +99,7 @@ describe 'Agent to centralizer communication' do
     message_format = <<-'EOF'
 NOT a telemetry-source msg
     EOF
-    insert_agent_log(sprintf(message_format, time_value))
+    insert_telemetry_msg_log(sprintf(message_format, time_value))
 
     sleep 5
 
