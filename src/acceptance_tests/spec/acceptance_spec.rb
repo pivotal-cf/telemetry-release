@@ -24,7 +24,7 @@ describe 'Agent to centralizer communication' do
   end
 
   def get_agent_logs
-    logs = `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh telemetry-agent -c 'sudo tail -20 /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
+    logs = `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh #{ENV["AGENT_BOSH_INSTANCE"]} -c 'sudo tail -20 /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log'`
     expect($?).to(be_success)
     return logs.split("\n")
   end
