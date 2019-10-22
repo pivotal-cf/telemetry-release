@@ -6,6 +6,7 @@ templates:
   post-stop.erb: bin/post-stop
   telemetry-collect-send.erb: bin/telemetry-collect-send
   telemetry-collector-cron.erb: config/telemetry-collector-cron
+  pre-start-collect.yml.erb: config/pre-start-collect.yml
   collect.yml.erb: config/collect.yml
 
 packages:

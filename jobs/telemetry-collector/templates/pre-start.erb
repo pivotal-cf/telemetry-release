@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -eu
 
-/var/vcap/jobs/telemetry-collector/bin/telemetry-collect-send
+/var/vcap/jobs/telemetry-collector/bin/telemetry-collect-send /var/vcap/jobs/telemetry-collector/config/pre-start-collect.yml
 
 cp /var/vcap/jobs/telemetry-collector/config/telemetry-collector-cron /etc/cron.d/telemetry-collector-cron
