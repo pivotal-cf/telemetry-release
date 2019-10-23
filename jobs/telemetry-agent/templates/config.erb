@@ -41,6 +41,11 @@
     Regex  log telemetry-source
 
 [FILTER]
+    Name   grep
+    Match  *
+    Regex  log telemetry-time
+
+[FILTER]
     Name modify
     Match *
     Set agent-version 0.0.1

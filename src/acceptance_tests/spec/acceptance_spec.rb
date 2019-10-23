@@ -63,21 +63,25 @@ describe 'Agent to centralizer communication' do
     expect(res.code).to eq("200")
   end
 
-  it "sends logs matching 'telemetry-source' to the centralizer which sends to a loader, adding agent and centralizer versions to the message" do
-    time_value = Time.now.tv_sec
-    message_format = <<-'EOF'
-{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"%s\"}, \"telemetry-source\": \"my-origin\"}"
-    EOF
-    insert_telemetry_msg_log(sprintf(message_format, time_value))
+  it "sends logs matching 'telemetry-source' and containing an RFC 3339 formatted 'telemetry-time' to the centralizer, which sends to a loader,
+      adding agent and centralizer versions to the message" do
+    counter_value = Time.now.tv_sec
+    telemetry_time_value = Time.now.to_datetime.rfc3339
 
-    sleep 15 # wait for flush from centralizer to loader
+    message_format = <<-'EOF'
+{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"%s\"}, \"telemetry-source\": \"my-origin\", \"telemetry-time\": \"%s\"}"
+    EOF
+    insert_telemetry_msg_log(sprintf(message_format, counter_value, telemetry_time_value))
+
+    sleep 25 # wait for flush from centralizer to loader
 
     expected_telemetry_message = {
       "data" => {
         "app" => 'da"ta',
-        "counter" => time_value.to_s
+        "counter" => counter_value.to_s
       },
       "telemetry-source" => "my-origin",
+      "telemetry-time" => telemetry_time_value,
       "telemetry-agent-version" => "0.0.1",
       "telemetry-centralizer-version" => "0.0.1",
       "telemetry-env-type" => ENV["EXPECTED_ENV_TYPE"],
@@ -89,24 +93,51 @@ describe 'Agent to centralizer communication' do
     expect(received_messages).to include(expected_telemetry_message)
 
     logged_agent_messages = get_agent_logs
-    line_match_regex = /Message forwarded:.*#{time_value}/
+    line_match_regex = /Message forwarded:.*#{counter_value}/
     expect(logged_agent_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
   end
 
-
-  it "tests that logs not matching the expected structure are filtered out by the centralizer" do
-    time_value = Time.now.tv_sec
+  it "filters out logs not matching the expected json structure" do
+    counter_value = Time.now.tv_sec
     message_format = <<-'EOF'
 NOT a telemetry-source msg
     EOF
-    insert_telemetry_msg_log(sprintf(message_format, time_value))
+    insert_telemetry_msg_log(sprintf(message_format, counter_value))
 
     sleep 5
 
     logged_messages = get_centralizer_logs
-    line_match_regex = /#{time_value}/
+    line_match_regex = /#{counter_value}/
     expect(logged_messages).not_to include(an_object_satisfying {|message| message =~ line_match_regex})
   end
+
+  it "filters out logs that do not contain telemetry-time" do
+    counter_value = Time.now.tv_sec
+    message_format = <<-'EOF'
+{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"%s\"}, \"telemetry-source\": \"my-origin\"}"
+    EOF
+    insert_telemetry_msg_log(sprintf(message_format, counter_value))
+
+    sleep 5
+
+    logged_messages = get_agent_logs
+    line_match_regex = /#{counter_value}/
+    expect(logged_messages).not_to include(an_object_satisfying {|message| message =~ line_match_regex})
+  end
+
+  it "logs an error for logs that do not contain valid RFC 3339 telemetry-time" do
+    counter_value = Time.now.tv_sec
+    message_format = <<-'EOF'
+{ "time": 12341234123412, "level": "info", "message": "{ \"data\": {\"app\": \"da\\\"ta\", \"counter\": \"%s\"}, \"telemetry-source\": \"my-origin\", \"telemetry-time\": \"invalid-time\"}"
+    EOF
+    insert_telemetry_msg_log(sprintf(message_format, counter_value))
+
+    sleep 5
+
+    logged_messages = get_centralizer_logs
+    line_match_regex = /telemetry-time field from event .*#{counter_value}.* must be in date\/time format RFC 3339./
+    expect(logged_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
+   end
 
   it "can collect and send ops manager telemetry data via the telemetry-collector job" do
     sleep 120

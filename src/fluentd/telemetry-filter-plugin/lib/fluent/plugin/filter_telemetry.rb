@@ -1,4 +1,5 @@
 require 'fluent/plugin/filter'
+require 'date'
 
 module Fluent::Plugin
   class FilterTelemetry < Filter
@@ -9,11 +10,21 @@ module Fluent::Plugin
         version_info = {}
         version_info["telemetry-agent-version"] = record["agent-version"] if record["agent-version"]
         begin
-          LogTelemetryMessageExtractor.new(log_line).extract_message.merge(version_info)
+          msg = LogTelemetryMessageExtractor.new(log_line).extract_message.merge(version_info)
+          validate_telemetry_time(msg["telemetry-time"], log_line)
+          msg
         rescue => e
           log.info e
           nil
         end
+      end
+    end
+
+    def validate_telemetry_time(time, log_line)
+      begin
+        DateTime.rfc3339(time)
+      rescue => e
+        raise StandardError.new("telemetry-time field from event <#{log_line}> must be in date/time format RFC 3339. Cause: #{e.inspect}")
       end
     end
   end
@@ -52,7 +63,6 @@ module Fluent::Plugin
       end
     end
   end
-
 
   class JSONObjectBorderScanner < StringScanner
     def initialize(string, start_pos: 0, forwards: true, object_level: 1)
