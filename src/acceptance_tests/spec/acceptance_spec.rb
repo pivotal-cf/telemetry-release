@@ -48,6 +48,18 @@ describe 'Agent to centralizer communication' do
     JSON.parse(json_part)
   end
 
+  def wait_for(timeout)
+    start = Time.now
+    x = yield
+    until x
+      if Time.now - start > timeout
+        raise "Waited too long here. Timeout #{timeout} sec."
+      end
+      sleep(1)
+      x = yield
+    end
+  end
+
   before do
     fail("Need BOSH_CLI set to execute BOSH commands") unless ENV["BOSH_CLI"]
     fail("Missing LOADER_URL") unless ENV["LOADER_URL"]
@@ -73,8 +85,6 @@ describe 'Agent to centralizer communication' do
     EOF
     insert_telemetry_msg_log(sprintf(message_format, counter_value, telemetry_time_value))
 
-    sleep 25 # wait for flush from centralizer to loader
-
     expected_telemetry_message = {
       "data" => {
         "app" => 'da"ta',
@@ -89,8 +99,12 @@ describe 'Agent to centralizer communication' do
       "telemetry-foundation-id" => ENV["EXPECTED_FOUNDATION_ID"],
     }
 
-    received_messages = fetch_messages
-    expect(received_messages).to include(expected_telemetry_message)
+    messages = []
+    wait_for(60) do
+      messages = fetch_messages
+      !messages.empty?
+    end
+    expect(messages).to include(expected_telemetry_message)
 
     logged_agent_messages = get_agent_logs
     line_match_regex = /Message forwarded:.*#{counter_value}/
