@@ -99,16 +99,21 @@ describe 'Agent to centralizer communication' do
       "telemetry-foundation-id" => ENV["EXPECTED_FOUNDATION_ID"],
     }
 
+    agent_line_match_regex = /Message forwarded:.*#{counter_value}/
+
+    logged_agent_messages = []
+    wait_for(30) do
+      logged_agent_messages = get_agent_logs
+      !logged_agent_messages.empty?
+    end
+    expect(logged_agent_messages).to include(an_object_satisfying {|message| message =~ agent_line_match_regex})
+
     messages = []
     wait_for(60) do
       messages = fetch_messages
       !messages.empty?
     end
     expect(messages).to include(expected_telemetry_message)
-
-    logged_agent_messages = get_agent_logs
-    line_match_regex = /Message forwarded:.*#{counter_value}/
-    expect(logged_agent_messages).to include(an_object_satisfying {|message| message =~ line_match_regex})
   end
 
   it "filters out logs not matching the expected json structure" do
