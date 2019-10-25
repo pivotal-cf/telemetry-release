@@ -48,12 +48,12 @@ describe 'Agent to centralizer communication' do
     JSON.parse(json_part)
   end
 
-  def wait_for(timeout)
+  def wait_for(timeout, message)
     start = Time.now
     x = yield
     until x
       if Time.now - start > timeout
-        raise "Waited too long here. Timeout #{timeout} sec."
+        raise "Timeout #{timeout} sec: #{message}"
       end
       sleep(1)
       x = yield
@@ -99,21 +99,16 @@ describe 'Agent to centralizer communication' do
       "telemetry-foundation-id" => ENV["EXPECTED_FOUNDATION_ID"],
     }
 
-    agent_line_match_regex = /Message forwarded:.*#{counter_value}/
-
-    logged_agent_messages = []
-    wait_for(30) do
-      logged_agent_messages = get_agent_logs
-      !logged_agent_messages.empty?
-    end
-    expect(logged_agent_messages).to include(an_object_satisfying {|message| message =~ agent_line_match_regex})
-
     messages = []
-    wait_for(60) do
+    wait_for(60, "no telemetry messages were sent from centralizer") do
       messages = fetch_messages
       !messages.empty?
     end
     expect(messages).to include(expected_telemetry_message)
+
+    agent_line_match_regex = /Message received:.*#{counter_value}/
+    logged_agent_messages = get_agent_logs
+    expect(logged_agent_messages).to include(an_object_satisfying {|message| message =~ agent_line_match_regex})
   end
 
   it "filters out logs not matching the expected json structure" do

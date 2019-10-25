@@ -55,7 +55,8 @@
     Path /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log
     Match *
     Format template
-    Template {time} Message forwarded: {log}
+    Template {time} Message received: {log}
+
 
 [OUTPUT]
     Name forward
@@ -67,4 +68,3 @@
     tls.ca_file  /var/vcap/jobs/telemetry-agent/config/ca_cert.pem
     tls.crt_file /var/vcap/jobs/telemetry-agent/config/cert.pem
     tls.key_file /var/vcap/jobs/telemetry-agent/config/private_key.pem
-
