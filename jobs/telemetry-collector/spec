@@ -15,7 +15,7 @@ packages:
 properties:
   schedule:
     description: Schedule in cron format to run collect and send of telemetry data
-    default: "0 0 * * *"
+    default: "random"
   telemetry.api_key:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.env_type:

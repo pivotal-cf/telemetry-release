@@ -1,1 +1,10 @@
-<%= p('schedule') %> vcap /var/vcap/jobs/telemetry-collector/bin/telemetry-collect-send /var/vcap/jobs/telemetry-collector/config/collect.yml >> /var/vcap/sys/log/telemetry-collector/telemetry-collect-send.log 2>> /var/vcap/sys/log/telemetry-collector/telemetry-collect-send.log
+<%
+  sched_input = p('schedule')
+  if sched_input == 'random'
+    schedule = "#{rand(60)} #{rand(24)} * * *"
+  else
+    schedule = sched_input
+  end
+%>
+
+<%= schedule %> vcap /var/vcap/jobs/telemetry-collector/bin/telemetry-collect-send /var/vcap/jobs/telemetry-collector/config/collect.yml >> /var/vcap/sys/log/telemetry-collector/telemetry-collect-send.log 2>> /var/vcap/sys/log/telemetry-collector/telemetry-collect-send.log
