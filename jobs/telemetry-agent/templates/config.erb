@@ -56,13 +56,28 @@
     Match *
     Format template
     Template {time} Message received: {log}
+<%
+  centralizer_address = ""
+  if_p('centralizer_address') do |addr|
+    centralizer_address = addr
+  end.else do
+    centralizer_address = link('telemetry-centralizer').address
+  end
+%>
 
-
+<%
+  port = ""
+  if_p('centralizer_port') do |p|
+    port = p
+  end.else do
+    port = link('telemetry-centralizer').p('port')
+  end
+%>
 [OUTPUT]
     Name forward
     Match *
-    Port <%= link('telemetry-centralizer').p('port') %>
-    Host <%= link('telemetry-centralizer').address %>
+    Port <%= port %>
+    Host <%= centralizer_address %>
     tls           on
     tls.verify    on
     tls.ca_file  /var/vcap/jobs/telemetry-agent/config/ca_cert.pem

@@ -14,3 +14,16 @@ packages:
 consumes:
 - name: telemetry-centralizer
   type: telemetry-agent-connection
+  optional: true
+
+properties:
+  centralizer_address:
+    description: Address to forward telemetry messages to
+  centralizer_port:
+    description: Port to forward telemetry messages to
+  tls.ca_cert:
+    description: TLS CA for telemetry agents and centralizer
+  tls.cert:
+    description: TLS Certificate for communicating with the centralizer
+  tls.private_key:
+    description: TLS Private Key for communicating with the centralizer
