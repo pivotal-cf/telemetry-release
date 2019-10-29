@@ -57,8 +57,8 @@ instance_groups:
       opsmanager:
         auth:
           hostname: ((opsmanager_hostname))
-          username: ((opsmanager_username))
-          password: ((opsmanager_password))
+          uaa_client_name: ((opsmanager_client_name))
+          uaa_client_secret: ((opsmanager_client_secret))
         insecure_skip_tls_verify: ((opsmanager_insecure_skip_tls_verify))
       cf:
         api_url: ((cf_api_url))
