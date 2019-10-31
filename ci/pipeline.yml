@@ -130,7 +130,6 @@ jobs:
     - get: xenial-stemcell
     - get: bpm-release
     - get: version
-      params: {pre: build}
     - get: bosh-cli-github-release
       params:
         globs:
@@ -140,8 +139,6 @@ jobs:
       trigger: true
   - task: create-release
     file: telemetry-release/ci/tasks/create-release.yml
-  - put: version
-    params: {file: version/version}
   - put: telemetry-centralizer-acceptance-deployment
     params:
       manifest: telemetry-release/ci/manifest/centralizer.yml
@@ -181,6 +178,9 @@ jobs:
       vars:
         agent_deployment_name: ((agent-acceptance-deployment-name))
         centralizer_deployment_name: ((centralizer-acceptance-deployment-name))
+  - put: version
+    params:
+      pre: build
 
 - name: test-acceptance-sends-to-centralizer
   serial_groups: [telemetry-receiver, acceptance]
