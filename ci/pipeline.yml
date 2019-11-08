@@ -7,6 +7,11 @@ resource_types:
   type: docker-image
   source:
     repository: cloudfoundry/bosh-deployment-resource
+- name: pivnet
+  type: registry-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
 
 resources:
 - name: bosh-cli-github-release
@@ -90,6 +95,13 @@ resources:
     file: VERSION
     private_key: ((telemetry-release-git-deploy-private-key))
 
+- name: pivotal-telemetry-collector
+  type: pivnet
+  source:
+    api_token: {{pivnet-api-token}}
+    product_slug: pivotal-telemetry-collector
+    copy_metadata: true
+
 jobs:
 - name: bbl-up
   plan:
@@ -98,12 +110,30 @@ jobs:
     params:
       command: up
       name: telemetry-release-bosh-director
-- name: run-centralizer-unit-tests
+
+- name: update-telemetry-collector
   plan:
-  - get: telemetry-release
-    trigger: true
-  - task: run-centralizer-unit-tests
-    file: telemetry-release/ci/tasks/run-centralizer-unit-tests.yml
+    - in_parallel:
+      - get: telemetry-release
+      - get: pivotal-telemetry-collector
+        trigger: true
+        params:
+          unpack: true
+          globs: ["*.tgz"]
+      - get: bosh-cli-github-release
+        params:
+          globs:
+          - bosh-cli-*-linux-amd64
+    - task: update-release-package
+      file: telemetry-release/ci/tasks/update-release-package.yml
+      params:
+        GCS_SERVICE_ACCOUNT_KEY: ((gcs-service-account-key))
+        GITHUB_NAME: ((github-name))
+        GITHUB_EMAIL: ((github-email))
+    - put: telemetry-release
+      params:
+        repository: telemetry-release
+        rebase: true
 
 - name: deploy-telemetry-receiver-app
   serial_groups: [telemetry-receiver]
@@ -121,6 +151,16 @@ jobs:
         VALID_API_KEYS: ((acceptance-loader-api-keys))
         MESSAGE_LIMIT: "50"
 
+- name: run-centralizer-unit-tests
+  plan:
+    - get: telemetry-release
+      trigger: true
+    - task: run-centralizer-unit-tests
+      file: telemetry-release/ci/tasks/run-centralizer-unit-tests.yml
+    - put: version
+      params:
+        pre: build
+
 - name: deploy-telemetry-acceptance
   serial_groups: [acceptance, version]
   plan:
@@ -130,6 +170,7 @@ jobs:
     - get: xenial-stemcell
     - get: bpm-release
     - get: version
+      passed: [run-centralizer-unit-tests]
     - get: bosh-cli-github-release
       params:
         globs:
@@ -178,9 +219,6 @@ jobs:
       vars:
         agent_deployment_name: ((agent-acceptance-deployment-name))
         centralizer_deployment_name: ((centralizer-acceptance-deployment-name))
-  - put: version
-    params:
-      pre: build
 
 - name: test-acceptance-sends-to-centralizer
   serial_groups: [telemetry-receiver, acceptance]
