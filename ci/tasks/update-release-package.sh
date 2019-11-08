@@ -21,9 +21,18 @@ blobstore:
       $(echo $GCS_SERVICE_ACCOUNT_KEY)
 EOM
 
+  # Check if new version already exists
+  set +e
+  "$bosh_cli" blobs | grep telemetry-collector-linux-"$version"
+  if [[ $? == "1" ]]; then
+    echo "Version has not changed"
+    exit 0
+  fi
+  set -e
+
   old_blob=$("$bosh_cli" blobs | grep telemetry-collector | awk '{print $1}')
   new_blob_path="$task_dir"/pivotal-telemetry-collector/telemetry-collector-linux-amd64
-  new_blob="pivotal-telemetry-collector/telemetry-collector-linux-$version"
+  new_blob="telemetry-collector/telemetry-collector-linux-$version"
 
   "$bosh_cli" remove-blob "$old_blob"
   "$bosh_cli" add-blob "$new_blob_path" "$new_blob"
@@ -32,5 +41,5 @@ EOM
   git add .
   git config --global user.name $GITHUB_NAME
   git config --global user.email $GITHUB_EMAIL
-  git commit -m "Update pivotal-telemetry-collector blob to version $version"
+  git commit -m "Update telemetry-collector blob to version $version"
 popd
