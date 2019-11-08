@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-bosh_cli=(bosh-cli-github-release/bosh-cli-*-linux-amd64)
+task_dir="$PWD"
+bosh_cli=("$task_dir"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
 chmod 755 "$bosh_cli"
 
 version=$(cat pivotal-telemetry-collector/version | cut -d '#' -f 1)
@@ -21,7 +22,7 @@ blobstore:
 EOM
 
   old_blob=$("$bosh_cli" blobs | grep telemetry-collector | awk '{print $1}')
-  new_blob_path="pivotal-telemetry-collector/telemetry-collector-linux-amd64"
+  new_blob_path="$task_dir"/pivotal-telemetry-collector/telemetry-collector-linux-amd64
   new_blob="pivotal-telemetry-collector/telemetry-collector-linux-$version"
 
   "$bosh_cli" remove-blob "$old_blob"
