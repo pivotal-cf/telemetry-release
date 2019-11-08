@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ubuntu
+    tag: latest
+
+inputs:
+  - name: telemetry-release
+  - name: bosh-cli-github-release
+  - name: pivotal-telemetry-collector
+
+outputs:
+  - name: telemetry-release
+
+run:
+  path: telemetry-release/ci/tasks/update-release-package.sh
+
+params:
+  GCS_SERVICE_ACCOUNT_KEY:
+  GITHUB_NAME:
+  GITHUB_EMAIL:
