@@ -24,7 +24,7 @@ EOM
   # Check if new version already exists
   set +e
   "$bosh_cli" blobs | grep telemetry-collector-linux-"$version"
-  if [[ $? == "1" ]]; then
+  if [[ $? == "0" ]]; then
     echo "Version has not changed"
     exit 0
   fi
