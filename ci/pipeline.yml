@@ -77,6 +77,16 @@ resources:
     branch: master
     uri: git@github.com:pivotal-cf/telemetry-release
     private_key: ((telemetry-release-git-deploy-private-key))
+    ignore_paths:
+    - ci
+- name: ci
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:pivotal-cf/telemetry-release
+    private_key: ((telemetry-release-git-deploy-private-key))
+    paths:
+    - ci
 - name: telemetry-receiver-source
   type: git
   source:
@@ -115,6 +125,7 @@ jobs:
   plan:
     - in_parallel:
       - get: telemetry-release
+      - get: ci
       - get: pivotal-telemetry-collector
         trigger: true
         params:
@@ -125,7 +136,7 @@ jobs:
           globs:
           - bosh-cli-*-linux-amd64
     - task: update-release-package
-      file: telemetry-release/ci/tasks/update-release-package.yml
+      file: ci/ci/tasks/update-release-package.yml
       params:
         GCS_SERVICE_ACCOUNT_KEY: ((gcs-service-account-key))
         GITHUB_NAME: ((github-name))
@@ -142,8 +153,9 @@ jobs:
     - get: telemetry-release
       resource: telemetry-receiver-source
       trigger: true
+    - get: ci
   - task: test-telemetry-receiver
-    file: telemetry-release/ci/tasks/run-telemetry-receiver-tests.yml
+    file: ci/ci/tasks/run-telemetry-receiver-tests.yml
   - put: telemetry-receiver-app
     params:
       manifest: telemetry-release/src/acceptance_tests/telemetry_receiver/manifest.yml
@@ -155,8 +167,9 @@ jobs:
   plan:
     - get: telemetry-release
       trigger: true
+    - get: ci
     - task: run-centralizer-unit-tests
-      file: telemetry-release/ci/tasks/run-centralizer-unit-tests.yml
+      file: ci/ci/tasks/run-centralizer-unit-tests.yml
     - put: version
       params:
         pre: build
@@ -178,11 +191,12 @@ jobs:
     - get: telemetry-release
       passed: [run-centralizer-unit-tests]
       trigger: true
+    - get: ci
   - task: create-release
-    file: telemetry-release/ci/tasks/create-release.yml
+    file: ci/ci/tasks/create-release.yml
   - put: telemetry-centralizer-acceptance-deployment
     params:
-      manifest: telemetry-release/ci/manifest/centralizer.yml
+      manifest: telemetry-release/manifest/centralizer.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -209,7 +223,7 @@ jobs:
         usage_service_insecure_skip_tls_verify: ((usage-service-insecure-skip-tls-verify))
   - put: telemetry-agent-acceptance-deployment
     params:
-      manifest: telemetry-release/ci/manifest/agent.yml
+      manifest: telemetry-release/manifest/agent.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -228,6 +242,7 @@ jobs:
     - get: telemetry-release
       passed: [deploy-telemetry-acceptance]
       trigger: true
+    - get: ci
     - get: version
       passed: [deploy-telemetry-acceptance]
     - get: bosh-cli-github-release
@@ -239,7 +254,7 @@ jobs:
         globs:
         - bbl-v*_linux_x86-64
   - task: test-acceptance-sends-to-centralizer
-    file: telemetry-release/ci/tasks/test-acceptance-sends-to-centralizer.yml
+    file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:
       LOADER_URL: ((acceptance-loader-url))
       LOADER_API_KEY: ((acceptance-loader-api-key))
@@ -267,11 +282,12 @@ jobs:
     - get: telemetry-release
       passed: [test-acceptance-sends-to-centralizer]
       trigger: true
+    - get: ci
   - task: create-release
-    file: telemetry-release/ci/tasks/create-release.yml
+    file: ci/ci/tasks/create-release.yml
   - put: telemetry-centralizer-staging-deployment
     params:
-      manifest: telemetry-release/ci/manifest/centralizer.yml
+      manifest: telemetry-release/manifest/centralizer.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -298,7 +314,7 @@ jobs:
         usage_service_insecure_skip_tls_verify: ((usage-service-insecure-skip-tls-verify))
   - put: telemetry-agent-staging-deployment
     params:
-      manifest: telemetry-release/ci/manifest/agent.yml
+      manifest: telemetry-release/manifest/agent.yml
       source_file: bbl-state/bdr-source-file
       releases:
         - release-tarball/*.tgz
@@ -321,15 +337,16 @@ jobs:
         - bosh-cli-*-linux-amd64
     - get: telemetry-release
       passed: [deploy-telemetry-staging]
+    - get: ci
   - task: create-final-release
-    file: telemetry-release/ci/tasks/create-final-release.yml
+    file: ci/ci/tasks/create-final-release.yml
     params:
       GCS_SERVICE_ACCOUNT_KEY: ((gcs-service-account-key))
       GITHUB_NAME: ((github-name))
       GITHUB_EMAIL: ((github-email))
   - put: telemetry-release
     params:
-      repository: final-release-repo
+      repository: telemetry-release
       tag: version/version
 
 - name: auto-patch

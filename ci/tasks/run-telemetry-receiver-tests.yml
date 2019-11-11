@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
   - name: telemetry-release
+  - name: ci
 
 run:
-  path: telemetry-release/ci/tasks/run-telemetry-receiver-tests.sh
+  path: ci/ci/tasks/run-telemetry-receiver-tests.sh

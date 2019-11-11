@@ -11,12 +11,13 @@ inputs:
   - name: telemetry-release
   - name: bosh-cli-github-release
   - name: version
+  - name: ci
 
 outputs:
-  - name: final-release-repo
+  - name: telemetry-release
 
 run:
-  path: telemetry-release/ci/tasks/create-final-release.sh
+  path: ci/ci/tasks/create-final-release.sh
 
 params:
   GCS_SERVICE_ACCOUNT_KEY:

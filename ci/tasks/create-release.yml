@@ -11,9 +11,10 @@ inputs:
 - name: telemetry-release
 - name: bosh-cli-github-release
 - name: version
+- name: ci
 
 outputs:
 - name: release-tarball
 
 run:
-  path: telemetry-release/ci/tasks/create-release.sh
+  path: ci/ci/tasks/create-release.sh

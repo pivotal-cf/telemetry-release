@@ -12,7 +12,7 @@ apt-get update
 apt-get -y install git
 pushd telemetry-release
 
-cat > config/private.yml <<EOM
+  cat > config/private.yml <<EOM
 ---
 blobstore:
   options:
@@ -21,11 +21,9 @@ blobstore:
       $(echo $GCS_SERVICE_ACCOUNT_KEY)
 EOM
 
-"$BOSH_CLI" create-release --final --version "$VERSION"
+  "$BOSH_CLI" create-release --final --version "$VERSION"
 
-git add .
-git config --global user.name $GITHUB_NAME
-git config --global user.email $GITHUB_EMAIL
-git commit -m "Create final release $VERSION"
-
-cp -R . "$TASK_DIR"/final-release-repo
+  git add .
+  git config --global user.name $GITHUB_NAME
+  git config --global user.email $GITHUB_EMAIL
+  git commit -m "Create final release $VERSION"
