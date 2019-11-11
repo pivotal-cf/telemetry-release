@@ -3,7 +3,7 @@
 set -euo pipefail
 
 TASK_DIR="$PWD"
-BOSH_CLI=("$TASK_DIR/bosh-cli-github-release/bosh-cli-*-linux-amd64")
+BOSH_CLI=("$TASK_DIR"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
 chmod 755 "$BOSH_CLI"
 
 VERSION=$(cat version/version)
