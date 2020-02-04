@@ -1,7 +1,9 @@
 processes:
   - name: telemetry-agent
-    additional_volumes:
+    unrestricted_volumes:
     - path: /var/vcap/sys/log
+      mount_only: true
+    additional_volumes:
     - path: /var/vcap/data/telemetry-agent/db-state
       writable: true
     executable: /var/vcap/packages/fluent-bit/bin/fluent-bit
