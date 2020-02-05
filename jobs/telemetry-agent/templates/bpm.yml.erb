@@ -3,7 +3,6 @@ processes:
     unsafe:
       unrestricted_volumes:
       - path: /var/vcap/sys/log
-        writable: true
         mount_only: true
     additional_volumes:
     - path: /var/vcap/data/telemetry-agent/db-state
