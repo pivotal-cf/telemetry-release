@@ -278,7 +278,6 @@ jobs:
       params:
         globs:
         - bosh-cli-*-linux-amd64
-      trigger: true
     - get: telemetry-release
       passed: [test-acceptance-sends-to-centralizer]
       trigger: true
