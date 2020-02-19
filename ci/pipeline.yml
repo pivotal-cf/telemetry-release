@@ -205,6 +205,7 @@ jobs:
         - xenial-stemcell/*.tgz
       vars:
         deployment_name: ((centralizer-acceptance-deployment-name))
+        audit_mode: false
         loader_api_key: ((acceptance-loader-api-key))
         loader_endpoint: ((acceptance-loader-url))
         env_type: ((acceptance-env-type))
@@ -295,6 +296,7 @@ jobs:
         - xenial-stemcell/*.tgz
       vars:
         deployment_name: ((centralizer-staging-deployment-name))
+        audit_mode: false
         loader_api_key: ((staging-loader-api-key))
         loader_endpoint: ((staging-loader-endpoint))
         env_type: ((staging-env-type))
