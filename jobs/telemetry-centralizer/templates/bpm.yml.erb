@@ -1,5 +1,9 @@
 processes:
   - name: telemetry-centralizer
+    unsafe:
+      unrestricted_volumes:
+      - path: /var/vcap/sys/log/telemetry-centralizer/
+        writable: true
     executable: /var/vcap/jobs/telemetry-centralizer/bin/telemetry_centralizer
     args:
     - --config=/var/vcap/jobs/telemetry-centralizer/config/fluent.cnf

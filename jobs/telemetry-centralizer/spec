@@ -26,6 +26,8 @@ packages:
 - ruby-2.4.6-r0.16.0
 
 properties:
+  audit_mode:
+    description: If enabled, telemetry data will be kept on disk but not sent
   telemetry.api_key:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.endpoint:

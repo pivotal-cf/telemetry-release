@@ -33,6 +33,7 @@ instance_groups:
       telemetry-centralizer: {as: telemetry-centralizer, shared: true}
       telemetry-centralizer-address: {as: telemetry-centralizer-address}
     properties:
+      audit_mode: ((audit_mode))
       telemetry:
         endpoint: "((loader_endpoint))/components"
         api_key: ((loader_api_key))
@@ -49,6 +50,7 @@ instance_groups:
   - name: telemetry-collector
     release: telemetry
     properties:
+      audit_mode: ((audit_mode))
       telemetry:
         env_type: ((env_type))
         api_key: ((loader_api_key))

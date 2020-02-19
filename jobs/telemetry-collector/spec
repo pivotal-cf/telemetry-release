@@ -16,6 +16,8 @@ properties:
   schedule:
     description: Schedule in cron format to run collect and send of telemetry data
     default: "random"
+  audit_mode:
+    description: If enabled, telemetry data will be kept on disk but not sent
   telemetry.api_key:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.env_type:

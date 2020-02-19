@@ -2,7 +2,7 @@ processes:
   - name: telemetry-agent
     unsafe:
       unrestricted_volumes:
-      - path: /var/vcap/sys/log
+      - path: /var/vcap/sys/log/telemetry-centralizer/
         mount_only: true
     additional_volumes:
     - path: /var/vcap/data/telemetry-agent/db-state

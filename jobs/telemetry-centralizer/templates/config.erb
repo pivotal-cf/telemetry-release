@@ -38,7 +38,11 @@
   <store>
     @type exec
 
-    command curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <
+    <% if p('audit_mode') %>
+    <%= "command tee -a -p /var/vcap/sys/log/telemetry-centralizer/audit.log <" %>
+    <% else %>
+    <%= "command curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <" %>
+    <% end %>
     <format>
       @type json
     </format>
