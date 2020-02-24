@@ -17,4 +17,4 @@ popd
 export BOSH_CLI=$(find "$PWD"/bosh-cli-github-release -name bosh-cli-*-linux-amd64)
 chmod 755 "$BOSH_CLI"
 
-"$base/ci/tasks/run-acceptance-tests.sh"
+"$base/ci/tasks/run-acceptance-tests.sh $AUDIT_MODE"
