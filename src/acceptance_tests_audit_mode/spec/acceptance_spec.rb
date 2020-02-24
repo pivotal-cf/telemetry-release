@@ -27,8 +27,13 @@ describe 'Agent to centralizer communication' do
     logs = `#{ENV["BOSH_CLI"]} -d #{ENV["CENTRALIZER_BOSH_DEPLOYMENT"]} ssh telemetry-centralizer -c 'sudo tail -20 /var/vcap/sys/log/telemetry-centralizer/audit.log'`
     expect($?).to(be_success)
     logs.split("\n").collect do |log|
-      JSON.parse(log)
-    end
+      log = log.split("|").last
+      begin
+        JSON.parse(log)
+      rescue
+        nil
+      end
+    end.compact
   end
 
   def get_agent_logs
@@ -45,7 +50,8 @@ describe 'Agent to centralizer communication' do
 
   def fetch_batch_messages
     res = client.get("/received_batch_messages", {'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
-    expect(res.code).not_to eq("200")
+    #expect(res.code).not_to eq("200")
+    res.body
   end
 
   def extract_json_from_message_line_matching(messages, regex)
