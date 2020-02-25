@@ -157,7 +157,7 @@ jobs:
         rebase: true
 
 - name: deploy-telemetry-receiver-app
-  serial_groups: [telemetry-receiver]
+  serial_groups: [telemetry-receiver, telemetry-receiver-audit]
   plan:
   - in_parallel:
     - get: telemetry-release
@@ -174,18 +174,20 @@ jobs:
         MESSAGE_LIMIT: "50"
 
 - name: run-centralizer-unit-tests
+  serial_groups: [version]
   plan:
     - get: telemetry-release
       trigger: true
+    - get: version
+      params: {pre: build}
     - get: ci
     - task: run-centralizer-unit-tests
       file: ci/ci/tasks/run-centralizer-unit-tests.yml
     - put: version
-      params:
-        pre: build
+      params: {file: version/version}
 
 - name: deploy-telemetry-acceptance
-  serial_groups: [acceptance, version]
+  serial_groups: [acceptance]
   plan:
   - in_parallel:
     - get: bbl-state
@@ -246,7 +248,7 @@ jobs:
         centralizer_deployment_name: ((centralizer-acceptance-deployment-name))
 
 - name: deploy-telemetry-acceptance-audit
-  serial_groups: [version, acceptance-audit]
+  serial_groups: [acceptance-audit]
   plan:
     - in_parallel:
         - get: bbl-state
@@ -307,7 +309,7 @@ jobs:
           centralizer_deployment_name: ((centralizer-acceptance-audit-deployment-name))
 
 - name: test-acceptance-audit
-  serial_groups: [telemetry-receiver, acceptance-audit]
+  serial_groups: [telemetry-receiver-audit, acceptance-audit]
   plan:
     - in_parallel:
         - get: bbl-state
