@@ -51,7 +51,7 @@ describe 'Agent to centralizer communication' do
   def fetch_batch_messages
     res = client.get("/received_batch_messages", {'Authorization' => "Bearer #{ENV["LOADER_API_KEY"]}"})
     expect(res.code).to eq("200")
-    res.body
+    JSON.parse(res.body)
   end
 
   def extract_json_from_message_line_matching(messages, regex)

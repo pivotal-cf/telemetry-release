@@ -277,7 +277,7 @@ jobs:
         vars:
           deployment_name: ((centralizer-acceptance-audit-deployment-name))
           audit_mode: true
-          loader_api_key: no-api-key
+          loader_api_key: ((acceptance-loader-api-key-audit))
           loader_endpoint: ((acceptance-loader-url))
           env_type: ((acceptance-env-type))
           iaas_type: ((acceptance-iaas-type))
@@ -329,7 +329,7 @@ jobs:
       file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
       params:
         LOADER_URL: ((acceptance-loader-url))
-        LOADER_API_KEY: ((acceptance-loader-api-key))
+        LOADER_API_KEY: ((acceptance-loader-api-key-audit))
         CENTRALIZER_BOSH_DEPLOYMENT: ((centralizer-acceptance-audit-deployment-name))
         AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-audit-deployment-name))
         AGENT_BOSH_INSTANCE: ((agent-acceptance-instance-name))
