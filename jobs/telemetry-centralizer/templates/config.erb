@@ -22,7 +22,7 @@
   <record>
     telemetry-centralizer-version 0.0.1
     telemetry-env-type <%= p('telemetry.env_type') %>
-    <% if_p('telemetry.foundation_nickname') do |p| %>telemetry-foundation-nickname: <%= p %> <% end %>
+    <% if_p('telemetry.foundation_nickname') do |p| %>telemetry-foundation-nickname <%= p %> <% end %>
     telemetry-iaas-type <%= p('telemetry.iaas_type') %>
     telemetry-foundation-id <%= p('telemetry.foundation_id') %>
   </record>
