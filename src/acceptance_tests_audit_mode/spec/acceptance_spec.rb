@@ -130,6 +130,7 @@ describe 'Agent to centralizer communication' do
       "telemetry-env-type" => ENV["EXPECTED_ENV_TYPE"],
       "telemetry-iaas-type" => ENV["EXPECTED_IAAS_TYPE"],
       "telemetry-foundation-id" => ENV["EXPECTED_FOUNDATION_ID"],
+      "telemetry-foundation-nickname" => ENV["EXPECTED_FOUNDATION_NICKNAME"],
     }
 
     audit_messages = get_centralizer_audit_logs
