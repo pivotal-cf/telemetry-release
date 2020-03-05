@@ -97,6 +97,7 @@ resources:
     private_key: ((telemetry-release-git-deploy-private-key))
     paths:
     - ci
+    - src
 - name: telemetry-receiver-source
   type: git
   source:
