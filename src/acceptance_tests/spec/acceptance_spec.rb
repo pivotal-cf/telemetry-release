@@ -93,7 +93,7 @@ describe 'Agent to centralizer communication' do
       "telemetry-source" => "my-origin",
       "telemetry-time" => telemetry_time_value,
       "telemetry-agent-version" => "0.0.1",
-      "telemetry-centralizer-version" => "0.0.1",
+      "telemetry-centralizer-version" => "0.0.2",
       "telemetry-env-type" => ENV["EXPECTED_ENV_TYPE"],
       "telemetry-foundation-nickname" => ENV["EXPECTED_FOUNDATION_NICKNAME"],
       "telemetry-iaas-type" => ENV["EXPECTED_IAAS_TYPE"],
