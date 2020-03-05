@@ -38,6 +38,7 @@ instance_groups:
         endpoint: "((loader_endpoint))/components"
         api_key: ((loader_api_key))
         env_type: ((env_type))
+        foundation_nickname: ((foundation_nickname))
         iaas_type: ((iaas_type))
         foundation_id: ((foundation_id))
       flush_interval: ((flush_interval))
@@ -53,6 +54,7 @@ instance_groups:
       audit_mode: ((audit_mode))
       telemetry:
         env_type: ((env_type))
+        foundation_nickname: ((foundation_nickname))
         api_key: ((loader_api_key))
         endpoint_override: ((loader_endpoint))
       schedule: ((collector_cron_schedule))

@@ -223,6 +223,7 @@ jobs:
         env_type: ((acceptance-env-type))
         iaas_type: ((acceptance-iaas-type))
         foundation_id: ((acceptance-foundation-id))
+        foundation_nickname: ((acceptance-foundation-nickname))
         flush_interval: ((acceptance-centralizer-flush-interval))
         collector_cron_schedule: ((collector-cron-schedule))
         opsmanager_hostname: ((opsmanager-hostname))
@@ -284,6 +285,7 @@ jobs:
           env_type: ((acceptance-env-type))
           iaas_type: ((acceptance-iaas-type))
           foundation_id: ((acceptance-foundation-id))
+          foundation_nickname: ((acceptance-foundation-nickname))
           flush_interval: ((acceptance-centralizer-flush-interval))
           collector_cron_schedule: ((collector-cron-schedule))
           opsmanager_hostname: ((opsmanager-hostname))
@@ -336,6 +338,7 @@ jobs:
         AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-audit-deployment-name))
         AGENT_BOSH_INSTANCE: ((agent-acceptance-instance-name))
         EXPECTED_ENV_TYPE: ((acceptance-env-type))
+        EXPECTED_FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
         EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
         EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
         AUDIT_MODE: true
@@ -368,6 +371,7 @@ jobs:
       AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-deployment-name))
       AGENT_BOSH_INSTANCE: ((agent-acceptance-instance-name))
       EXPECTED_ENV_TYPE: ((acceptance-env-type))
+      EXPECTED_FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
       EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
 
@@ -407,6 +411,7 @@ jobs:
         env_type: ((staging-env-type))
         iaas_type: ((staging-iaas-type))
         foundation_id: ((staging-foundation-id))
+        foundation_nickname: ((staging-foundation-nickname))
         flush_interval: ((staging-centralizer-flush-interval))
         collector_cron_schedule: "0 0 * * *"
         opsmanager_hostname: ((opsmanager-hostname))

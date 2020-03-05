@@ -35,6 +35,8 @@ properties:
     description: HTTP endpoint to send telemetry batches to
   telemetry.env_type:
     description: The environment type of the foundation
+  telemetry.foundation_nickname:
+    description: The nickname of the foundation used in reporting by VMware
   telemetry.iaas_type:
     description: The IaaS type of the foundation
   telemetry.foundation_id:
