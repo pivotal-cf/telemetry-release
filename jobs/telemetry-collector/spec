@@ -18,6 +18,7 @@ properties:
     default: "random"
   audit_mode:
     description: If enabled, telemetry data will be kept on disk but not sent
+    default: false
   telemetry.api_key:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.env_type:
