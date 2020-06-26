@@ -28,6 +28,10 @@
   </record>
 </filter>
 
+# BUILD PROXY STRINGS
+<% @env_http_proxy = "http_proxy=" + p('telemetry.endpoint_http_proxy') %>
+<% @env_https_proxy = "https_proxy=" + p('telemetry.endpoint_https_proxy') %>
+
 ## match all and dump to console
 <match **>
   @type copy
@@ -42,7 +46,7 @@
     <% if p('audit_mode') %>
     <%= "command tee -a -p /var/vcap/sys/log/telemetry-centralizer/audit.log <" %>
     <% else %>
-    <%= "command curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <" %>
+    <%= "command #{@env_http_proxy} #{@env_https_proxy} curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <" %>
     <% end %>
     <format>
       @type json

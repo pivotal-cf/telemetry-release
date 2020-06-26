@@ -27,6 +27,12 @@ properties:
     description: The nickname of the foundation used in reporting by VMware
   telemetry.endpoint_override:
     description: Override HTTP(s) endpoint to send telemetry data to
+  telemetry.endpoint_http_proxy:
+    description: the http proxy to send telemetry data through
+    default: ""
+  telemetry.endpoint_https_proxy:
+    description: the https proxy to send telemetry data through
+    default: ""
   opsmanager.auth.hostname:
     description: Ops Manager Hostname
   opsmanager.auth.username:

@@ -10,6 +10,9 @@ $COLLECTOR_BIN collect --config "$1"
 
 TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar")
 
+export http_proxy=<%= p("telemetry.endpoint_http_proxy") %>
+export https_proxy=<%= p("telemetry.endpoint_https_proxy") %>
+
 audit_mode=<%= p("audit_mode") %>
 if [ "${audit_mode}" != "true" ]; then
   $COLLECTOR_BIN send --path $TAR_FILE --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %>

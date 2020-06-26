@@ -33,6 +33,12 @@ properties:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.endpoint:
     description: HTTP endpoint to send telemetry batches to
+  telemetry.endpoint_http_proxy:
+    description: the http proxy to send telemetry data through
+    default: ""
+  telemetry.endpoint_https_proxy:
+    description: the https proxy to send telemetry data through
+    default: ""
   telemetry.env_type:
     description: The environment type of the foundation
   telemetry.foundation_nickname:
