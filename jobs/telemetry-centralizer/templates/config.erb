@@ -29,8 +29,8 @@
 </filter>
 
 # BUILD PROXY STRINGS
-<% @env_http_proxy = "http_proxy=" + p('telemetry.endpoint_http_proxy') %>
-<% @env_https_proxy = "https_proxy=" + p('telemetry.endpoint_https_proxy') %>
+<% @env_http_proxy = "http_proxy=" + p('telemetry.proxy_settings.http_proxy') %>
+<% @env_https_proxy = "https_proxy=" + p('telemetry.proxy_settings.https_proxy') %>
 
 ## match all and dump to console
 <match **>
