@@ -126,11 +126,13 @@ resources:
 jobs:
 - name: bbl-up
   plan:
-  - get: bbl-state
+  - get: bbl-state-input
+    resource: bbl-state
   - put: bbl-state
     params:
       command: up
       name: telemetry-release-bosh-director
+      state_dir: bbl-state-input
 
 - name: update-telemetry-collector
   plan:
