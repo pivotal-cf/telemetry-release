@@ -27,3 +27,4 @@ EOM
   git config --global user.name $GITHUB_NAME
   git config --global user.email $GITHUB_EMAIL
   git commit -m "Create final release $VERSION"
+  git pull --rebase
