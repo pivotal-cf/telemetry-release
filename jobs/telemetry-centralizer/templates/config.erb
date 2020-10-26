@@ -42,7 +42,6 @@
 
   <store>
     @type exec
-
     <% if p('audit_mode') %>
     <%= "command tee -a -p /var/vcap/sys/log/telemetry-centralizer/audit.log <" %>
     <% else %>
