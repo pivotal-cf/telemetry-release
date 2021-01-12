@@ -28,7 +28,7 @@ resources:
     repository: bosh-bootloader
     release: true
     access_token: ((telemetry-release-github-access-token))
-- name: telemetry-receiver-app
+- name: telemetry-receiver-app-pws
   type: cf
   source:
     api: ((cf-api-url))
@@ -36,6 +36,14 @@ resources:
     password: ((cf-password))
     organization: ((cf-org))
     space: staging
+- name: telemetry-receiver-app-pcf1
+  type: cf
+  source:
+    api: ((pcf1-api-url))
+    username: ((pcf1-username))
+    password: ((pcf1-password))
+    organization: ((pcf1-org))
+    space: stage
 - name: bbl-state
   type: bbl-state-resource
   source:
@@ -159,7 +167,7 @@ jobs:
         repository: telemetry-release
         rebase: true
 
-- name: deploy-telemetry-receiver-app
+- name: deploy-telemetry-receiver-app-pws
   serial_groups: [telemetry-receiver, telemetry-receiver-audit]
   plan:
   - in_parallel:
@@ -169,7 +177,24 @@ jobs:
     - get: ci
   - task: test-telemetry-receiver
     file: ci/ci/tasks/run-telemetry-receiver-tests.yml
-  - put: telemetry-receiver-app
+  - put: telemetry-receiver-app-pws
+    params:
+      manifest: telemetry-release/src/acceptance_tests/telemetry_receiver/manifest.yml
+      environment_variables:
+        VALID_API_KEYS: ((acceptance-loader-api-keys))
+        MESSAGE_LIMIT: "50"
+
+- name: deploy-telemetry-receiver-app-pcf1
+  serial_groups: [telemetry-receiver, telemetry-receiver-audit]
+  plan:
+  - in_parallel:
+    - get: telemetry-release
+      resource: telemetry-receiver-source
+      trigger: true
+    - get: ci
+  - task: test-telemetry-receiver
+    file: ci/ci/tasks/run-telemetry-receiver-tests.yml
+  - put: telemetry-receiver-app-pcf1
     params:
       manifest: telemetry-release/src/acceptance_tests/telemetry_receiver/manifest.yml
       environment_variables:
