@@ -7,3 +7,4 @@ url: https://<%= p('opsmanager.auth.hostname') %>
 env-type: <%= p('telemetry.env_type') %>
 output-dir: /var/vcap/data/telemetry-collector/
 <% if_p('opsmanager.insecure_skip_tls_verify') do |p| %>insecure-skip-tls-verify: <%= p %> <% end %>
+<% if_p('opsmanager.timeout') do |p| %>ops-manager-timeout: <%= p %> <% end %>
