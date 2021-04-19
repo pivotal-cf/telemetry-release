@@ -45,8 +45,10 @@ properties:
     description: Ops Manager client secret
   opsmanager.insecure_skip_tls_verify:
     description: Skip TLS validation on http requests to Ops Manager
-  opsmanager.timeout:
-    description: How long to wait for Ops Manager to respond to some request, defaults to collector CLI timeout
+  opsmanager.timeout
+    description: How long to wait on creation of a network connection to Ops Manager.
+  opsmanager.request_timeout
+    description: How long to wait on a request to be fulfuilled by Ops Manager.
   cf.api_url:
     description: CF API URL for UAA authentication to access Usage Service
   usage_service.url:
