@@ -10,6 +10,7 @@ $COLLECTOR_BIN collect --config "$1"
 
 TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar")
 
+export no_proxy=<%= p("telemetry.proxy_settings.no_proxy") %>
 export http_proxy=<%= p("telemetry.proxy_settings.http_proxy") %>
 export https_proxy=<%= p("telemetry.proxy_settings.https_proxy") %>
 

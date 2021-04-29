@@ -33,6 +33,9 @@ properties:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.endpoint:
     description: HTTP endpoint to send telemetry batches to
+  telemetry.proxy_settings.no_proxy:
+    description: list of hostnames to not interact with through the current proxy settings (http(s)_proxy settings)
+    default: ""
   telemetry.proxy_settings.http_proxy:
     description: the http proxy to send telemetry data through
     default: ""
