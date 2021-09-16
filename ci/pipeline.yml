@@ -6,11 +6,11 @@ resource_types:
 - name: bosh-deployment
   type: docker-image
   source:
-    repository: cloudfoundry/bosh-deployment-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cloudfoundry/bosh-deployment-resource
 - name: pivnet
   type: registry-image
   source:
-    repository: pivotalcf/pivnet-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pivotalcf/pivnet-resource
     tag: latest-final
 
 resources:

@@ -6,6 +6,6 @@ cd telemetry-release/src/acceptance_tests/telemetry_receiver
 
 go version
 
-go get github.com/onsi/ginkgo/ginkgo
+go install github.com/onsi/ginkgo/ginkgo@latest
 
 ginkgo -failOnPending -race -randomizeAllSpecs -randomizeSuites -r .
