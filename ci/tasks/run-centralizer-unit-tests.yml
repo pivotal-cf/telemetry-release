@@ -4,7 +4,7 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: ruby
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ruby
     tag: 2.7.2
 
 inputs:
