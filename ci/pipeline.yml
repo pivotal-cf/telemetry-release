@@ -84,7 +84,7 @@ resources:
 - name: telemetry-release
   type: git
   source:
-    branch: master
+    branch: main
     uri: git@github.com:pivotal-cf/telemetry-release
     private_key: ((telemetry-release-git-deploy-private-key))
     ignore_paths:
@@ -92,7 +92,7 @@ resources:
 - name: ci
   type: git
   source:
-    branch: master
+    branch: main
     uri: git@github.com:pivotal-cf/telemetry-release
     private_key: ((telemetry-release-git-deploy-private-key))
     paths:
@@ -101,7 +101,7 @@ resources:
 - name: telemetry-receiver-source
   type: git
   source:
-    branch: master
+    branch: main
     uri: git@github.com:pivotal-cf/telemetry-release
     paths:
     - src/acceptance_tests/telemetry_receiver
