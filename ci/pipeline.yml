@@ -12,6 +12,9 @@ resource_types:
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pivotalcf/pivnet-resource
     tag: latest-final
+- name: github-release
+  type: registry-image
+  source: {repository: concourse/github-release-resource}
 
 resources:
 - name: bosh-cli-github-release
