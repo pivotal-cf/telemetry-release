@@ -2,7 +2,7 @@ fluent-bit/fluent-bit-1.3.2.tar.gz:
   size: 11850186
   object_id: 0de0c4ca-1456-487f-63c9-8c3283af0afb
   sha: sha256:12684fd77ff8ac98d9d66c1840761a250118bc5305b5496f6f8f9110478beb95
-telemetry-collector/telemetry-collector-linux-1.1.6:
-  size: 13042082
-  object_id: 9c9ba969-3d77-4e1c-4285-bdb9ccf21ece
-  sha: sha256:df6c256fddb384e2812e63f2246811e3533d9774eeeeca4e3bfad4fd9e4376da
+telemetry-collector/telemetry-collector-linux-1.2.0:
+  size: 13403077
+  object_id: f7380f45-4740-47b9-4a53-b6b1a648e004
+  sha: sha256:45c24e418cf65ca4d4d54b3f9d2761cdd3377e1e88bf61d573547bf58f380375
