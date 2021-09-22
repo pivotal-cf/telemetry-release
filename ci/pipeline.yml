@@ -14,7 +14,7 @@ resource_types:
     tag: latest-final
 - name: github-release
   type: registry-image
-  source: {repository: concourse/github-release-resource}
+  source: {repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/github-release-resource}
 
 resources:
 - name: bosh-cli-github-release
