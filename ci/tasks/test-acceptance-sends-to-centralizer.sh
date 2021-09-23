@@ -5,7 +5,7 @@ set -euo pipefail
 base="$(dirname "$BASH_SOURCE[0]")/../.."
 
 apt-get update
-apt-get -y install openssh-server openssh-client ssh netcat-openbsd
+apt-get -y install ssh netcat-openbsd
 
 BBL_CLI=$(find "$PWD"/bbl-cli-github-release -name bbl-v*_linux_x86-64)
 chmod 755 "$BBL_CLI"
