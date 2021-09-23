@@ -4,7 +4,8 @@ set -euo pipefail
 
 base="$(dirname "$BASH_SOURCE[0]")/../.."
 
-apt-get remove openssh-server openssh-client --purge && apt-get autoremove && apt-get autoclean && apt-get update
+apt-get update
+apt-get upgrade
 apt-get -y install ssh netcat-openbsd
 
 BBL_CLI=$(find "$PWD"/bbl-cli-github-release -name bbl-v*_linux_x86-64)
