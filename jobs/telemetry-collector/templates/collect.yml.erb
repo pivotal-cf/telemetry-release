@@ -16,3 +16,4 @@ output-dir: /var/vcap/data/telemetry-collector/
 <% if_p('usage_service.client_id') do |p| %>usage-service-client-id: <%= p %> <% end %>
 <% if_p('usage_service.client_secret') do |p| %>usage-service-client-secret: <%= p %> <% end %>
 <% if_p('usage_service.insecure_skip_tls_verify') do |p| %>usage-service-insecure-skip-tls-verify: <%= p %> <% end %>
+<% if_p('usage_service.timeout') do |p| %>usage-service-timeout: <%= p %> <% end %>

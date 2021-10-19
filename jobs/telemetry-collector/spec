@@ -62,3 +62,5 @@ properties:
     description: Usage Service client secret
   usage_service.insecure_skip_tls_verify:
     description: Skip TLS validation for Usage Service components
+  usage_service.timeout:
+    description: Timeout on request connection and fulfillment to Usage Service in seconds
