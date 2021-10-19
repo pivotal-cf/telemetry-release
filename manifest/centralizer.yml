@@ -78,6 +78,7 @@ variables:
   options:
     is_ca: true
     common_name: 'Telemetry CA'
+    duration: 1460
 - name: telemetry-centralizer-cert
   type: certificate
   options:
