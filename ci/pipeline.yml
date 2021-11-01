@@ -43,6 +43,12 @@ resources:
     owner: pivotal
     repository: smith
     access_token: ((telemetry-release-github-access-token))
+- name: om-cli-github-release
+  type: github-release
+  source:
+    owner: pivotal-cf
+    repository: om
+    access_token: ((telemetry-release-github-access-token))
 - name: telemetry-receiver-app
   type: cf
   source:
@@ -290,6 +296,10 @@ jobs:
     - get: ci
     - get: smith
       resource: smith-cli-github-release
+      params:
+        globs: ["*linux*"]
+    - get: om
+      resource: om-cli-github-release
       params:
         globs: ["*linux*"]
   - task: create-release

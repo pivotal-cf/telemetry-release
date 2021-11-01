@@ -23,19 +23,24 @@ function retry {
   done
   return 0
 }
+apt-get update
+apt-get -y install git jq
 
 TASK_DIR="$PWD"
-BOSH_CLI=("$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
-chmod 755 "$BOSH_CLI"
-
 VERSION=$(cat version/version)
 
-apt-get update
-apt-get -y install git
+echo "Setting up BOSH CLI"
+BOSH_CLI=/usr/local/bin/bosh
+cp "$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64 "$BOSH_CLI"
+chmod 755 "$BOSH_CLI"
 
-tar -C /usr/local/bin -xf smith/*.tar.gz
+echo "Setting up OM CLI"
+om_cli="om/om-linux-$(cat om/version)"
+chmod 755 "$om_cli"
+cp "$om_cli" /usr/local/bin/om
 
 echo "Evaluating smith environment"
+tar -C /usr/local/bin -xf smith/*.tar.gz
 export env=${TOOLSMITHS_ENV:-$(cat env-pool/name)}
 eval "$(smith bosh)"
 
