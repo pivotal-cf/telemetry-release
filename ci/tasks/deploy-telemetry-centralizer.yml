@@ -1,0 +1,45 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu
+    tag: latest
+
+inputs:
+- name: xenial-stemcell
+- name: bpm-release
+- name: version
+- name: bosh-cli-github-release
+- name: telemetry-release
+- name: ci
+- name: release-tarball
+- name: env-pool
+  optional: true
+
+run:
+  path: ci/ci/tasks/deploy-telemetry-centralizer.sh
+
+params:
+  DEPLOYMENT_NAME:
+  AUDIT_MODE:
+  LOADER_API_KEY:
+  LOADER_ENDPOINT:
+  ENV_TYPE:
+  IAAS_TYPE:
+  FOUNDATION_ID:
+  FOUNDATION_NICKNAME:
+  FLUSH_INTERVAL:
+  COLLECTOR_CRON_SCHEDULE:
+  OPSMANAGER_HOSTNAME:
+  OPSMANAGER_CLIENT_NAME:
+  OPSMANAGER_CLIENT_SECRET:
+  OPSMANAGER_INSECURE_SKIP_TLS_VERIFY:
+  CF_API_URL:
+  USAGE_SERVICE_URL:
+  USAGE_SERVICE_CLIENT_ID:
+  USAGE_SERVICE_CLIENT_SECRET:
+  USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY:
+  TOOLSMITHS_API_TOKEN:
+  TOOLSMITHS_ENV:

@@ -15,6 +15,10 @@ resource_types:
 - name: github-release
   type: registry-image
   source: {repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/github-release-resource}
+- name: pcf-pool
+  type: docker-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
 
 resources:
 - name: bosh-cli-github-release
@@ -30,6 +34,14 @@ resources:
     owner: cloudfoundry
     repository: bosh-bootloader
     release: true
+    access_token: ((telemetry-release-github-access-token))
+- name: smith-cli-github-release
+  type: github-release
+  version:
+    tag: 'v2.3.0'
+  source:
+    owner: pivotal
+    repository: smith
     access_token: ((telemetry-release-github-access-token))
 - name: telemetry-receiver-app
   type: cf
@@ -118,6 +130,12 @@ resources:
     branch: version
     file: VERSION
     private_key: ((telemetry-release-git-deploy-private-key))
+- name: env-pool
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths-api-token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: us_2_10 
 
 - name: pivotal-telemetry-collector
   type: pivnet
@@ -253,6 +271,60 @@ jobs:
       vars:
         agent_deployment_name: ((agent-acceptance-deployment-name))
         centralizer_deployment_name: ((centralizer-acceptance-deployment-name))
+
+- name: deploy-telemetry-acceptance2
+  serial_groups: [acceptance]
+  plan:
+  - in_parallel:
+    - get: xenial-stemcell
+    - get: bpm-release
+    - get: version
+      passed: [run-centralizer-unit-tests]
+    - get: bosh-cli-github-release
+      params:
+        globs:
+        - bosh-cli-*-linux-amd64
+    - get: telemetry-release
+      passed: [run-centralizer-unit-tests]
+      trigger: true
+    - get: ci
+    - get: smith
+      resource: smith-cli-github-release
+      params:
+        globs: ["*linux*"]
+  - task: create-release
+    file: ci/ci/tasks/create-release.yml
+  - put: env-pool
+    params:
+      action: claim
+  - task: telemetry-centralizer-acceptance-deployment
+    file: ci/ci/tasks/deploy-telemetry-centralizer.yml
+    params:
+      DEPLOYMENT_NAME: ((centralizer-acceptance-deployment-name))
+      AUDIT_MODE: false
+      LOADER_API_KEY: ((acceptance-loader-api-key))
+      LOADER_ENDPOINT: ((acceptance-loader-url))
+      ENV_TYPE: ((acceptance-env-type))
+      IAAS_TYPE: ((acceptance-iaas-type))
+      FOUNDATION_ID: ((acceptance-foundation-id))
+      FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
+      FLUSH_INTERVAL: ((acceptance-centralizer-flush-interval))
+      COLLECTOR_CRON_SCHEDULE: ((collector-cron-schedule))
+      OPSMANAGER_HOSTNAME: ((opsmanager-hostname))
+      OPSMANAGER_CLIENT_NAME: ((opsmanager-client-name))
+      OPSMANAGER_CLIENT_SECRET: ((opsmanager-client-secret))
+      OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: ((opsmanager-insecure-skip-tls-verify))
+      CF_API_URL: ((usage-service-cf-api-url))
+      USAGE_SERVICE_URL: ((usage-service-url))
+      USAGE_SERVICE_CLIENT_ID: ((usage-service-client-id))
+      USAGE_SERVICE_CLIENT_SECRET: ((usage-service-client-secret))
+      USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: ((usage-service-insecure-skip-tls-verify))
+      TOOLSMITHS_API_TOKEN: ((toolsmiths-api-token))
+  # - task: telemetry-agent-acceptance-deployment
+  #   file: ci/ci/tasks/deploy-telemetry-agent.yml
+  #   params:
+  #     AGENT_DEPLOYMENT_NAME: ((agent-acceptance-deployment-name))
+  #     CENTRALIZER_DEPLOYMENT_NAME: ((centralizer-acceptance-deployment-name))
 
 - name: deploy-telemetry-acceptance-audit
   serial_groups: [acceptance-audit]
