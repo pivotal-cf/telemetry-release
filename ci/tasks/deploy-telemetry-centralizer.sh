@@ -49,11 +49,11 @@ echo "Uploading stemcell..."
 retry 5 "$BOSH_CLI" upload-stemcell "$TASK_DIR/xenial-stemcell/stemcell.tgz"
 
 echo "Uploading releases..."
-retry 5 "$BOSH_CLI" upload-release "$TASK_DIR/release-tarball/release.tgz"
-retry 5 "$BOSH_CLI" upload-release "$TASK_DIR/bpm-release/release.tgz"
+retry 5 "$BOSH_CLI" upload-release -n "$TASK_DIR/release-tarball/release.tgz"
+retry 5 "$BOSH_CLI" upload-release -n "$TASK_DIR/bpm-release/release.tgz"
 
 echo "Deploying telemetry centralizer"
-retry 5 "$BOSH_CLI" deploy -d "$DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
+retry 5 "$BOSH_CLI" deploy -n -d "$DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
     --var deployment_name="$DEPLOYMENT_NAME"
     --var audit_mode="$AUDIT_MODE"
     --var loader_api_key="$LOADER_API_KEY"
