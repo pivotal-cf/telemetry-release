@@ -17,6 +17,7 @@ inputs:
 - name: release-tarball
 - name: env-pool
   optional: true
+- name: smith
 
 run:
   path: ci/ci/tasks/deploy-telemetry-centralizer.sh
