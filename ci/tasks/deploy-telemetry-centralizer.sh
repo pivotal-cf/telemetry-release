@@ -46,11 +46,11 @@ eval "$(smith bosh)"
 
 echo "Uploading stemcell..."
 
-retry 5 "$BOSH_CLI" upload-stemcell "$TASK_DIR/xenial-stemcell/*.tgz"
+retry 5 "$BOSH_CLI" upload-stemcell "$TASK_DIR/xenial-stemcell/stemcell.tgz"
 
 echo "Uploading releases..."
-retry 5 "$BOSH_CLI" upload-release --force "$TASK_DIR/release-tarball/*.tgz"
-retry 5 "$BOSH_CLI" upload-release --force "$TASK_DIR/bpm-release/*.tgz"
+retry 5 "$BOSH_CLI" upload-release --force "$TASK_DIR/release-tarball/release.tgz"
+retry 5 "$BOSH_CLI" upload-release --force "$TASK_DIR/bpm-release/release.tgz"
 
 echo "Deploying telemetry centralizer"
 retry 5 "$BOSH_CLI" deploy -d "$DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
