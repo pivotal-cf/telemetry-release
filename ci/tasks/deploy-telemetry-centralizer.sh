@@ -33,6 +33,8 @@ VERSION=$(cat version/version)
 apt-get update
 apt-get -y install git
 
+tar -C /usr/local/bin -xf smith/*.tar.gz
+
 echo "Evaluating smith environment"
 export env=${TOOLSMITHS_ENV:-$(cat env-pool/name)}
 eval "$(smith bosh)"
