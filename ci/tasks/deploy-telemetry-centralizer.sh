@@ -42,7 +42,7 @@ cp "$om_cli" /usr/local/bin/om
 echo "Evaluating smith environment"
 tar -C /usr/local/bin -xf smith/*.tar.gz
 export env=${TOOLSMITHS_ENV:-$(cat env-pool/name)}
-export NETWORK="${TOOLSMITHS_ENV}-management-subnet"
+export NETWORK="${TOOLSMITHS_ENV:-$(cat env-pool/name)}-management-subnet"
 eval "$(smith bosh)"
 
 echo "Uploading stemcell..."
