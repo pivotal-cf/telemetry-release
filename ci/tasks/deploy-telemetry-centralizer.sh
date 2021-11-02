@@ -55,23 +55,23 @@ retry 5 "$BOSH_CLI" upload-release -n "$TASK_DIR/bpm-release/release.tgz"
 
 echo "Deploying telemetry centralizer"
 retry 5 "$BOSH_CLI" deploy -n -d "$DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
-    --var deployment_name="$DEPLOYMENT_NAME"
-    --var audit_mode="$AUDIT_MODE"
-    --var loader_api_key="$LOADER_API_KEY"
-    --var loader_endpoint="$LOADER_ENDPOINT"
-    --var env_type="$ENV_TYPE"
-    --var iaas_type="$IAAS_TYPE"
-    --var foundation_id="$FOUNDATION_ID"
-    --var foundation_nickname="$FOUNDATION_NICKNAME"
-    --var flush_interval="$FLUSH_INTERVAL"
-    --var collector_cron_schedule="$COLLECTOR_CRON_SCHEDULE"
-    --var opsmanager_hostname="$OPSMANAGER_HOSTNAME"
-    --var opsmanager_client_name="$OPSMANAGER_CLIENT_NAME"
-    --var opsmanager_client_secret="$OPSMANAGER_CLIENT_SECRET"
-    --var opsmanager_insecure_skip_tls_verify="$OPSMANAGER_INSECURE_SKIP_TLS_VERIFY"
-    --var cf_api_url="$CF_API_URL"
-    --var usage_service_url="$USAGE_SERVICE_URL"
-    --var usage_service_client_id="$USAGE_SERVICE_CLIENT_ID"
-    --var usage_service_client_secret="$USAGE_SERVICE_CLIENT_SECRET"
-    --var usage_service_insecure_skip_tls_verify="$USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY"
+    --var deployment_name="$DEPLOYMENT_NAME" \
+    --var audit_mode="$AUDIT_MODE" \
+    --var loader_api_key="$LOADER_API_KEY" \
+    --var loader_endpoint="$LOADER_ENDPOINT" \
+    --var env_type="$ENV_TYPE" \
+    --var iaas_type="$IAAS_TYPE" \
+    --var foundation_id="$FOUNDATION_ID" \
+    --var foundation_nickname="$FOUNDATION_NICKNAME" \
+    --var flush_interval="$FLUSH_INTERVAL" \
+    --var collector_cron_schedule="'$COLLECTOR_CRON_SCHEDULE'" \
+    --var opsmanager_hostname="$OPSMANAGER_HOSTNAME" \
+    --var opsmanager_client_name="$OPSMANAGER_CLIENT_NAME" \
+    --var opsmanager_client_secret="$OPSMANAGER_CLIENT_SECRET" \
+    --var opsmanager_insecure_skip_tls_verify="$OPSMANAGER_INSECURE_SKIP_TLS_VERIFY" \
+    --var cf_api_url="$CF_API_URL" \
+    --var usage_service_url="$USAGE_SERVICE_URL" \
+    --var usage_service_client_id="$USAGE_SERVICE_CLIENT_ID" \
+    --var usage_service_client_secret="$USAGE_SERVICE_CLIENT_SECRET" \
+    --var usage_service_insecure_skip_tls_verify="$USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY" \
     --var network_name="$NETWORK"
