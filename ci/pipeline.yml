@@ -37,8 +37,6 @@ resources:
     access_token: ((telemetry-release-github-access-token))
 - name: smith-cli-github-release
   type: github-release
-  version:
-    tag: 'v2.3.0'
   source:
     owner: pivotal
     repository: smith
@@ -141,7 +139,7 @@ resources:
   source:
     api_token: ((toolsmiths-api-token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: cf-deployment
+    pool_name: us_2_10 
 
 - name: pivotal-telemetry-collector
   type: pivnet
