@@ -42,8 +42,8 @@ cp "$om_cli" /usr/local/bin/om
 echo "Evaluating smith environment"
 tar -C /usr/local/bin -xf smith/*.tar.gz
 export env=${TOOLSMITHS_ENV:-$(cat env-pool/name)}
-export NETWORK="$(smith read | jq -r .ert_subnet)"
-export AZ="$(smith read | jq -r .azs[0])"
+# export NETWORK="$(smith read | jq -r .ert_subnet)"
+# export AZ="$(smith read | jq -r .azs[0])"
 eval "$(smith bosh)"
 
 echo "Uploading stemcell..."
@@ -75,5 +75,5 @@ retry 5 "$BOSH_CLI" deploy -n -d "$DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release
     --var usage_service_client_id="$USAGE_SERVICE_CLIENT_ID" \
     --var usage_service_client_secret="$USAGE_SERVICE_CLIENT_SECRET" \
     --var usage_service_insecure_skip_tls_verify="$USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY" \
-    --var network_name="$NETWORK" \
-    --var az="$AZ"
+    # --var network_name="$NETWORK" \
+    # --var az="$AZ"

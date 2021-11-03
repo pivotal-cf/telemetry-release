@@ -21,8 +21,8 @@ instance_groups:
   vm_type: micro
   stemcell: default
   networks:
-    - name: ((network_name))
-  azs: [((az))]
+    - name: default
+  azs: [z1]
   instances: 1
   jobs:
   - name: bpm

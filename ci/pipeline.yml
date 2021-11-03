@@ -141,7 +141,7 @@ resources:
   source:
     api_token: ((toolsmiths-api-token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: us_2_10 
+    pool_name: cf-deployment
 
 - name: pivotal-telemetry-collector
   type: pivnet
