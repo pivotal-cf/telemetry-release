@@ -37,6 +37,8 @@ resources:
     access_token: ((telemetry-release-github-access-token))
 - name: smith-cli-github-release
   type: github-release
+  version:
+    tag: 'v2.3.0'
   source:
     owner: pivotal
     repository: smith
