@@ -24,6 +24,7 @@ instance_groups:
     - name: ((network_name))
   azs: [((az))]
   instances: 1
+  vm_extensions: ["public_ip"]
   jobs:
   - name: bpm
     release: bpm
