@@ -50,13 +50,6 @@ resources:
     password: ((pcf1-password))
     organization: ((pcf1-org))
     space: stage
-- name: bbl-state
-  type: bbl-state-resource
-  source:
-    bucket: ((bbl-state-bucket))
-    iaas: gcp
-    gcp_region: us-central1
-    gcp_service_account_key: ((telemetry-release-gcp-service-account-key))
 - name: xenial-stemcell
   type: bosh-io-stemcell
   source:
@@ -65,16 +58,6 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry/bpm-release
-- name: telemetry-centralizer-staging-deployment
-  type: bosh-deployment
-  source:
-    deployment: ((centralizer-staging-deployment-name))
-    skip_check: true
-- name: telemetry-agent-staging-deployment
-  type: bosh-deployment
-  source:
-    deployment: ((agent-staging-deployment-name))
-    skip_check: true
 - name: telemetry-release
   type: git
   source:
@@ -375,7 +358,6 @@ jobs:
 - name: deploy-telemetry-staging
   plan:
   - in_parallel:
-    - get: bbl-state
     - get: xenial-stemcell
     - get: bpm-release
     - get: version
@@ -388,49 +370,40 @@ jobs:
       passed: [test-acceptance-sends-to-centralizer]
       trigger: true
     - get: ci
+    - get: smith
+      resource: smith-cli-github-release
+      params:
+        globs: ["*linux*"]
+    - get: om
+      resource: om-cli-github-release
+      params:
+        globs: ["*linux*"]
   - task: create-release
     file: ci/ci/tasks/create-release.yml
-  - put: telemetry-centralizer-staging-deployment
+  - task: deploy-telemetry
+    file: ci/ci/tasks/deploy-telemetry.yml
     params:
-      manifest: telemetry-release/manifest/centralizer.yml
-      source_file: bbl-state/bdr-source-file
-      releases:
-        - release-tarball/*.tgz
-        - bpm-release/*.tgz
-      stemcells:
-        - xenial-stemcell/*.tgz
-      vars:
-        deployment_name: ((centralizer-staging-deployment-name))
-        audit_mode: false
-        loader_api_key: ((staging-loader-api-key))
-        loader_endpoint: ((staging-loader-endpoint))
-        env_type: ((staging-env-type))
-        iaas_type: ((staging-iaas-type))
-        foundation_id: ((staging-foundation-id))
-        foundation_nickname: ((staging-foundation-nickname))
-        flush_interval: ((staging-centralizer-flush-interval))
-        collector_cron_schedule: "0 0 * * *"
-        opsmanager_hostname: ((opsmanager-hostname))
-        opsmanager_client_name: ((opsmanager-client-name))
-        opsmanager_client_secret: ((opsmanager-client-secret))
-        opsmanager_insecure_skip_tls_verify: ((opsmanager-insecure-skip-tls-verify))
-        cf_api_url: ((usage-service-cf-api-url))
-        usage_service_url: ((usage-service-url))
-        usage_service_client_id: ((usage-service-client-id))
-        usage_service_client_secret: ((usage-service-client-secret))
-        usage_service_insecure_skip_tls_verify: ((usage-service-insecure-skip-tls-verify))
-  - put: telemetry-agent-staging-deployment
-    params:
-      manifest: telemetry-release/manifest/agent.yml
-      source_file: bbl-state/bdr-source-file
-      releases:
-        - release-tarball/*.tgz
-        - bpm-release/*.tgz
-      stemcells:
-        - xenial-stemcell/*.tgz
-      vars:
-        agent_deployment_name: ((agent-staging-deployment-name))
-        centralizer_deployment_name: ((centralizer-staging-deployment-name))
+      CENTRALIZER_DEPLOYMENT_NAME: ((centralizer-staging-deployment-name))
+      AGENT_DEPLOYMENT_NAME: ((agent-staging-deployment-name))
+      AUDIT_MODE: false
+      LOADER_API_KEY: ((staging-loader-api-key))
+      LOADER_ENDPOINT: ((staging-loader-endpoint))
+      ENV_TYPE: ((staging-env-type))
+      IAAS_TYPE: ((staging-iaas-type))
+      FOUNDATION_ID: ((staging-foundation-id))
+      FOUNDATION_NICKNAME: ((staging-foundation-nickname))
+      FLUSH_INTERVAL: ((staging-centralizer-flush-interval))
+      COLLECTOR_CRON_SCHEDULE: "0 0 * * *"
+      OPSMANAGER_HOSTNAME: ((opsmanager-hostname))
+      OPSMANAGER_CLIENT_NAME: ((opsmanager-client-name))
+      OPSMANAGER_CLIENT_SECRET: ((opsmanager-client-secret))
+      OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: ((opsmanager-insecure-skip-tls-verify))
+      CF_API_URL: ((usage-service-cf-api-url))
+      USAGE_SERVICE_URL: ((usage-service-url))
+      USAGE_SERVICE_CLIENT_ID: ((usage-service-client-id))
+      USAGE_SERVICE_CLIENT_SECRET: ((usage-service-client-secret))
+      USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: ((usage-service-insecure-skip-tls-verify))
+      TOOLSMITHS_ENV: ((staging-toolsmiths-env))
 
 - name: finalize-release
   serial_groups: [version]

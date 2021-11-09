@@ -11,6 +11,7 @@ inputs:
   - name: bosh-cli-github-release
   - name: telemetry-release
   - name: ci
+  - name: version
   - name: smith
   - name: env-pool
   - name: om
