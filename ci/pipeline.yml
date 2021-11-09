@@ -307,6 +307,7 @@ jobs:
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
       EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
       AUDIT_MODE: true
+      TOOLSMITHS_API_TOKEN: ((toolsmiths-api-token))
   on_success:
     put: env-pool
     params:
@@ -326,7 +327,7 @@ jobs:
     - get: bosh-cli-github-release
       params:
         globs:
-        - bbl-v*_linux_x86-64
+        - bosh-cli-*-linux-amd64
     - get: smith
       resource: smith-cli-github-release
       params:
@@ -349,6 +350,7 @@ jobs:
       EXPECTED_FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
       EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
+      TOOLSMITHS_API_TOKEN: ((toolsmiths-api-token))
   on_success:
     put: env-pool
     params:

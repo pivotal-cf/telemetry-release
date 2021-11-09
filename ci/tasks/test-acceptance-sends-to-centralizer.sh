@@ -44,4 +44,4 @@ tar -C /usr/local/bin -xf smith/*.tar.gz
 export env=${TOOLSMITHS_ENV:-$(cat env-pool/name)}
 eval "$(smith bosh)"
 
-$PWD/ci/tasks/run-acceptance-tests.sh
+$PWD/ci/ci/tasks/run-acceptance-tests.sh
