@@ -56,7 +56,7 @@ retry 5 "$BOSH_CLI" upload-release -n "$TASK_DIR/bpm-release/release.tgz"
 
 echo "Deploying telemetry centralizer"
 retry 5 "$BOSH_CLI" deploy -n -d "$CENTRALIZER_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
-    --var deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
+    --var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
     --var audit_mode="$AUDIT_MODE" \
     --var loader_api_key="$LOADER_API_KEY" \
     --var loader_endpoint="$LOADER_ENDPOINT" \
@@ -79,7 +79,7 @@ retry 5 "$BOSH_CLI" deploy -n -d "$CENTRALIZER_DEPLOYMENT_NAME" "$TASK_DIR/telem
     --var az="$AZ"
 
 echo "Deploying telemetry agent"
-retry 5 "$BOSH_CLI" deploy -n -d "$AGENT_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
+retry 5 "$BOSH_CLI" deploy -n -d "$AGENT_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/agent.yml" \
     --var agent_deployment_name="$AGENT_DEPLOYMENT_NAME" \
     --var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
     --var network_name="$NETWORK" \

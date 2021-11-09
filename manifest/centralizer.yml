@@ -1,4 +1,4 @@
-name: ((deployment_name))
+name: ((centralizer_deployment_name))
 releases:
 - name: telemetry
   version: latest
