@@ -304,9 +304,9 @@ jobs:
         globs: ["*linux*"]
   - task: create-release
     file: ci/ci/tasks/create-release.yml
-  - put: env-pool
-    params:
-      action: claim
+  # - put: env-pool
+  #   params:
+  #     action: claim
   - task: telemetry-centralizer-acceptance-deployment
     file: ci/ci/tasks/deploy-telemetry-centralizer.yml
     params:
@@ -330,6 +330,7 @@ jobs:
       USAGE_SERVICE_CLIENT_SECRET: ((usage-service-client-secret))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: ((usage-service-insecure-skip-tls-verify))
       TOOLSMITHS_API_TOKEN: ((toolsmiths-api-token))
+      TOOLSMITHS_ENV: cathedralcity
   # - task: telemetry-agent-acceptance-deployment
   #   file: ci/ci/tasks/deploy-telemetry-agent.yml
   #   params:
