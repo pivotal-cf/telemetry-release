@@ -21,10 +21,11 @@ inputs:
 - name: om
 
 run:
-  path: ci/ci/tasks/deploy-telemetry-centralizer.sh
+  path: ci/ci/tasks/deploy-telemetry.sh
 
 params:
-  DEPLOYMENT_NAME:
+  CENTRALIZER_DEPLOYMENT_NAME:
+  AGENT_DEPLOYMENT_NAME:
   AUDIT_MODE:
   LOADER_API_KEY:
   LOADER_ENDPOINT:

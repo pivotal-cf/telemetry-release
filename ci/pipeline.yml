@@ -151,16 +151,6 @@ resources:
     copy_metadata: true
 
 jobs:
-- name: bbl-up
-  plan:
-  - get: bbl-state-input
-    resource: bbl-state
-  - put: bbl-state
-    params:
-      command: up
-      name: telemetry-release-bosh-director
-      state_dir: bbl-state-input
-
 - name: update-telemetry-collector
   plan:
     - in_parallel:
@@ -220,8 +210,6 @@ jobs:
   serial_groups: [acceptance]
   plan:
   - in_parallel:
-    - get: bbl-state
-      passed: [bbl-up]
     - get: xenial-stemcell
     - get: bpm-release
     - get: version
@@ -234,52 +222,46 @@ jobs:
       passed: [run-centralizer-unit-tests]
       trigger: true
     - get: ci
+    - get: smith
+      resource: smith-cli-github-release
+      params:
+        globs: ["*linux*"]
+    - get: om
+      resource: om-cli-github-release
+      params:
+        globs: ["*linux*"]
   - task: create-release
     file: ci/ci/tasks/create-release.yml
-  - put: telemetry-centralizer-acceptance-deployment
+  - put: env-pool
     params:
-      manifest: telemetry-release/manifest/centralizer.yml
-      source_file: bbl-state/bdr-source-file
-      releases:
-        - release-tarball/*.tgz
-        - bpm-release/*.tgz
-      stemcells:
-        - xenial-stemcell/*.tgz
-      vars:
-        deployment_name: ((centralizer-acceptance-deployment-name))
-        audit_mode: false
-        loader_api_key: ((acceptance-loader-api-key))
-        loader_endpoint: ((acceptance-loader-url))
-        env_type: ((acceptance-env-type))
-        iaas_type: ((acceptance-iaas-type))
-        foundation_id: ((acceptance-foundation-id))
-        foundation_nickname: ((acceptance-foundation-nickname))
-        flush_interval: ((acceptance-centralizer-flush-interval))
-        collector_cron_schedule: ((collector-cron-schedule))
-        opsmanager_hostname: ((opsmanager-hostname))
-        opsmanager_client_name: ((opsmanager-client-name))
-        opsmanager_client_secret: ((opsmanager-client-secret))
-        opsmanager_insecure_skip_tls_verify: ((opsmanager-insecure-skip-tls-verify))
-        cf_api_url: ((usage-service-cf-api-url))
-        usage_service_url: ((usage-service-url))
-        usage_service_client_id: ((usage-service-client-id))
-        usage_service_client_secret: ((usage-service-client-secret))
-        usage_service_insecure_skip_tls_verify: ((usage-service-insecure-skip-tls-verify))
-  - put: telemetry-agent-acceptance-deployment
+      action: claim
+  - task: telemetry-centralizer-acceptance-deployment
+    file: ci/ci/tasks/deploy-telemetry.yml
     params:
-      manifest: telemetry-release/manifest/agent.yml
-      source_file: bbl-state/bdr-source-file
-      releases:
-        - release-tarball/*.tgz
-        - bpm-release/*.tgz
-      stemcells:
-        - xenial-stemcell/*.tgz
-      vars:
-        agent_deployment_name: ((agent-acceptance-deployment-name))
-        centralizer_deployment_name: ((centralizer-acceptance-deployment-name))
+      CENTRALIZER_DEPLOYMENT_NAME: ((centralizer-acceptance-deployment-name))
+      AGENT_DEPLOYMENT_NAME: ((agent-acceptance-deployment-name))
+      AUDIT_MODE: false
+      LOADER_API_KEY: ((acceptance-loader-api-key))
+      LOADER_ENDPOINT: ((acceptance-loader-url))
+      ENV_TYPE: ((acceptance-env-type))
+      IAAS_TYPE: ((acceptance-iaas-type))
+      FOUNDATION_ID: ((acceptance-foundation-id))
+      FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
+      FLUSH_INTERVAL: ((acceptance-centralizer-flush-interval))
+      COLLECTOR_CRON_SCHEDULE: ((collector-cron-schedule))
+      OPSMANAGER_HOSTNAME: ((opsmanager-hostname))
+      OPSMANAGER_CLIENT_NAME: ((opsmanager-client-name))
+      OPSMANAGER_CLIENT_SECRET: ((opsmanager-client-secret))
+      OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: ((opsmanager-insecure-skip-tls-verify))
+      CF_API_URL: ((usage-service-cf-api-url))
+      USAGE_SERVICE_URL: ((usage-service-url))
+      USAGE_SERVICE_CLIENT_ID: ((usage-service-client-id))
+      USAGE_SERVICE_CLIENT_SECRET: ((usage-service-client-secret))
+      USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: ((usage-service-insecure-skip-tls-verify))
+      TOOLSMITHS_API_TOKEN: ((toolsmiths-api-token))
 
-- name: deploy-telemetry-acceptance2
-  serial_groups: [acceptance]
+- name: deploy-telemetry-acceptance-audit
+  serial_groups: [acceptance-audit]
   plan:
   - in_parallel:
     - get: xenial-stemcell
@@ -308,10 +290,11 @@ jobs:
     params:
       action: claim
   - task: telemetry-centralizer-acceptance-deployment
-    file: ci/ci/tasks/deploy-telemetry-centralizer.yml
+    file: ci/ci/tasks/deploy-telemetry.yml
     params:
-      DEPLOYMENT_NAME: ((centralizer-acceptance-deployment-name))
-      AUDIT_MODE: false
+      CENTRALIZER_DEPLOYMENT_NAME: ((centralizer-acceptance-deployment-name))
+      AGENT_DEPLOYMENT_NAME: ((agent-acceptance-deployment-name))
+      AUDIT_MODE: true
       LOADER_API_KEY: ((acceptance-loader-api-key))
       LOADER_ENDPOINT: ((acceptance-loader-url))
       ENV_TYPE: ((acceptance-env-type))
@@ -330,126 +313,31 @@ jobs:
       USAGE_SERVICE_CLIENT_SECRET: ((usage-service-client-secret))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: ((usage-service-insecure-skip-tls-verify))
       TOOLSMITHS_API_TOKEN: ((toolsmiths-api-token))
-  # - task: telemetry-agent-acceptance-deployment
-  #   file: ci/ci/tasks/deploy-telemetry-agent.yml
-  #   params:
-  #     AGENT_DEPLOYMENT_NAME: ((agent-acceptance-deployment-name))
-  #     CENTRALIZER_DEPLOYMENT_NAME: ((centralizer-acceptance-deployment-name))
-
-- name: deploy-telemetry-acceptance-audit
-  serial_groups: [acceptance-audit]
-  plan:
-    - in_parallel:
-        - get: bbl-state
-          passed: [bbl-up]
-        - get: xenial-stemcell
-        - get: bpm-release
-        - get: version
-          passed: [run-centralizer-unit-tests]
-        - get: bosh-cli-github-release
-          params:
-            globs:
-              - bosh-cli-*-linux-amd64
-        - get: telemetry-release
-          passed: [run-centralizer-unit-tests]
-          trigger: true
-        - get: ci
-    - task: create-release
-      file: ci/ci/tasks/create-release.yml
-    - put: telemetry-centralizer-acceptance-audit-deployment
-      params:
-        manifest: telemetry-release/manifest/centralizer.yml
-        source_file: bbl-state/bdr-source-file
-        releases:
-          - release-tarball/*.tgz
-          - bpm-release/*.tgz
-        stemcells:
-          - xenial-stemcell/*.tgz
-        vars:
-          deployment_name: ((centralizer-acceptance-audit-deployment-name))
-          audit_mode: true
-          loader_api_key: ((acceptance-loader-api-key-audit))
-          loader_endpoint: ((acceptance-loader-url))
-          env_type: ((acceptance-env-type))
-          iaas_type: ((acceptance-iaas-type))
-          foundation_id: ((acceptance-foundation-id))
-          foundation_nickname: ((acceptance-foundation-nickname))
-          flush_interval: ((acceptance-centralizer-flush-interval))
-          collector_cron_schedule: ((collector-cron-schedule))
-          opsmanager_hostname: ((opsmanager-hostname))
-          opsmanager_client_name: ((opsmanager-client-name))
-          opsmanager_client_secret: ((opsmanager-client-secret))
-          opsmanager_insecure_skip_tls_verify: ((opsmanager-insecure-skip-tls-verify))
-          cf_api_url: ((usage-service-cf-api-url))
-          usage_service_url: ((usage-service-url))
-          usage_service_client_id: ((usage-service-client-id))
-          usage_service_client_secret: ((usage-service-client-secret))
-          usage_service_insecure_skip_tls_verify: ((usage-service-insecure-skip-tls-verify))
-    - put: telemetry-agent-acceptance-audit-deployment
-      params:
-        manifest: telemetry-release/manifest/agent.yml
-        source_file: bbl-state/bdr-source-file
-        releases:
-          - release-tarball/*.tgz
-          - bpm-release/*.tgz
-        stemcells:
-          - xenial-stemcell/*.tgz
-        vars:
-          agent_deployment_name: ((agent-acceptance-audit-deployment-name))
-          centralizer_deployment_name: ((centralizer-acceptance-audit-deployment-name))
 
 - name: test-acceptance-audit
   serial_groups: [telemetry-receiver-audit, acceptance-audit]
   plan:
-    - in_parallel:
-        - get: bbl-state
-        - get: telemetry-release
-          passed: [deploy-telemetry-acceptance-audit]
-          trigger: true
-        - get: ci
-        - get: version
-          passed: [deploy-telemetry-acceptance-audit]
-        - get: bosh-cli-github-release
-          params:
-            globs:
-              - bosh-cli-*-linux-amd64
-        - get: bbl-cli-github-release
-          params:
-            globs:
-              - bbl-v*_linux_x86-64
-    - task: test-acceptance-audit
-      file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
-      params:
-        LOADER_URL: ((acceptance-loader-url))
-        LOADER_API_KEY: ((acceptance-loader-api-key-audit))
-        CENTRALIZER_BOSH_DEPLOYMENT: ((centralizer-acceptance-audit-deployment-name))
-        AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-audit-deployment-name))
-        AGENT_BOSH_INSTANCE: ((agent-acceptance-instance-name))
-        EXPECTED_ENV_TYPE: ((acceptance-env-type))
-        EXPECTED_FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
-        EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
-        EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
-        AUDIT_MODE: true
-
-- name: test-acceptance-sends-to-centralizer
-  serial_groups: [telemetry-receiver, acceptance]
-  plan:
   - in_parallel:
-    - get: bbl-state
     - get: telemetry-release
-      passed: [deploy-telemetry-acceptance]
+      passed: [deploy-telemetry-acceptance-audit]
       trigger: true
     - get: ci
     - get: version
-      passed: [deploy-telemetry-acceptance]
+      passed: [deploy-telemetry-acceptance-audit]
     - get: bosh-cli-github-release
       params:
         globs:
-        - bosh-cli-*-linux-amd64
-    - get: bbl-cli-github-release
-      params:
-        globs:
         - bbl-v*_linux_x86-64
+    - get: smith
+      resource: smith-cli-github-release
+      params:
+        globs: ["*linux*"]
+    - get: om
+      resource: om-cli-github-release
+      params:
+        globs: ["*linux*"]
+    - get: env-pool
+      passed: [deploy-telemetry-acceptance]
   - task: test-acceptance-sends-to-centralizer
     file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:
@@ -462,6 +350,54 @@ jobs:
       EXPECTED_FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
       EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
       EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
+      AUDIT_MODE: true
+  on_success:
+    put: env-pool
+    params:
+      action: unclaim
+      env_file: env-pool/metadata
+
+- name: test-acceptance-sends-to-centralizer
+  serial_groups: [telemetry-receiver, acceptance]
+  plan:
+  - in_parallel:
+    - get: telemetry-release
+      passed: [deploy-telemetry-acceptance]
+      trigger: true
+    - get: ci
+    - get: version
+      passed: [deploy-telemetry-acceptance]
+    - get: bosh-cli-github-release
+      params:
+        globs:
+        - bbl-v*_linux_x86-64
+    - get: smith
+      resource: smith-cli-github-release
+      params:
+        globs: ["*linux*"]
+    - get: om
+      resource: om-cli-github-release
+      params:
+        globs: ["*linux*"]
+    - get: env-pool
+      passed: [deploy-telemetry-acceptance]
+  - task: test-acceptance-sends-to-centralizer
+    file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
+    params:
+      LOADER_URL: ((acceptance-loader-url))
+      LOADER_API_KEY: ((acceptance-loader-api-key))
+      CENTRALIZER_BOSH_DEPLOYMENT: ((centralizer-acceptance-deployment-name))
+      AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-deployment-name))
+      AGENT_BOSH_INSTANCE: ((agent-acceptance-instance-name))
+      EXPECTED_ENV_TYPE: ((acceptance-env-type))
+      EXPECTED_FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
+      EXPECTED_IAAS_TYPE: ((acceptance-iaas-type))
+      EXPECTED_FOUNDATION_ID: ((acceptance-foundation-id))
+  on_success:
+    put: env-pool
+    params:
+      action: unclaim
+      env_file: env-pool/metadata
 
 - name: deploy-telemetry-staging
   plan:
@@ -523,6 +459,7 @@ jobs:
       vars:
         agent_deployment_name: ((agent-staging-deployment-name))
         centralizer_deployment_name: ((centralizer-staging-deployment-name))
+
 - name: finalize-release
   serial_groups: [version]
   plan:

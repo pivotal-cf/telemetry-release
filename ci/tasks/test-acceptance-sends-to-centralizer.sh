@@ -2,19 +2,46 @@
 
 set -euo pipefail
 
-base="$(dirname "$BASH_SOURCE[0]")/../.."
+# Since moving to the VMware network there have been frequent network failures
+# when connecting to pooled environments on GCP.
+function retry {
+  local retries=$1
+  local count=0
+  shift
 
+  until "$@"; do
+    exit=$?
+    count=$(($count + 1))
+    if [ $count -lt $retries ]; then
+      echo "Attempt $count/$retries ended with exit $exit"
+      # Need a short pause between smith CLI executions or it fails unexpectedly.
+      sleep 30
+    else
+      echo "Attempted $count/$retries times and failed."
+      return $exit
+    fi
+  done
+  return 0
+}
 apt-get update
-apt-get -y install ssh netcat-openbsd
+apt-get -y install git jq ssh netcat-openbsd
 
-BBL_CLI=$(find "$PWD"/bbl-cli-github-release -name bbl-v*_linux_x86-64)
-chmod 755 "$BBL_CLI"
+TASK_DIR="$PWD"
+VERSION=$(cat version/version)
 
-pushd bbl-state
-eval "$("$BBL_CLI" print-env)"
-popd
-
-export BOSH_CLI=$(find "$PWD"/bosh-cli-github-release -name bosh-cli-*-linux-amd64)
+echo "Setting up BOSH CLI"
+BOSH_CLI=/usr/local/bin/bosh
+cp "$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64 "$BOSH_CLI"
 chmod 755 "$BOSH_CLI"
 
-$base/ci/tasks/run-acceptance-tests.sh
+echo "Setting up OM CLI"
+om_cli="om/om-linux-$(cat om/version)"
+chmod 755 "$om_cli"
+cp "$om_cli" /usr/local/bin/om
+
+echo "Evaluating smith environment"
+tar -C /usr/local/bin -xf smith/*.tar.gz
+export env=${TOOLSMITHS_ENV:-$(cat env-pool/name)}
+eval "$(smith bosh)"
+
+$PWD/ci/tasks/run-acceptance-tests.sh

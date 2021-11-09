@@ -8,11 +8,12 @@ image_resource:
     tag: sha256:091ee4779c0d90155b6d1a317855ce64714e6485f9db4413c812ddd112df7dc7
 
 inputs:
-  - name: bbl-state
   - name: bosh-cli-github-release
-  - name: bbl-cli-github-release
   - name: telemetry-release
   - name: ci
+  - name: smith
+  - name: env-pool
+  - name: om
 
 run:
   path: ci/ci/tasks/test-acceptance-sends-to-centralizer.sh
@@ -28,3 +29,4 @@ params:
   EXPECTED_IAAS_TYPE:
   EXPECTED_FOUNDATION_ID:
   AUDIT_MODE:
+  TOOLSMITHS_ENV:
