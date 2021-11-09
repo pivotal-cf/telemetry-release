@@ -28,13 +28,6 @@ resources:
     repository: bosh-cli
     release: true
     access_token: ((telemetry-release-github-access-token))
-- name: bbl-cli-github-release
-  type: github-release
-  source:
-    owner: cloudfoundry
-    repository: bosh-bootloader
-    release: true
-    access_token: ((telemetry-release-github-access-token))
 - name: smith-cli-github-release
   type: github-release
   version:
@@ -72,26 +65,6 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry/bpm-release
-- name: telemetry-centralizer-acceptance-deployment
-  type: bosh-deployment
-  source:
-    deployment: ((centralizer-acceptance-deployment-name))
-    skip_check: true
-- name: telemetry-agent-acceptance-deployment
-  type: bosh-deployment
-  source:
-    deployment: ((agent-acceptance-deployment-name))
-    skip_check: true
-- name: telemetry-centralizer-acceptance-audit-deployment
-  type: bosh-deployment
-  source:
-    deployment: ((centralizer-acceptance-audit-deployment-name))
-    skip_check: true
-- name: telemetry-agent-acceptance-audit-deployment
-  type: bosh-deployment
-  source:
-    deployment: ((agent-acceptance-audit-deployment-name))
-    skip_check: true
 - name: telemetry-centralizer-staging-deployment
   type: bosh-deployment
   source:
@@ -403,7 +376,6 @@ jobs:
   plan:
   - in_parallel:
     - get: bbl-state
-      passed: [bbl-up]
     - get: xenial-stemcell
     - get: bpm-release
     - get: version
