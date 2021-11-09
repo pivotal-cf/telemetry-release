@@ -30,12 +30,12 @@ TASK_DIR="$PWD"
 VERSION=$(cat version/version)
 
 echo "Setting up BOSH CLI"
-BOSH_CLI=/usr/local/bin/bosh
+export BOSH_CLI=/usr/local/bin/bosh
 cp "$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64 "$BOSH_CLI"
 chmod 755 "$BOSH_CLI"
 
 echo "Setting up OM CLI"
-om_cli="om/om-linux-$(cat om/version)"
+export om_cli="om/om-linux-$(cat om/version)"
 chmod 755 "$om_cli"
 cp "$om_cli" /usr/local/bin/om
 
