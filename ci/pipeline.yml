@@ -310,7 +310,7 @@ jobs:
       params:
         globs: ["*linux*"]
     - get: env-pool
-      passed: [deploy-telemetry-acceptance]
+      passed: [deploy-telemetry-acceptance-audit]
   - task: test-acceptance-sends-to-centralizer
     file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:

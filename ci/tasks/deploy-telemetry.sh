@@ -80,8 +80,8 @@ retry 5 "$BOSH_CLI" deploy -n -d "$CENTRALIZER_DEPLOYMENT_NAME" "$TASK_DIR/telem
 
 echo "Deploying telemetry agent"
 retry 5 "$BOSH_CLI" deploy -n -d "$AGENT_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
-    --var agent_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
-    --var centralizer_deployment_name="$AGENT_DEPLOYMENT_NAME" \
+    --var agent_deployment_name="$AGENT_DEPLOYMENT_NAME" \
+    --var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
     --var network_name="$NETWORK" \
     --var az="$AZ"
 
