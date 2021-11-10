@@ -248,10 +248,10 @@ jobs:
   - task: telemetry-centralizer-acceptance-deployment
     file: ci/ci/tasks/deploy-telemetry.yml
     params:
-      CENTRALIZER_DEPLOYMENT_NAME: ((centralizer-acceptance-deployment-name))
-      AGENT_DEPLOYMENT_NAME: ((agent-acceptance-deployment-name))
+      CENTRALIZER_DEPLOYMENT_NAME: ((centralizer-acceptance-audit-deployment-name))
+      AGENT_DEPLOYMENT_NAME: ((agent-acceptance-audit-deployment-name))
       AUDIT_MODE: true
-      LOADER_API_KEY: ((acceptance-loader-api-key))
+      LOADER_API_KEY: ((acceptance-loader-api-key-audit))
       LOADER_ENDPOINT: ((acceptance-loader-url))
       ENV_TYPE: ((acceptance-env-type))
       IAAS_TYPE: ((acceptance-iaas-type))
@@ -283,7 +283,7 @@ jobs:
     - get: bosh-cli-github-release
       params:
         globs:
-        - bbl-v*_linux_x86-64
+        - bosh-cli-*-linux-amd64
     - get: smith
       resource: smith-cli-github-release
       params:
@@ -298,9 +298,9 @@ jobs:
     file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:
       LOADER_URL: ((acceptance-loader-url))
-      LOADER_API_KEY: ((acceptance-loader-api-key))
-      CENTRALIZER_BOSH_DEPLOYMENT: ((centralizer-acceptance-deployment-name))
-      AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-deployment-name))
+      LOADER_API_KEY: ((acceptance-loader-api-key-audit))
+      CENTRALIZER_BOSH_DEPLOYMENT: ((centralizer-acceptance-audit-deployment-name))
+      AGENT_BOSH_DEPLOYMENT: ((agent-acceptance-audit-deployment-name))
       AGENT_BOSH_INSTANCE: ((agent-acceptance-instance-name))
       EXPECTED_ENV_TYPE: ((acceptance-env-type))
       EXPECTED_FOUNDATION_NICKNAME: ((acceptance-foundation-nickname))
@@ -405,6 +405,7 @@ jobs:
       USAGE_SERVICE_CLIENT_ID: ((usage-service-client-id))
       USAGE_SERVICE_CLIENT_SECRET: ((usage-service-client-secret))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: ((usage-service-insecure-skip-tls-verify))
+      TOOLSMITHS_API_TOKEN: ((toolsmiths-api-token))
       TOOLSMITHS_ENV: ((staging-toolsmiths-env))
 
 - name: finalize-release
