@@ -6,6 +6,6 @@ if [ "$AUDIT_MODE" != "true" ]; then
 else
   cd "$base/src/acceptance_tests_audit_mode"
 fi
-gem install bundler:1.16.2
+gem install bundler:2.1.4
 bundle
 rspec spec
