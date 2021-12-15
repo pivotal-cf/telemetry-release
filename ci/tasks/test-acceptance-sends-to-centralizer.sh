@@ -24,7 +24,7 @@ function retry {
   return 0
 }
 apt-get update
-apt-get -y install git jq ssh netcat-openbsd
+apt-get -y install -f git jq ssh netcat-openbsd
 
 TASK_DIR="$PWD"
 VERSION=$(cat version/version)
