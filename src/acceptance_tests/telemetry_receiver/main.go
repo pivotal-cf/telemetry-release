@@ -27,8 +27,8 @@ const (
 )
 
 var (
-	userApiKeys map[string][]string
-	messages    map[string][]map[string]interface{}
+	userApiKeys   map[string][]string
+	messages      map[string][]map[string]interface{}
 	batchMessages map[string][]map[string]interface{}
 
 	messageLimit int
