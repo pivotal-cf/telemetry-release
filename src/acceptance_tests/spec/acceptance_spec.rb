@@ -165,7 +165,7 @@ NOT a telemetry-source msg
     end
 
     puts "********************"
-    puts messagesForFoundation
+    puts received_messages
     puts "********************"
 
     expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "opsmanager" })
