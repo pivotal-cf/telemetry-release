@@ -164,6 +164,10 @@ NOT a telemetry-source msg
       true if message["FoundationId"] == ENV["EXPECTED_FOUNDATION_ID"] && received_within_the_last_three_minutes
     end
 
+    puts "********************"
+    puts messagesForFoundation
+    puts "********************"
+
     expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "opsmanager" })
     expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "usage_service" })
   end
