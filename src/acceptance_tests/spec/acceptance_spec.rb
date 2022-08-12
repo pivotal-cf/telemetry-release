@@ -101,7 +101,7 @@ describe 'Agent to centralizer communication' do
     }
 
     messages = []
-    wait_for(60, "no telemetry messages were sent from centralizer") do
+    wait_for(120, "no telemetry messages were sent from centralizer") do
       messages = fetch_messages
       !messages.empty?
     end
@@ -119,7 +119,7 @@ NOT a telemetry-source msg
     EOF
     insert_telemetry_msg_log(sprintf(message_format, counter_value))
 
-    sleep 5
+    sleep 10
 
     logged_messages = get_centralizer_logs
     line_match_regex = /#{counter_value}/
@@ -133,7 +133,7 @@ NOT a telemetry-source msg
     EOF
     insert_telemetry_msg_log(sprintf(message_format, counter_value))
 
-    sleep 5
+    sleep 10
 
     logged_messages = get_agent_logs
     line_match_regex = /#{counter_value}/
@@ -147,7 +147,7 @@ NOT a telemetry-source msg
     EOF
     insert_telemetry_msg_log(sprintf(message_format, counter_value))
 
-    sleep 5
+    sleep 10
 
     logged_messages = get_centralizer_logs
     line_match_regex = /telemetry-time field from event .*#{counter_value}.* must be in date\/time format RFC 3339./
@@ -160,8 +160,8 @@ NOT a telemetry-source msg
 
     messagesForFoundation = received_messages.select do |message|
       collected_at = DateTime.parse(message["CollectedAt"]).to_time.utc
-      received_within_the_last_three_minutes = Time.now.utc - collected_at <= 180
-      true if message["FoundationId"] == ENV["EXPECTED_FOUNDATION_ID"] && received_within_the_last_three_minutes
+      received_within_the_last_four_minutes = Time.now.utc - collected_at <= 240
+      true if message["FoundationId"] == ENV["EXPECTED_FOUNDATION_ID"] && received_within_the_last_four_minutes
     end
 
     puts "********************"
