@@ -4,7 +4,7 @@ set -euo pipefail
 
 cd fluentd
 
-source /var/vcap/packages/ruby-2.7.5-r0.80.0/bosh/compile.env
+source /var/vcap/packages/ruby-3.1/bosh/compile.env
 
 cp -R Gemfile Gemfile.lock vendor "${BOSH_INSTALL_TARGET}"
 bosh_bundle_local --gemfile="${BOSH_INSTALL_TARGET}/Gemfile"

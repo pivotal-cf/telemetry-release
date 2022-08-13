@@ -50,10 +50,10 @@ resources:
     password: ((pcf1-password))
     organization: ((pcf1-org))
     space: stage
-- name: xenial-stemcell
+- name: jammy-stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-google-kvm-ubuntu-xenial-go_agent
+    name: bosh-google-kvm-ubuntu-jammy-go_agent
 - name: bpm-release
   type: bosh-io-release
   source:
@@ -97,7 +97,7 @@ resources:
   source:
     api_token: ((toolsmiths-api-token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: us_2_10 
+    pool_name: us_3_0_prerelease
 
 - name: pivotal-telemetry-collector
   type: pivnet
@@ -166,7 +166,7 @@ jobs:
   serial_groups: [acceptance]
   plan:
   - in_parallel:
-    - get: xenial-stemcell
+    - get: jammy-stemcell
     - get: bpm-release
     - get: version
       passed: [run-centralizer-unit-tests]
@@ -220,7 +220,7 @@ jobs:
   serial_groups: [acceptance-audit]
   plan:
   - in_parallel:
-    - get: xenial-stemcell
+    - get: jammy-stemcell
     - get: bpm-release
     - get: version
       passed: [run-centralizer-unit-tests]
@@ -360,7 +360,7 @@ jobs:
 - name: deploy-telemetry-staging
   plan:
   - in_parallel:
-    - get: xenial-stemcell
+    - get: jammy-stemcell
     - get: bpm-release
     - get: version
       passed: [test-acceptance-sends-to-centralizer]

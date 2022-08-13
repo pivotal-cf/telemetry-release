@@ -8,7 +8,7 @@ image_resource:
     tag: latest
 
 inputs:
-- name: xenial-stemcell
+- name: jammy-stemcell
 - name: bpm-release
 - name: version
 - name: bosh-cli-github-release
