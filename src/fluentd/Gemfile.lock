@@ -29,6 +29,7 @@ GEM
     yajl-ruby (1.4.3)
 
 PLATFORMS
+  ruby
   x86_64-darwin-21
   x86_64-linux
 
