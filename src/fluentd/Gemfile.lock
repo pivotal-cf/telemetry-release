@@ -30,9 +30,10 @@ GEM
 
 PLATFORMS
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   fluentd
 
 BUNDLED WITH
-   2.3.13
+   2.3.20
