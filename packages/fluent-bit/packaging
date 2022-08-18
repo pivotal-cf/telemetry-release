@@ -1,5 +1,6 @@
 set -e -x
 
+export CFLAGS="${CFLAGS} -fcommon"
 tar xzf fluent-bit/fluent-bit-*
 pushd fluent-bit-*
   cd build/
