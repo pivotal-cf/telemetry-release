@@ -2,13 +2,17 @@
 
 set -euo pipefail
 
+mkdir -p ${BOSH_INSTALL_TARGET}/{bin,gem_home}
 cd fluentd
 
 source /var/vcap/packages/ruby-3.1/bosh/compile.env
 
 cp -R Gemfile Gemfile.lock vendor "${BOSH_INSTALL_TARGET}"
-bosh_bundle_local --gemfile="${BOSH_INSTALL_TARGET}/Gemfile"
-bosh_generate_runtime_env
+
+pushd "${BOSH_INSTALL_TARGET}"
+    bosh_bundle_local
+    bosh_generate_runtime_env
+popd
 
 mkdir -p ${BOSH_INSTALL_TARGET}/telemetry-filter-plugin
 cp -r telemetry-filter-plugin/lib ${BOSH_INSTALL_TARGET}/telemetry-filter-plugin/lib
