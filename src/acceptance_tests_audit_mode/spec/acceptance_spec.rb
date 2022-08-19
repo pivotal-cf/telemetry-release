@@ -97,7 +97,7 @@ describe 'Agent to centralizer communication' do
     EOF
     insert_telemetry_msg_log(sprintf(message_format, counter_value, telemetry_time_value))
 
-    wait_for(60, "Messages were received by the loader") do
+    wait_for(120, "Messages were received by the loader") do
       messages = fetch_messages
       messages.empty?
     end
