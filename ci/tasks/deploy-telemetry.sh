@@ -24,7 +24,8 @@ function retry {
   return 0
 }
 apt-get update
-apt-get -y install git jq
+apt-get -y install git jq curl gpg
+curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg
 
 TASK_DIR="$PWD"
 VERSION=$(cat version/version)
