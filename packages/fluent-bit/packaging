@@ -3,5 +3,10 @@ set -e -x
 export CFLAGS="${CFLAGS} -fcommon"
 tar xzf fluent-bit/fluent-bit-*
 pushd fluent-bit-*
-  ./install.sh
+  cd build/
+  cmake .. \
+    -DCMAKE_INSTALL_PREFIX=${BOSH_INSTALL_TARGET}
+
+  make
+  make install
 popd
