@@ -35,7 +35,7 @@ cp "$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64 "$BOSH_CLI"
 chmod 755 "$BOSH_CLI"
 
 echo "Setting up OM CLI"
-om_cli="om/om-linux-$(cat om/version)"
+om_cli="om/om-linux-amd64-$(cat om/version)"
 chmod 755 "$om_cli"
 cp "$om_cli" /usr/local/bin/om
 
