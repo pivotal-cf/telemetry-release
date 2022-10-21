@@ -97,7 +97,7 @@ resources:
   source:
     api_token: ((toolsmiths-api-token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: us_2_13
+    pool_name: us_3_0
 
 - name: pivotal-telemetry-collector
   type: pivnet
@@ -295,6 +295,7 @@ jobs:
     - get: env-pool
       passed: [deploy-telemetry-acceptance-audit]
   - task: test-acceptance-sends-to-centralizer
+    attempts: 2
     file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
     params:
       LOADER_URL: ((acceptance-loader-url))
