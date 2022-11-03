@@ -18,7 +18,7 @@ update:
 
 instance_groups:
 - name: telemetry-centralizer
-  vm_type: micro
+  vm_type: e2-micro
   stemcell: default
   networks:
     - name: ((network_name))
