@@ -105,8 +105,36 @@ resources:
     api_token: {{pivnet-api-token}}
     product_slug: pivotal-telemetry-collector
     copy_metadata: true
+- name: ruby-release
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:bosh-packages/ruby-release
+    private_key: ((telemetry-release-git-deploy-private-key))
 
 jobs:
+- name: update-ruby
+  plan:
+    - in_parallel:
+      - get: telemetry-release
+      - get: ruby-release
+        trigger: true
+      - get: ci
+      - get: bosh-cli-github-release
+        params:
+          globs:
+          - bosh-cli-*-linux-amd64
+    - task: bump-ruby-package
+      file: ci/ci/tasks/bump-ruby-package.yml
+      params:
+        GCS_SERVICE_ACCOUNT_KEY: ((gcs-service-account-key))
+        GITHUB_NAME: ((github-name))
+        GITHUB_EMAIL: ((github-email))
+    - put: telemetry-release
+      params:
+        repository: telemetry-release
+        rebase: true
+
 - name: update-telemetry-collector
   plan:
     - in_parallel:

@@ -3,5 +3,5 @@
 set -euo pipefail
 
 cd telemetry-release/src/fluentd/telemetry-filter-plugin
-gem install bundler:2.3.20
+gem install bundler:2.3.26
 bundle && rspec .
