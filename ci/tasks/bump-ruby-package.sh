@@ -28,6 +28,7 @@ EOM
   "$BOSH_CLI" vendor-package ruby-3.1 "$TASK_DIR/ruby-release"
 
   if [ -z "$(git status --porcelain)" ]; then
+    echo "No new version of ruby-release"
     exit 0
   fi
 
