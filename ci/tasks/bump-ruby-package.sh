@@ -37,8 +37,8 @@ EOM
   package_version=$(cat "$TASK_DIR/ruby-release/packages/ruby-3.1/version")
   git config --global user.name ${GITHUB_NAME}
   git config --global user.email ${GITHUB_EMAIL}
-  git commit --dry-run -m "Update ruby-3.1 package to ${package_version} from ruby-release"
+  git commit -m "Update ruby-3.1 package to ${package_version} from ruby-release"
 
-  echo "Update ruby-3.1 package to ${package_version} from ruby-release"
-  exit 1 
+  echo "Updated ruby-3.1 package to ${package_version} from ruby-release"
+  exit 0
 popd
