@@ -2,6 +2,7 @@
 set -eu
 
 set +e
+chown -R vcap:vcap /var/vcap/sys/log
 /var/vcap/jobs/telemetry-collector/bin/telemetry-collect-send /var/vcap/jobs/telemetry-collector/config/pre-start-collect.yml
 exit_code=$?
 if [[ "$exit_code" == "1" ]]; then
