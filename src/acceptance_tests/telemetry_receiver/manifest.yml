@@ -2,3 +2,5 @@
 applications:
   - name: telemetry-acceptance-loader
     path: .
+    buildpacks:
+    - https://github.com/cloudfoundry/go-buildpack.git#v1.10.6
