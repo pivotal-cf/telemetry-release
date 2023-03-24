@@ -1,0 +1,60 @@
+name: telemetry
+version: 0.0.39
+commit_hash: bb29ec1
+uncommitted_changes: false
+jobs:
+- name: telemetry-agent
+  version: de127b77895937a7405632fc2f8dc19aaad0bb45bd72c2f544a56641393e9a0c
+  fingerprint: de127b77895937a7405632fc2f8dc19aaad0bb45bd72c2f544a56641393e9a0c
+  sha1: sha256:2cfdc5cb49ec499d9d9ea5e95794ea21158c4635e57beb86a61700f5d488cedc
+  packages:
+  - fluent-bit
+- name: telemetry-centralizer
+  version: 68402793677251d6a37705e8acbda0658c5243fdb530b8bdb9c59c09c3cc0c65
+  fingerprint: 68402793677251d6a37705e8acbda0658c5243fdb530b8bdb9c59c09c3cc0c65
+  sha1: sha256:993997a3ab0a47465f7b6eacd5ad796d51e304a80b4b207c5a58548f05acbd61
+  packages:
+  - fluentd
+  - ruby-3.1
+- name: telemetry-collector
+  version: 94455b4bc21b53c70353541cb89ef9d43e28da47ef0bc798a666236ed071e7f2
+  fingerprint: 94455b4bc21b53c70353541cb89ef9d43e28da47ef0bc798a666236ed071e7f2
+  sha1: sha256:b8fc924d8fe6ada2ff852034a1472c2e55aab24e1d65ac02297a1ea16aa3ce9d
+  packages:
+  - telemetry-collector
+packages:
+- name: fluent-bit
+  version: 595c0f881ae7c9f83f3e7452f924611be7561bdafda2ddffdeead4a1d6d99b84
+  fingerprint: 595c0f881ae7c9f83f3e7452f924611be7561bdafda2ddffdeead4a1d6d99b84
+  sha1: sha256:b5166d7e55fce5ecf082e31020731d40070be82e4c5b3fc5ff7de6533609a565
+  dependencies: []
+- name: fluentd
+  version: 5c54234ed3b1bdde57814feeca85b1e626c7c7001365267a0f10a0b6f78f743d
+  fingerprint: 5c54234ed3b1bdde57814feeca85b1e626c7c7001365267a0f10a0b6f78f743d
+  sha1: sha256:51e1779edcd4517c56f56f6d7945eb9699eb0560709913c907e89b7d786b8e6f
+  dependencies:
+  - ruby-3.1
+- name: ruby-2.4.6-r0.16.0
+  version: c24971a29319aa3b84ab520498b144379dcfce1b44643f5d22d4b2533e7e11ac
+  fingerprint: c24971a29319aa3b84ab520498b144379dcfce1b44643f5d22d4b2533e7e11ac
+  sha1: sha256:4999dacdeee2f0a06040546327b680266cc5650b3b62b90b32104a741b221506
+  dependencies: []
+- name: ruby-2.7.5-r0.80.0
+  version: 98e9ed4275673d5845a23356fe93dad8be95c67e0bbed30fbaff27aa6eaf0374
+  fingerprint: 98e9ed4275673d5845a23356fe93dad8be95c67e0bbed30fbaff27aa6eaf0374
+  sha1: sha256:82c37406733d1de05cbfac2a6bc23186e96d8d8b865100d16dc4c5517bacaf34
+  dependencies: []
+- name: ruby-3.1
+  version: 82651486268c5a872706d5e1a2458b76af7e69fe36dbfed64903c64a3af39eae
+  fingerprint: 82651486268c5a872706d5e1a2458b76af7e69fe36dbfed64903c64a3af39eae
+  sha1: sha256:ed75ee406cf615c2c1db93a3f476bc2614137e02d6bf8ec2861a7f8b8a394800
+  dependencies: []
+- name: telemetry-collector
+  version: 6173bf472ddb78f12e84366b564e6fcf6690d9e4b053d1703858e9716e3b76bb
+  fingerprint: 6173bf472ddb78f12e84366b564e6fcf6690d9e4b053d1703858e9716e3b76bb
+  sha1: sha256:ecaf6a7e23764f6803db402a4a2a12541ad86a712461b190755cd3c626896907
+  dependencies: []
+license:
+  version: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  fingerprint: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  sha1: sha256:c0530f924ad3c8dbf25ad3bb423534b9a110a6663b5a40c79d2572a75d3af456
