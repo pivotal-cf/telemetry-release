@@ -38,6 +38,8 @@ instance_groups:
       telemetry:
         endpoint: "((loader_endpoint))/components"
         api_key: ((loader_api_key))
+        data_collection_multi_select_options: ((data_collection_multi_select_options))
+        operational_data_only: ((operational_data_only))
         env_type: ((env_type))
         foundation_nickname: ((foundation_nickname))
         iaas_type: ((iaas_type))

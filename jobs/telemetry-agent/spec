@@ -27,3 +27,6 @@ properties:
     description: TLS Certificate for communicating with the centralizer
   tls.private_key:
     description: TLS Private Key for communicating with the centralizer
+  telemetry.data_collection_multi_select_options:
+    description: The data collection programs the user has opted into
+    default: []

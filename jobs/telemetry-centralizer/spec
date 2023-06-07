@@ -29,6 +29,11 @@ properties:
   audit_mode:
     description: If enabled, telemetry data will be kept on disk but not sent
     default: false
+  telemetry.data_collection_multi_select_options:
+    description: The data collection programs the user has opted into
+    default: []
+  telemetry.operational_data_only:
+    description: Whether only operational data is being collected
   telemetry.api_key:
     description: Bearer token for authenticating against telemetry endpoint
   telemetry.endpoint:

@@ -36,6 +36,11 @@ properties:
   telemetry.proxy_settings.https_proxy:
     description: the https proxy to send telemetry data through
     default: ""
+  telemetry.data_collection_multi_select_options:
+    description: The data collection programs the user has opted into
+    default: []
+  telemetry.operational_data_only:
+    description: Whether only operational data is being collected
   opsmanager.auth.hostname:
     description: Ops Manager Hostname
   opsmanager.auth.username:

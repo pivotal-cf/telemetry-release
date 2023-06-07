@@ -6,6 +6,45 @@ rm -f /var/vcap/data/telemetry-collector/*.tar
 
 COLLECTOR_BIN=/var/vcap/packages/telemetry-collector/telemetry-collector-linux
 
+# Update value usage function
+create_or_update_option() {
+    local file_path=$1
+    local multi_select_key="data-collection-multi-select-options:"
+    local target_key="operational-data-only:"
+    local operational_data_multiselect='["operational_data"]'
+
+    if ! grep -q "$multi_select_key" "$file_path"; then
+        # Exits without making any changes
+        return
+    fi
+
+    local multiselect_value=$(grep "$multi_select_key" "$file_path" | awk '{$1=""; print $0}' | tr -d ' ')
+
+    if ! grep -q "$target_key" "$file_path"; then
+        if [ "$multiselect_value" == "$operational_data_multiselect" ]; then
+          echo "${target_key} true" >> "$file_path"
+        else
+          echo "${target_key} false" >> "$file_path"
+        fi
+    else
+        if [ "$multiselect_value" == "$operational_data_multiselect" ]; then
+            sed -i.bak "/$target_key/{s/false/true/;}" "$file_path"
+        else
+            sed -i.bak "/$target_key/{s/true/false/;}" "$file_path"
+        fi
+    fi
+}
+
+# Paths (absolute!)
+pre_start_config="/var/vcap/jobs/telemetry-collector/config/pre-start-collect.yml"
+config="/var/vcap/jobs/telemetry-collector/config/collect.yml"
+
+# Check and update pre-start-collect.yml
+create_or_update_option "$pre_start_config"
+
+# Check and update collect.yml
+create_or_update_option "$config"
+
 $COLLECTOR_BIN collect --config "$1"
 
 TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar")

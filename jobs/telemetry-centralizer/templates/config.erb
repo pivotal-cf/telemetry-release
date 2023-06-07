@@ -45,6 +45,8 @@
     @type exec
     <% if p('audit_mode') %>
     <%= "command tee -a -p /var/vcap/sys/log/telemetry-centralizer/audit.log <" %>
+    <% elsif p('telemetry.data_collection_multi_select_options') == ["operational_data"] %>
+    <%= "command tee /dev/null <" %>
     <% else %>
     <%= "command #{@env_no_proxy} #{@env_http_proxy} #{@env_https_proxy} curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <" %>
     <% end %>
