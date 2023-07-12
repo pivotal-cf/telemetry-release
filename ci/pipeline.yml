@@ -109,7 +109,7 @@ resources:
   type: git
   source:
     branch: master
-    uri: git@github.com:bosh-packages/ruby-release
+    uri: git@github.com:cloudfoundry/bosh-package-ruby-release.git
     private_key: ((github.telemetry-release-git-deploy-private-key))
 
 jobs:
