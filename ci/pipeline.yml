@@ -238,7 +238,6 @@ jobs:
       OPSMANAGER_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).opsman-uaa-client-secret))
       OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: true
       CF_API_URL: ((toolsmiths/((vault-acceptance-prefix)).cf-api-url))
-      STEMCELL_VERSION: ((stemcell-version))
       USAGE_SERVICE_URL: ((toolsmiths/((vault-acceptance-prefix)).usage-service-url))
       USAGE_SERVICE_CLIENT_ID: ((toolsmiths/((vault-acceptance-prefix)).usage-service-client-id))
       USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
