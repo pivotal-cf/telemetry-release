@@ -48,7 +48,7 @@ eval "$(smith bosh)"
 
 echo "Uploading stemcell..."
 
-retry 5 "$BOSH_CLI" upload-stemcell "$TASK_DIR/jammy-stemcell/stemcell.tgz"
+retry 5 "$BOSH_CLI" upload-stemcell "$TASK_DIR/$STEMCELL_VERSION-stemcell/stemcell.tgz"
 
 echo "Uploading releases..."
 retry 5 "$BOSH_CLI" upload-release -n "$TASK_DIR/release-tarball/release.tgz"

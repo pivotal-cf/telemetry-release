@@ -8,7 +8,7 @@ image_resource:
     tag: latest
 
 inputs:
-- name: jammy-stemcell
+- name: stemcell
 - name: bpm-release
 - name: version
 - name: bosh-cli-github-release
@@ -40,6 +40,7 @@ params:
   OPSMANAGER_CLIENT_SECRET:
   OPSMANAGER_INSECURE_SKIP_TLS_VERIFY:
   CF_API_URL:
+  STEMCELL_VERSION:
   USAGE_SERVICE_URL:
   USAGE_SERVICE_CLIENT_ID:
   USAGE_SERVICE_CLIENT_SECRET:
