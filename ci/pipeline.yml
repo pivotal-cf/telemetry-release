@@ -101,6 +101,7 @@ resources:
 
 - name: pivotal-telemetry-collector
   type: pivnet
+  product_version: ((telemetry-collector-regex))
   source:
     api_token: ((pivnet.api-token))
     product_slug: pivotal-telemetry-collector
