@@ -377,7 +377,7 @@ jobs:
       AGENT_BOSH_INSTANCE: telemetry-agent
       EXPECTED_ENV_TYPE: development
       EXPECTED_FOUNDATION_NICKNAME: release-acceptance
-      EXPECTED_IAAS_TYPE: ((toolsmiths/acceptance-((stemcell-version)).iaas_type))
+      EXPECTED_IAAS_TYPE: ((toolsmiths/((vault-acceptance-prefix)).iaas_type))
       EXPECTED_FOUNDATION_ID: ((toolsmiths/((vault-acceptance-prefix)).p-bosh-id-guid))
       TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
   on_success:
@@ -460,6 +460,7 @@ jobs:
   - put: telemetry-release
     params:
       repository: telemetry-release
+      rebase: true
       tag: version/version
 
 - name: auto-patch
