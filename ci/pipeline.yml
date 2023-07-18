@@ -285,7 +285,7 @@ jobs:
       ENV_TYPE: development
       IAAS_TYPE: ((toolsmiths/((vault-acceptance-prefix)).iaas_type))
       FOUNDATION_ID: ((toolsmiths/((vault-acceptance-prefix)).p-bosh-id-guid))
-      FOUNDATION_NICKNAME: release-((vault-acceptance-prefix))
+      FOUNDATION_NICKNAME: release-acceptance
       FLUSH_INTERVAL: 10
       COLLECTOR_CRON_SCHEDULE: "* * * * *"
       OPSMANAGER_HOSTNAME: ((toolsmiths/((vault-acceptance-prefix)).ops-manager-hostname))
