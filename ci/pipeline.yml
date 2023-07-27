@@ -458,8 +458,10 @@ jobs:
       GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.ci-gcs-service-account-key))
       GITHUB_NAME: ((telemetry-release-repo.github-name))
       GITHUB_EMAIL: ((telemetry-release-repo.github-email))
+      STEMCELL_VERSION: ((stemcell-version))
   - put: telemetry-release
     params:
+      branch: main
       repository: telemetry-release
       rebase: true
       tag: version/version
