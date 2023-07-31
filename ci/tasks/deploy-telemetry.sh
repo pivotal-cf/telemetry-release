@@ -76,7 +76,9 @@ retry 5 "$BOSH_CLI" deploy -n -d "$CENTRALIZER_DEPLOYMENT_NAME" "$TASK_DIR/telem
     --var usage_service_client_secret="$USAGE_SERVICE_CLIENT_SECRET" \
     --var usage_service_insecure_skip_tls_verify="$USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY" \
     --var network_name="$NETWORK" \
-    --var az="$AZ"
+    --var az="$AZ" \
+    --var data_collection_multi_select_options="$DATA_COLLECTION_MULTI_SELECT_OPTIONS" \
+    --var operational_data_only="$OPERATIONAL_DATA_ONLY"
 
 echo "Deploying telemetry agent"
 retry 5 "$BOSH_CLI" deploy -n -d "$AGENT_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/agent.yml" \

@@ -244,6 +244,8 @@ jobs:
       USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
       TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
+      DATA_COLLECTION_MULTI_SELECT_OPTIONS: '[]'
+      OPERATIONAL_DATA_ONLY: false
 
 - name: deploy-telemetry-acceptance-audit
   serial_groups: [acceptance-audit]
@@ -465,6 +467,7 @@ jobs:
       repository: telemetry-release
       rebase: true
       tag: version/version
+      tag_prefix: jammy-
 
 - name: auto-patch
   serial_groups: [version]
