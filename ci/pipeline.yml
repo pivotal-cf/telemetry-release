@@ -244,7 +244,7 @@ jobs:
       USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
       TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
-      DATA_COLLECTION_MULTI_SELECT_OPTIONS: '[]'
+      DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
       OPERATIONAL_DATA_ONLY: false
 
 - name: deploy-telemetry-acceptance-audit
@@ -300,6 +300,8 @@ jobs:
       USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
       TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
+      DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
+      OPERATIONAL_DATA_ONLY: false
 
 - name: test-acceptance-audit
   serial_groups: [telemetry-receiver-audit, acceptance-audit]
@@ -439,6 +441,8 @@ jobs:
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
       TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
       TOOLSMITHS_ENV: ((toolsmiths/((vault-staging-prefix)).env-name))
+      DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
+      OPERATIONAL_DATA_ONLY: false
 
 - name: finalize-release
   serial_groups: [version]
