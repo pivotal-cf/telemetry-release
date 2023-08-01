@@ -158,15 +158,22 @@ NOT a telemetry-source msg
     sleep 120
     received_messages = fetch_batch_messages
 
+    puts "\n******** RAW MESSAGES ************"
+    puts received_messages
+    puts "************************************"
+
+    puts "\nEXPECTED_FOUNDATION_ID: #{ENV["EXPECTED_FOUNDATION_ID"]}"
+
     messagesForFoundation = received_messages.select do |message|
       collected_at = DateTime.parse(message["CollectedAt"]).to_time.utc
       received_within_the_last_four_minutes = Time.now.utc - collected_at <= 360
       true if message["FoundationId"] == ENV["EXPECTED_FOUNDATION_ID"] && received_within_the_last_six_minutes
     end
 
-    puts "********************"
-    puts received_messages
-    puts "********************"
+    puts "\n******** FILTERED MESSAGES ************"
+    puts messagesForFoundation
+    puts "*****************************************"
+
 
     expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "opsmanager" })
     expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "usage_service" })
