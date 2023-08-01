@@ -467,11 +467,10 @@ jobs:
       STEMCELL_VERSION: ((stemcell-version))
   - put: telemetry-release
     params:
-      branch: main
       repository: telemetry-release
       rebase: true
       tag: version/version
-      tag_prefix: jammy-
+      tag_prefix: ((stemcell-version))-
 
 - name: auto-patch
   serial_groups: [version]
