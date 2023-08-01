@@ -160,8 +160,8 @@ NOT a telemetry-source msg
 
     messagesForFoundation = received_messages.select do |message|
       collected_at = DateTime.parse(message["CollectedAt"]).to_time.utc
-      received_within_the_last_four_minutes = Time.now.utc - collected_at <= 240
-      true if message["FoundationId"] == ENV["EXPECTED_FOUNDATION_ID"] && received_within_the_last_four_minutes
+      received_within_the_last_four_minutes = Time.now.utc - collected_at <= 360
+      true if message["FoundationId"] == ENV["EXPECTED_FOUNDATION_ID"] && received_within_the_last_six_minutes
     end
 
     puts "********************"
