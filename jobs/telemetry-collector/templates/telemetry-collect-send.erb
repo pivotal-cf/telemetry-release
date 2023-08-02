@@ -3,7 +3,7 @@
 set -eu
 
 rm -f /var/vcap/data/telemetry-collector/*.tar
-
+chown -R vcap:vcap /var/vcap/jobs/telemetry-collector/config/
 COLLECTOR_BIN=/var/vcap/packages/telemetry-collector/telemetry-collector-linux
 
 # Update value usage function
