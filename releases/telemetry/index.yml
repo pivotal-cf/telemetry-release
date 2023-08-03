@@ -1,4 +1,6 @@
 builds:
+  07e26d36-cfa8-4c3b-4b28-173d01f80d36:
+    version: 0.13.4-xenial
   08acf386-79ff-4feb-5275-f188008250c7:
     version: 0.0.22
   0c2b7bde-8e99-4e6f-447d-9dd2389cb724:
