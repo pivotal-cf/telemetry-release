@@ -13,3 +13,5 @@ releases/**/*.tgz
 *#
 #*
 .envrc
+.go-version
+.ruby-version
