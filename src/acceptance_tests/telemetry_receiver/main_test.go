@@ -3,10 +3,10 @@ package main_test
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os/exec"
@@ -56,7 +56,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -71,7 +71,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err = ioutil.ReadAll(resp.Body)
+				respBody, err = io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
 				Expect(messages).To(Equal([]map[string]interface{}{
@@ -92,7 +92,7 @@ var _ = Describe("Main", func() {
 				resp := makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -106,7 +106,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err = ioutil.ReadAll(resp.Body)
+				respBody, err = io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(respBody)).To(Equal("[]"))
 			})
@@ -125,7 +125,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -163,7 +163,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -184,7 +184,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err = ioutil.ReadAll(resp.Body)
+				respBody, err = io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
 				Expect(messages).To(Equal([]map[string]interface{}{}))
@@ -204,7 +204,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -224,7 +224,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -245,7 +245,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -259,7 +259,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err = ioutil.ReadAll(resp.Body)
+				respBody, err = io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
 				Expect(messages).To(Equal([]map[string]interface{}{
@@ -284,7 +284,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -311,7 +311,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -327,7 +327,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err = ioutil.ReadAll(resp.Body)
+				respBody, err = io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
 				Expect(messages).To(Equal([]map[string]interface{}{}))
@@ -346,7 +346,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -366,7 +366,7 @@ var _ = Describe("Main", func() {
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				var messages []map[string]interface{}
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
@@ -519,6 +519,7 @@ func makeBatchRequest(method, url, authHeaderContent string, data []byte) *http.
 	req, err := http.NewRequest(method, url+"/collections/batch", bytes.NewReader(data))
 	Expect(err).NotTo(HaveOccurred())
 	req.Header.Set("Content-Type", "application/tar")
+	req.Header.Set("Content-Encoding", "gzip")
 	if authHeaderContent != "" {
 		req.Header.Set("Authorization", authHeaderContent)
 	}
@@ -528,10 +529,19 @@ func makeBatchRequest(method, url, authHeaderContent string, data []byte) *http.
 }
 
 func generateTarFileContents(foundationId string) []byte {
-	return tarForContents(
+	return gzippedTarForContents(
 		[]byte(fmt.Sprintf(`{"FoundationId": "%s", "CollectedAt": "2006-01-02T15:04:05Z07:00"}`, foundationId)),
 		path.Join("opsmanager", "metadata"),
 	)
+}
+
+func gzippedTarForContents(contents []byte, fileName string) []byte {
+	buffer := &bytes.Buffer{}
+	writer := gzip.NewWriter(buffer)
+	writer.Write(tarForContents(contents, fileName))
+	writer.Close()
+
+	return buffer.Bytes()
 }
 
 func tarForContents(contents []byte, fileName string) []byte {

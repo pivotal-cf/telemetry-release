@@ -177,5 +177,6 @@ NOT a telemetry-source msg
 
     expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "opsmanager" })
     expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "usage_service" })
+    expect(messagesForFoundation).to include(an_object_satisfying {|message| message["Dataset"] == "core_consumption" })
   end
 end

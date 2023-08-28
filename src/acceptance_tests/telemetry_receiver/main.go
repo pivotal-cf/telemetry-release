@@ -3,10 +3,10 @@ package main
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -66,7 +66,7 @@ func postMessageHandler(
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		reqBody, err := ioutil.ReadAll(r.Body)
+		reqBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -195,7 +195,12 @@ func readJSONBatch(batchContents []byte) ([]map[string]interface{}, error) {
 }
 
 func readTarBatch(contents []byte) ([]map[string]interface{}, error) {
-	tarReader := tar.NewReader(bytes.NewReader(contents))
+	bytesReader := bytes.NewReader(contents)
+	gzipReader, err := gzip.NewReader(bytesReader)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read gzip contents")
+	}
+	tarReader := tar.NewReader(gzipReader)
 
 	var messagesInTar []map[string]interface{}
 	for {
