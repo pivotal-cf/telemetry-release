@@ -8,7 +8,7 @@ image_resource:
     tag: 3.1.4
 
 inputs:
-  - name: telemetry-release
+  - name: telemetry-receiver-source
   - name: ci
 
 run:

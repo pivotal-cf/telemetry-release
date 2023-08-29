@@ -182,8 +182,7 @@ jobs:
 - name: run-centralizer-unit-tests
   serial_groups: [version]
   plan:
-    - get: telemetry-release
-      resource: telemetry-receiver-source
+    - get: telemetry-receiver-source
       trigger: true
     - get: version
       params: {pre: build}
