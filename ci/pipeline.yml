@@ -78,7 +78,7 @@ resources:
 - name: telemetry-receiver-source
   type: git
   source:
-    branch: ((branch))
+    branch: main
     uri: git@github.com:pivotal-cf/telemetry-release
     paths:
     - src/acceptance_tests/telemetry_receiver
