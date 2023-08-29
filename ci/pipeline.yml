@@ -83,6 +83,7 @@ resources:
     paths:
     - src/acceptance_tests/telemetry_receiver
     - ci/tasks/run-telemetry-receiver-tests.*
+    - src/fluentd
     private_key: ((github.telemetry-release-git-deploy-private-key))
 - name: version
   type: semver
@@ -182,6 +183,7 @@ jobs:
   serial_groups: [version]
   plan:
     - get: telemetry-release
+      resource: telemetry-receiver-source
       trigger: true
     - get: version
       params: {pre: build}
