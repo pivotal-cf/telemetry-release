@@ -1,5 +1,7 @@
 # Telemetry Release
 
+### Note: difference in Xenial branch is with the files in `manifest`
+
 ## Overview
 The Telemetry System uses an agent job to scrape logs from co-located bosh jobs to find possible telemetry messages. The
 identified messages are then forwarded to a centralizer job, which attempts to parse each message and extract the telemetry section
