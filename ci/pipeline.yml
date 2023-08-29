@@ -206,7 +206,6 @@ jobs:
         globs:
         - bosh-cli-*-linux-amd64
     - get: telemetry-release
-      passed: [run-centralizer-unit-tests]
       trigger: true
     - get: ci
     - get: smith
@@ -262,7 +261,6 @@ jobs:
         globs:
         - bosh-cli-*-linux-amd64
     - get: telemetry-release
-      passed: [run-centralizer-unit-tests]
       trigger: true
     - get: ci
     - get: smith
