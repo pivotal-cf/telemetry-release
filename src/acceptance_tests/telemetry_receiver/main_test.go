@@ -251,7 +251,7 @@ var _ = Describe("Main", func() {
 				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
 				Expect(messages).To(Equal([]map[string]interface{}{}))
 
-				resp = makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, generateTarFileContents("best-foundation-id"))
+				resp = makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
@@ -272,11 +272,11 @@ var _ = Describe("Main", func() {
 			})
 
 			It("appends to previous messages", func() {
-				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, generateTarFileContents("best-foundation-id"))
+				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
-				resp = makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, generateTarFileContents("best-foundation-id"))
+				resp = makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
@@ -303,7 +303,7 @@ var _ = Describe("Main", func() {
 			})
 
 			It("only returns messages sent by a specific user", func() {
-				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, generateTarFileContents("best-foundation-id"))
+				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
@@ -334,7 +334,7 @@ var _ = Describe("Main", func() {
 			})
 
 			It("users can clear previously sent messages", func() {
-				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, generateTarFileContents("best-foundation-id"))
+				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
 				defer resp.Body.Close()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
@@ -353,11 +353,42 @@ var _ = Describe("Main", func() {
 				Expect(messages).To(Equal([]map[string]interface{}{}))
 			})
 
+			It("users can send uncompressed batch messages", func() {
+
+				resp := makeRequest(http.MethodPost, serverUrl+"/clear_messages", validTokenContent, nil)
+				defer resp.Body.Close()
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+				resp = makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, false, generateTarFileContents("best-foundation-id", false))
+				defer resp.Body.Close()
+				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
+
+				resp = makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", validTokenContent, nil)
+				defer resp.Body.Close()
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+				respBody, err := io.ReadAll(resp.Body)
+				Expect(err).NotTo(HaveOccurred())
+				var messages []map[string]interface{}
+				Expect(json.Unmarshal(respBody, &messages)).To(Succeed())
+				Expect(messages).To(Equal([]map[string]interface{}{
+					{
+						"FoundationId": "best-foundation-id",
+						"CollectedAt":  "2006-01-02T15:04:05Z07:00",
+						"Dataset":      "opsmanager",
+					},
+				}))
+
+				resp = makeRequest(http.MethodPost, serverUrl+"/clear_messages", validTokenContent, nil)
+				defer resp.Body.Close()
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			})
+
 			It("clears a user's messages when it has reached the message limit", func() {
 				limit, err := strconv.Atoi(messageLimit)
 				Expect(err).NotTo(HaveOccurred())
 				for i := 0; i <= limit; i++ {
-					resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, generateTarFileContents(strconv.Itoa(i)))
+					resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents(strconv.Itoa(i), true))
 					resp.Body.Close()
 					Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 				}
@@ -515,11 +546,13 @@ func generateTelemetryMsg() []byte {
 `)
 }
 
-func makeBatchRequest(method, url, authHeaderContent string, data []byte) *http.Response {
+func makeBatchRequest(method, url, authHeaderContent string, compressed bool, data []byte) *http.Response {
 	req, err := http.NewRequest(method, url+"/collections/batch", bytes.NewReader(data))
 	Expect(err).NotTo(HaveOccurred())
 	req.Header.Set("Content-Type", "application/tar")
-	req.Header.Set("Content-Encoding", "gzip")
+	if compressed {
+		req.Header.Set("Content-Encoding", "gzip")
+	}
 	if authHeaderContent != "" {
 		req.Header.Set("Authorization", authHeaderContent)
 	}
@@ -528,11 +561,18 @@ func makeBatchRequest(method, url, authHeaderContent string, data []byte) *http.
 	return resp
 }
 
-func generateTarFileContents(foundationId string) []byte {
-	return gzippedTarForContents(
-		[]byte(fmt.Sprintf(`{"FoundationId": "%s", "CollectedAt": "2006-01-02T15:04:05Z07:00"}`, foundationId)),
-		path.Join("opsmanager", "metadata"),
-	)
+func generateTarFileContents(foundationId string, compressed bool) []byte {
+	if compressed {
+		return gzippedTarForContents(
+			[]byte(fmt.Sprintf(`{"FoundationId": "%s", "CollectedAt": "2006-01-02T15:04:05Z07:00"}`, foundationId)),
+			path.Join("opsmanager", "metadata"),
+		)
+	} else {
+		return tarForContents(
+			[]byte(fmt.Sprintf(`{"FoundationId": "%s", "CollectedAt": "2006-01-02T15:04:05Z07:00"}`, foundationId)),
+			path.Join("opsmanager", "metadata"),
+		)
+	}
 }
 
 func gzippedTarForContents(contents []byte, fileName string) []byte {

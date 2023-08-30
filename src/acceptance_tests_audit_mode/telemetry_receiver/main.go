@@ -58,7 +58,7 @@ func main() {
 }
 
 func postMessageHandler(
-	messageReader func(contents []byte) ([]map[string]interface{}, error),
+	messageReader func(contents []byte, contentEncoding string) ([]map[string]interface{}, error),
 	messagesToUpdate map[string][]map[string]interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, authed := authenticated(r.Header, userApiKeys)
@@ -72,7 +72,7 @@ func postMessageHandler(
 			return
 		}
 		defer r.Body.Close()
-		recMessages, err := messageReader(reqBody)
+		recMessages, err := messageReader(reqBody, r.Header.Get("Content-Encoding"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -177,7 +177,7 @@ func validateEnvConfigured() error {
 	return nil
 }
 
-func readJSONBatch(batchContents []byte) ([]map[string]interface{}, error) {
+func readJSONBatch(batchContents []byte, _ string) ([]map[string]interface{}, error) {
 	decoder := json.NewDecoder(bytes.NewReader(batchContents))
 	var jsonObjSlice []map[string]interface{}
 	for {
@@ -194,13 +194,20 @@ func readJSONBatch(batchContents []byte) ([]map[string]interface{}, error) {
 	return jsonObjSlice, nil
 }
 
-func readTarBatch(contents []byte) ([]map[string]interface{}, error) {
+func readTarBatch(contents []byte, contentEncoding string) ([]map[string]interface{}, error) {
+
+	var tarReader *tar.Reader
+
 	bytesReader := bytes.NewReader(contents)
-	gzipReader, err := gzip.NewReader(bytesReader)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read gzip contents")
+	if contentEncoding == "gzip" {
+		gzipReader, err := gzip.NewReader(bytesReader)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read gzip contents")
+		}
+		tarReader = tar.NewReader(gzipReader)
+	} else {
+		tarReader = tar.NewReader(bytesReader)
 	}
-	tarReader := tar.NewReader(gzipReader)
 
 	var messagesInTar []map[string]interface{}
 	for {
