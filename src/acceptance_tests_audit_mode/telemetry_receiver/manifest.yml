@@ -4,3 +4,5 @@ applications:
     path: .
     buildpacks:
     - https://github.com/cloudfoundry/go-buildpack.git#develop
+    env:
+      GOVERSION: go1.21
