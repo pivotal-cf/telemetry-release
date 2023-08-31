@@ -205,7 +205,6 @@ jobs:
         globs:
         - bosh-cli-*-linux-amd64
     - get: telemetry-release
-      trigger: true
     - get: ci
     - get: smith
       resource: smith-cli-github-release
@@ -260,7 +259,6 @@ jobs:
         globs:
         - bosh-cli-*-linux-amd64
     - get: telemetry-release
-      trigger: true
     - get: ci
     - get: smith
       resource: smith-cli-github-release
