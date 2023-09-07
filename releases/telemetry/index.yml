@@ -57,6 +57,8 @@ builds:
     version: 0.0.2
   6daa3a2c-8c7d-45bb-6aa4-0bf13b6d28df:
     version: 0.0.3
+  7465e110-afbd-4b92-6640-bcba2f102844:
+    version: 0.13.6-jammy
   7d3547a3-fbad-4f6d-5d35-232ac04ad8b9:
     version: 0.13.2-jammy
   85087648-cc24-49eb-41ed-8b6b0228987a:
