@@ -112,9 +112,9 @@ func readMessagesForUser(receivedMessages map[string][]map[string]interface{}) h
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			w.Write(msgBytes)
+			_, _ = w.Write(msgBytes)
 		} else {
-			w.Write([]byte("[]"))
+			_, _ = w.Write([]byte("[]"))
 		}
 	}
 }

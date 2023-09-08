@@ -578,7 +578,7 @@ func generateTarFileContents(foundationId string, compressed bool) []byte {
 func gzippedTarForContents(contents []byte, fileName string) []byte {
 	buffer := &bytes.Buffer{}
 	writer := gzip.NewWriter(buffer)
-	writer.Write(tarForContents(contents, fileName))
+	_, _ = writer.Write(tarForContents(contents, fileName))
 	writer.Close()
 
 	return buffer.Bytes()
