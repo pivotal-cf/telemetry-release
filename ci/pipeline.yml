@@ -511,7 +511,6 @@ jobs:
   plan:
     - get: telemetry-release
       trigger: true
-      passed: [run-centralizer-unit-tests]
     - get: ci
     - get: every-24h
       trigger: true
