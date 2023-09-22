@@ -1,0 +1,17 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: dev.registry.pivotal.io/tanzu-portfolio-insights/telemetry-for-vms/base-ci-image
+    username: ((pivotal-image-registry.registry-username))
+    password: ((pivotal-image-registry.registry-password))
+    tag: latest
+
+inputs:
+  - name: telemetry-release
+  - name: ci
+
+run:
+  path: ci/ci/tasks/scan-repo.sh

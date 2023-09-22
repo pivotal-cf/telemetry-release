@@ -113,6 +113,11 @@ resources:
     branch: main
     uri: git@github.com:cloudfoundry/bosh-package-ruby-release.git
     private_key: ((github.telemetry-release-git-deploy-private-key))
+- name: every-24h
+  type: time
+  icon: clock-outline
+  source:
+    interval: 24h
 
 jobs:
 - name: update-ruby
@@ -502,3 +507,13 @@ jobs:
     params: {bump: patch, pre: build}
   - put: version
     params: {file: version/version}
+- name: scan-for-cves
+  plan:
+    - get: telemetry-release
+      trigger: true
+      passed: [run-centralizer-unit-tests]
+    - get: ci
+    - get: every-24h
+      trigger: true
+    - task: run-scan
+      file: ci/ci/tasks/scan-repo.yml
