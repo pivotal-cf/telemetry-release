@@ -7,11 +7,16 @@ chown -R vcap:vcap /var/vcap/jobs/telemetry-collector/config/
 COLLECTOR_BIN=/var/vcap/packages/telemetry-collector/telemetry-collector-linux
 
 # Update value usage function
-create_or_update_option() {
+create_or_update_options() {
     local file_path=$1
+
     local multi_select_key="data-collection-multi-select-options:"
     local target_key="operational-data-only:"
+    local target_key_2="tas-installed-selector:"
+
     local operational_data_multiselect='["operational_data"]'
+    local ceip_data_multiselect='["ceip_data"]'
+
 
     if ! grep -q "$multi_select_key" "$file_path"; then
         # Exits without making any changes
@@ -26,11 +31,23 @@ create_or_update_option() {
         else
           echo "${target_key} false" >> "$file_path"
         fi
+
+        if [ "$multiselect_value" == "$ceip_data_multiselect" ]; then
+          echo "${target_key_2} disabled" >> "$file_path"
+        else
+          echo "${target_key_2} enabled" >> "$file_path"
+        fi
     else
         if [ "$multiselect_value" == "$operational_data_multiselect" ]; then
             sed -i.bak "/$target_key/{s/false/true/;}" "$file_path"
         else
             sed -i.bak "/$target_key/{s/true/false/;}" "$file_path"
+        fi
+
+        if [ "$multiselect_value" == "$ceip_data_multiselect" ]; then
+            sed -i.bak "/$target_key_2/{s/enabled/disabled/;}" "$file_path"
+        else
+            sed -i.bak "/$target_key_2/{s/disabled/enabled/;}" "$file_path"
         fi
     fi
 }
@@ -40,10 +57,10 @@ pre_start_config="/var/vcap/jobs/telemetry-collector/config/pre-start-collect.ym
 config="/var/vcap/jobs/telemetry-collector/config/collect.yml"
 
 # Check and update pre-start-collect.yml
-create_or_update_option "$pre_start_config"
+create_or_update_options "$pre_start_config"
 
 # Check and update collect.yml
-create_or_update_option "$config"
+create_or_update_options "$config"
 
 $COLLECTOR_BIN collect --config "$1"
 
