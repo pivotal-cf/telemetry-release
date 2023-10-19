@@ -29,6 +29,8 @@ builds:
     version: 0.13.3-xenial
   3d69bcde-138e-41b7-627e-f7c236997f12:
     version: 0.0.16
+  3e05c2ea-1f1a-4875-4cf3-5aa58e359ef1:
+    version: 0.13.7-jammy
   3fecdf22-3d20-4f6b-628b-a2d7ea1b4975:
     version: 0.13.5-xenial
   48f8ba9f-5fa9-4a5d-67ef-9537b82ecae9:
