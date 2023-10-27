@@ -12,11 +12,18 @@ create_or_update_options() {
 
     local multi_select_key="data-collection-multi-select-options:"
     local target_key="operational-data-only:"
-    local target_key_2="tas-installed-selector:"
 
     local operational_data_multiselect='["operational_data"]'
     local ceip_data_multiselect='["ceip_data"]'
 
+    local strings_to_remove=(
+      "cf-api-url"
+      "usage-service-url"
+      "usage-service-client-id"
+      "usage-service-client-secret"
+      "usage-service-insecure-skip-tls-verify"
+      "usage-service-timeout"
+    )
 
     if ! grep -q "$multi_select_key" "$file_path"; then
         # Exits without making any changes
@@ -25,17 +32,17 @@ create_or_update_options() {
 
     local multiselect_value=$(grep "$multi_select_key" "$file_path" | awk '{$1=""; print $0}' | tr -d ' ')
 
+    if [ "$multiselect_value" == "$ceip_data_multiselect" ]; then
+        for string in "${strings_to_remove[@]}"; do
+            sed -i.bak "/$string/d" "$file_path"
+        done
+    fi
+
     if ! grep -q "$target_key" "$file_path"; then
         if [ "$multiselect_value" == "$operational_data_multiselect" ]; then
           echo "${target_key} true" >> "$file_path"
         else
           echo "${target_key} false" >> "$file_path"
-        fi
-
-        if [ "$multiselect_value" == "$ceip_data_multiselect" ]; then
-          echo "${target_key_2} disabled" >> "$file_path"
-        else
-          echo "${target_key_2} enabled" >> "$file_path"
         fi
     else
         if [ "$multiselect_value" == "$operational_data_multiselect" ]; then
@@ -43,11 +50,21 @@ create_or_update_options() {
         else
             sed -i.bak "/$target_key/{s/true/false/;}" "$file_path"
         fi
+    fi
 
-        if [ "$multiselect_value" == "$ceip_data_multiselect" ]; then
-            sed -i.bak "/$target_key_2/{s/enabled/disabled/;}" "$file_path"
+    local strings_exist=0
+    for string in "${strings_to_remove[@]}"; do
+        if grep -q "$string" "$file_path"; then
+            strings_exist=1
+            break
+        fi
+    done
+
+    if [ "$strings_exist" -eq 0 ] && [ "$multiselect_value" != "$ceip_data_multiselect" ]; then
+        if ! grep -q "core-consumption:" "$file_path"; then
+            echo "core-consumption: true" >> "$file_path"
         else
-            sed -i.bak "/$target_key_2/{s/disabled/enabled/;}" "$file_path"
+            sed -i.bak "/core-consumption:/{s/false/true/;}" "$file_path"
         fi
     fi
 }

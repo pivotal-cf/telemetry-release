@@ -43,6 +43,8 @@ properties:
     description: Whether only operational data is being collected
   telemetry.tas_installed_selector:
     description: Whether TAS is installed
+  telemetry.core_consumption:
+    description: Explicity collect from core consumption API
   opsmanager.auth.hostname:
     description: Ops Manager Hostname
   opsmanager.auth.username:
