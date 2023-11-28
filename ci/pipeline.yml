@@ -90,7 +90,7 @@ resources:
   source:
     driver: git
     uri: git@github.com:pivotal-cf/telemetry-release
-    branch: ((branch))
+    branch: main
     file: ci/VERSION
     private_key: ((github.telemetry-release-git-deploy-private-key))
 - name: env-pool
