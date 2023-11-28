@@ -21,7 +21,7 @@ blobstore:
       $(echo $GCS_SERVICE_ACCOUNT_KEY)
 EOM
 
-  "$BOSH_CLI" create-release --final --version "${VERSION}-${STEMCELL_VERSION}"
+  "$BOSH_CLI" create-release --final --version "${VERSION}"
 
   git add .
   git config --global user.name $GITHUB_NAME
