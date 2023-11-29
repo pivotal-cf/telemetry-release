@@ -9,7 +9,6 @@ env-type: <%= p('telemetry.env_type') %>
 <% if_p('telemetry.data_collection_multi_select_options') do |p| %>data-collection-multi-select-options: <%= p %> <% end %>
 <% if_p('telemetry.operational_data_only') do |p| %>operational-data-only: <%= p %> <% end %>
 <% if_p('telemetry.tas_installed_selector') do |p| %>tas-installed-selector: <%= p %> <% end %>
-<% if_p('telemetry.core_consumption') do |p| %>core-consumption: <%= p %> <% end %>
 output-dir: /var/vcap/data/telemetry-collector/
 <% if_p('opsmanager.insecure_skip_tls_verify') do |p| %>insecure-skip-tls-verify: <%= p %> <% end %>
 <% if_p('opsmanager.timeout') do |p| %>ops-manager-timeout: <%= p %> <% end %>

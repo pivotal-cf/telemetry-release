@@ -59,14 +59,6 @@ create_or_update_options() {
             break
         fi
     done
-
-    if [ "$strings_exist" -eq 0 ] && [ "$multiselect_value" != "$ceip_data_multiselect" ]; then
-        if ! grep -q "core-consumption:" "$file_path"; then
-            echo "core-consumption: true" >> "$file_path"
-        else
-            sed -i.bak "/core-consumption:/{s/false/true/;}" "$file_path"
-        fi
-    fi
 }
 
 # Paths (absolute!)
