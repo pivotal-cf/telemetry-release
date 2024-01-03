@@ -5,7 +5,7 @@ image_resource:
   type: registry-image
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ruby
-    tag: 3.1.4
+    tag: 3.2.2
 
 inputs:
   - name: bosh-cli-github-release
