@@ -15,7 +15,7 @@ inputs:
 - name: telemetry-release
 - name: ci
 - name: release-tarball
-- name: env-pool
+- name: testbed-lease
   optional: true
 - name: smith
 - name: om
@@ -44,7 +44,7 @@ params:
   USAGE_SERVICE_CLIENT_ID:
   USAGE_SERVICE_CLIENT_SECRET:
   USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY:
-  TOOLSMITHS_API_TOKEN:
+  SHEPHERD_SECRET:
   TOOLSMITHS_ENV:
   DATA_COLLECTION_MULTI_SELECT_OPTIONS:
   OPERATIONAL_DATA_ONLY:

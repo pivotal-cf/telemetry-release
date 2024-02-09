@@ -13,7 +13,7 @@ inputs:
   - name: ci
   - name: version
   - name: smith
-  - name: env-pool
+  - name: testbed-lease
   - name: om
 
 run:
@@ -31,4 +31,4 @@ params:
   EXPECTED_FOUNDATION_ID:
   AUDIT_MODE:
   TOOLSMITHS_ENV:
-  TOOLSMITHS_API_TOKEN:
+  SHEPHERD_SECRET:

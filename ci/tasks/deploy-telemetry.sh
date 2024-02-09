@@ -41,7 +41,7 @@ cp "$om_cli" /usr/local/bin/om
 
 echo "Evaluating smith environment"
 tar -C /usr/local/bin -xf smith/*.tar.gz
-export env=${TOOLSMITHS_ENV:-$(cat env-pool/name)}
+export env=${TOOLSMITHS_ENV:-$(cat testbed-lease/name)}
 export NETWORK="$(smith read | jq -r .ert_subnet)"
 export AZ="$(smith read | jq -r .azs[0])"
 eval "$(smith bosh)"

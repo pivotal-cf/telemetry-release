@@ -41,7 +41,7 @@ cp "$om_cli" /usr/local/bin/om
 
 echo "Evaluating smith environment"
 tar -C /usr/local/bin -xf smith/*.tar.gz
-export env=${TOOLSMITHS_ENV:-$(cat env-pool/name)}
+export env=${TOOLSMITHS_ENV:-$(cat testbed-lease/name)}
 eval "$(smith bosh)"
 
 $PWD/ci/ci/tasks/run-acceptance-tests.sh

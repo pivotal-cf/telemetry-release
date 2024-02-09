@@ -15,10 +15,11 @@ resource_types:
 - name: github-release
   type: registry-image
   source: {repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/github-release-resource}
-- name: pcf-pool
-  type: docker-image
+- name: shepherd
+  type: registry-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
+    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+    tag: v1
 
 resources:
 - name: bosh-cli-github-release
@@ -93,17 +94,22 @@ resources:
     branch: main
     file: ci/VERSION
     private_key: ((github.telemetry-release-git-deploy-private-key))
-- name: env-pool
-  type: pcf-pool
+- name: testbed-lease
+  type: shepherd
   source:
-    api_token: ((toolsmiths/auth.api-token))
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: ((tas-version))
+    url: https://v2.shepherd.run
+    service-account-key: ((shepherd.tpi-telemetry/secret))
+    lease:
+      namespace: "tpi-telemetry"
+      pool:
+        namespace: official
+        name: ((tas-version))
+    compatibility-mode: environments-app
 
 - name: pivotal-telemetry-collector
   type: pivnet
   source:
-    api_token: ((pivnet.api-token))
+    api_token: ((pivnet.refresh-token))
     product_slug: pivotal-telemetry-collector
     copy_metadata: true
     product_version: ((telemetry-collector-regex))
@@ -221,9 +227,12 @@ jobs:
         globs: ["*linux*"]
   - task: create-release
     file: ci/ci/tasks/create-release.yml
-  - put: env-pool
+  - put: testbed-lease
     params:
-      action: claim
+      action: create
+      duration: 6h
+      resource: testbed-lease
+    timeout: 6h
   - task: telemetry-centralizer-acceptance-deployment
     file: ci/ci/tasks/deploy-telemetry.yml
     params:
@@ -247,7 +256,7 @@ jobs:
       USAGE_SERVICE_CLIENT_ID: ((toolsmiths/((vault-acceptance-prefix)).usage-service-client-id))
       USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
-      TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
+      SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
       DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
       OPERATIONAL_DATA_ONLY: false
 
@@ -275,9 +284,12 @@ jobs:
         globs: ["*linux*"]
   - task: create-release
     file: ci/ci/tasks/create-release.yml
-  - put: env-pool
+  - put: testbed-lease
     params:
-      action: claim
+      action: create
+      duration: 6h
+      resource: testbed-lease
+    timeout: 6h
   - task: telemetry-centralizer-acceptance-deployment
     file: ci/ci/tasks/deploy-telemetry.yml
     params:
@@ -301,7 +313,7 @@ jobs:
       USAGE_SERVICE_CLIENT_ID: ((toolsmiths/((vault-acceptance-prefix)).usage-service-client-id))
       USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
-      TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
+      SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
       DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
       OPERATIONAL_DATA_ONLY: false
 
@@ -327,7 +339,7 @@ jobs:
       resource: om-cli-github-release
       params:
         globs: ["*linux*"]
-    - get: env-pool
+    - get: testbed-lease
       passed: [deploy-telemetry-acceptance-audit]
   - task: test-acceptance-sends-to-centralizer
     attempts: 2
@@ -343,12 +355,12 @@ jobs:
       EXPECTED_IAAS_TYPE: ((toolsmiths/((vault-acceptance-prefix)).iaas_type))
       EXPECTED_FOUNDATION_ID: ((toolsmiths/((vault-acceptance-prefix)).p-bosh-id-guid))
       AUDIT_MODE: true
-      TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
+      SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
   on_success:
-    put: env-pool
+    put: testbed-lease
     params:
-      action: unclaim
-      env_file: env-pool/metadata
+      action: release
+      resource: testbed-lease
 
 - name: test-acceptance-sends-to-centralizer
   serial_groups: [telemetry-receiver, acceptance]
@@ -372,7 +384,7 @@ jobs:
       resource: om-cli-github-release
       params:
         globs: ["*linux*"]
-    - get: env-pool
+    - get: testbed-lease
       passed: [deploy-telemetry-acceptance]
   - task: test-acceptance-sends-to-centralizer
     file: ci/ci/tasks/test-acceptance-sends-to-centralizer.yml
@@ -386,12 +398,12 @@ jobs:
       EXPECTED_FOUNDATION_NICKNAME: release-acceptance
       EXPECTED_IAAS_TYPE: ((toolsmiths/((vault-acceptance-prefix)).iaas_type))
       EXPECTED_FOUNDATION_ID: ((toolsmiths/((vault-acceptance-prefix)).p-bosh-id-guid))
-      TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
+      SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
   on_success:
-    put: env-pool
+    put: testbed-lease
     params:
-      action: unclaim
-      env_file: env-pool/metadata
+      action: release
+      resource: testbed-lease
 
 - name: deploy-telemetry-staging
   plan:
@@ -441,7 +453,7 @@ jobs:
       USAGE_SERVICE_CLIENT_ID: ((toolsmiths/((vault-acceptance-prefix)).usage-service-client-id))
       USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
-      TOOLSMITHS_API_TOKEN: ((toolsmiths/auth.api-token))
+      SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
       TOOLSMITHS_ENV: ((toolsmiths/((vault-staging-prefix)).env-name))
       DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
       OPERATIONAL_DATA_ONLY: false
