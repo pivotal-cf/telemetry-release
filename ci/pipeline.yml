@@ -98,7 +98,7 @@ resources:
   type: shepherd
   source:
     url: https://v2.shepherd.run
-    service-account-key: ((shepherd.tpi-telemetry/secret))
+    service-account-key: ((shepherd/tpi-telemetry.secret))
     lease:
       namespace: "tpi-telemetry"
       pool:
