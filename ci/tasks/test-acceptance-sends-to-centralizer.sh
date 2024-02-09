@@ -39,9 +39,18 @@ export om_cli="om/om-linux-amd64-$(cat om/version)"
 chmod 755 "$om_cli"
 cp "$om_cli" /usr/local/bin/om
 
+echo "Setting up Smith CLI"
+SMITH_CLI=/usr/local/bin/smith
+cp "$PWD"/smith/smith_linux_amd64 "$SMITH_CLI"
+chmod 755 "$SMITH_CLI"
+
 echo "Evaluating smith environment"
-tar -C /usr/local/bin -xf smith/*.tar.gz
-export env=${TOOLSMITHS_ENV:-$(cat testbed-lease/name)}
-eval "$(smith bosh)"
+if [[ -n $TOOLSMITHS_ENV_LOCKFILE ]]; then
+  mkdir -p testbed-lease
+  echo "$TOOLSMITHS_ENV_LOCKFILE" > testbed-lease/metadata
+fi
+
+eval $("$SMITH_CLI" om -l testbed-lease/metadata)
+eval $("$SMITH_CLI" bosh -l testbed-lease/metadata)
 
 $PWD/ci/ci/tasks/run-acceptance-tests.sh

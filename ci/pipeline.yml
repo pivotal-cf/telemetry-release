@@ -31,8 +31,6 @@ resources:
     access_token: ((github.pivotal-cf-access-token))
 - name: smith-cli-github-release
   type: github-release
-  version:
-    tag: 'v2.3.0'
   source:
     owner: pivotal
     repository: smith
@@ -112,7 +110,7 @@ resources:
     api_token: ((pivnet.refresh-token))
     product_slug: pivotal-telemetry-collector
     copy_metadata: true
-    product_version: ((telemetry-collector-regex))
+    product_version: '1.3.*'
 - name: ruby-release
   type: git
   source:
@@ -242,19 +240,19 @@ jobs:
       LOADER_API_KEY: ((telemetry-release-repo.acceptance-loader-api-key))
       LOADER_ENDPOINT: ((telemetry-release-repo.acceptance-loader-url))
       ENV_TYPE: development
-      IAAS_TYPE: ((toolsmiths/((vault-acceptance-prefix)).iaas_type))
-      FOUNDATION_ID: ((toolsmiths/((vault-acceptance-prefix)).p-bosh-id-guid))
+      IAAS_TYPE: ((toolsmiths/acceptance-((stemcell-version)).iaas_type))
+      FOUNDATION_ID: ((toolsmiths/acceptance-((stemcell-version)).p-bosh-id-guid))
       FOUNDATION_NICKNAME: release-acceptance
       FLUSH_INTERVAL: 10
       COLLECTOR_CRON_SCHEDULE: "* * * * *"
-      OPSMANAGER_HOSTNAME: ((toolsmiths/((vault-acceptance-prefix)).ops-manager-hostname))
-      OPSMANAGER_CLIENT_NAME: ((toolsmiths/((vault-acceptance-prefix)).opsman-client-id))
-      OPSMANAGER_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).opsman-uaa-client-secret))
+      OPSMANAGER_HOSTNAME: ((toolsmiths/acceptance-((stemcell-version)).ops-manager-hostname))
+      OPSMANAGER_CLIENT_NAME: ((toolsmiths/acceptance-((stemcell-version)).opsman-client-id))
+      OPSMANAGER_CLIENT_SECRET: ((toolsmiths/acceptance-((stemcell-version)).opsman-uaa-client-secret))
       OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: true
-      CF_API_URL: ((toolsmiths/((vault-acceptance-prefix)).cf-api-url))
-      USAGE_SERVICE_URL: ((toolsmiths/((vault-acceptance-prefix)).usage-service-url))
-      USAGE_SERVICE_CLIENT_ID: ((toolsmiths/((vault-acceptance-prefix)).usage-service-client-id))
-      USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
+      CF_API_URL: ((toolsmiths/acceptance-((stemcell-version)).cf-api-url))
+      USAGE_SERVICE_URL: ((toolsmiths/acceptance-((stemcell-version)).usage-service-url))
+      USAGE_SERVICE_CLIENT_ID: ((toolsmiths/acceptance-((stemcell-version)).usage-service-client-id))
+      USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/acceptance-((stemcell-version)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
       SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
       DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
@@ -299,19 +297,19 @@ jobs:
       LOADER_API_KEY: ((telemetry-release-repo.acceptance-loader-api-key-audit))
       LOADER_ENDPOINT: ((telemetry-release-repo.acceptance-loader-url))
       ENV_TYPE: development
-      IAAS_TYPE: ((toolsmiths/((vault-acceptance-prefix)).iaas_type))
-      FOUNDATION_ID: ((toolsmiths/((vault-acceptance-prefix)).p-bosh-id-guid))
+      IAAS_TYPE: ((toolsmiths/acceptance-((stemcell-version)).iaas_type))
+      FOUNDATION_ID: ((toolsmiths/acceptance-((stemcell-version)).p-bosh-id-guid))
       FOUNDATION_NICKNAME: release-acceptance
       FLUSH_INTERVAL: 10
       COLLECTOR_CRON_SCHEDULE: "* * * * *"
-      OPSMANAGER_HOSTNAME: ((toolsmiths/((vault-acceptance-prefix)).ops-manager-hostname))
-      OPSMANAGER_CLIENT_NAME: ((toolsmiths/((vault-acceptance-prefix)).opsman-client-id))
-      OPSMANAGER_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).opsman-uaa-client-secret))
+      OPSMANAGER_HOSTNAME: ((toolsmiths/acceptance-((stemcell-version)).ops-manager-hostname))
+      OPSMANAGER_CLIENT_NAME: ((toolsmiths/acceptance-((stemcell-version)).opsman-client-id))
+      OPSMANAGER_CLIENT_SECRET: ((toolsmiths/acceptance-((stemcell-version)).opsman-uaa-client-secret))
       OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: true
-      CF_API_URL: ((toolsmiths/((vault-acceptance-prefix)).cf-api-url))
-      USAGE_SERVICE_URL: ((toolsmiths/((vault-acceptance-prefix)).usage-service-url))
-      USAGE_SERVICE_CLIENT_ID: ((toolsmiths/((vault-acceptance-prefix)).usage-service-client-id))
-      USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
+      CF_API_URL: ((toolsmiths/acceptance-((stemcell-version)).cf-api-url))
+      USAGE_SERVICE_URL: ((toolsmiths/acceptance-((stemcell-version)).usage-service-url))
+      USAGE_SERVICE_CLIENT_ID: ((toolsmiths/acceptance-((stemcell-version)).usage-service-client-id))
+      USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/acceptance-((stemcell-version)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
       SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
       DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
@@ -352,8 +350,8 @@ jobs:
       AGENT_BOSH_INSTANCE: telemetry-agent
       EXPECTED_ENV_TYPE: development
       EXPECTED_FOUNDATION_NICKNAME: release-acceptance
-      EXPECTED_IAAS_TYPE: ((toolsmiths/((vault-acceptance-prefix)).iaas_type))
-      EXPECTED_FOUNDATION_ID: ((toolsmiths/((vault-acceptance-prefix)).p-bosh-id-guid))
+      EXPECTED_IAAS_TYPE: ((toolsmiths/acceptance-((stemcell-version)).iaas_type))
+      EXPECTED_FOUNDATION_ID: ((toolsmiths/acceptance-((stemcell-version)).p-bosh-id-guid))
       AUDIT_MODE: true
       SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
   on_success:
@@ -396,8 +394,8 @@ jobs:
       AGENT_BOSH_INSTANCE: telemetry-agent
       EXPECTED_ENV_TYPE: development
       EXPECTED_FOUNDATION_NICKNAME: release-acceptance
-      EXPECTED_IAAS_TYPE: ((toolsmiths/((vault-acceptance-prefix)).iaas_type))
-      EXPECTED_FOUNDATION_ID: ((toolsmiths/((vault-acceptance-prefix)).p-bosh-id-guid))
+      EXPECTED_IAAS_TYPE: ((toolsmiths/acceptance-((stemcell-version)).iaas_type))
+      EXPECTED_FOUNDATION_ID: ((toolsmiths/acceptance-((stemcell-version)).p-bosh-id-guid))
       SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
   on_success:
     put: testbed-lease
@@ -440,21 +438,21 @@ jobs:
       LOADER_ENDPOINT: ((telemetry-release-repo.staging-loader-endpoint))
       ENV_TYPE: development
       IAAS_TYPE: google
-      FOUNDATION_ID: ((toolsmiths/((vault-staging-prefix)).p-bosh-id-guid))
+      FOUNDATION_ID: ((toolsmiths/staging-((stemcell-version)).p-bosh-id-guid))
       FOUNDATION_NICKNAME: release-staging
       FLUSH_INTERVAL: 10
       COLLECTOR_CRON_SCHEDULE: "0 0 * * *"
-      OPSMANAGER_HOSTNAME: ((toolsmiths/((vault-acceptance-prefix)).ops-manager-hostname))
-      OPSMANAGER_CLIENT_NAME: ((toolsmiths/((vault-acceptance-prefix)).opsman-client-id))
-      OPSMANAGER_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).opsman-uaa-client-secret))
+      OPSMANAGER_HOSTNAME: ((toolsmiths/acceptance-((stemcell-version)).ops-manager-hostname))
+      OPSMANAGER_CLIENT_NAME: ((toolsmiths/acceptance-((stemcell-version)).opsman-client-id))
+      OPSMANAGER_CLIENT_SECRET: ((toolsmiths/acceptance-((stemcell-version)).opsman-uaa-client-secret))
       OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: true
-      CF_API_URL: ((toolsmiths/((vault-acceptance-prefix)).cf-api-url))
-      USAGE_SERVICE_URL: ((toolsmiths/((vault-acceptance-prefix)).usage-service-url))
-      USAGE_SERVICE_CLIENT_ID: ((toolsmiths/((vault-acceptance-prefix)).usage-service-client-id))
-      USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/((vault-acceptance-prefix)).telemetry-usage-service-password))
+      CF_API_URL: ((toolsmiths/acceptance-((stemcell-version)).cf-api-url))
+      USAGE_SERVICE_URL: ((toolsmiths/acceptance-((stemcell-version)).usage-service-url))
+      USAGE_SERVICE_CLIENT_ID: ((toolsmiths/acceptance-((stemcell-version)).usage-service-client-id))
+      USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/acceptance-((stemcell-version)).telemetry-usage-service-password))
       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
       SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
-      TOOLSMITHS_ENV: ((toolsmiths/((vault-staging-prefix)).env-name))
+      TOOLSMITHS_ENV_LOCKFILE: ((toolsmiths/staging-((stemcell-version))-lockfile))
       DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
       OPERATIONAL_DATA_ONLY: false
 
