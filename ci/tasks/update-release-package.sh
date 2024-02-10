@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export BOSH_ENVIRONMENT=10.0.0.5
+
 task_dir="$PWD"
 bosh_cli=("$task_dir"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
 chmod 755 "$bosh_cli"

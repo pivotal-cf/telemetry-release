@@ -29,6 +29,8 @@ apt-get -y install git jq
 TASK_DIR="$PWD"
 VERSION=$(cat version/version)
 
+export BOSH_ENVIRONMENT=10.0.0.5
+
 echo "Setting up BOSH CLI"
 BOSH_CLI=/usr/local/bin/bosh
 cp "$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64 "$BOSH_CLI"
