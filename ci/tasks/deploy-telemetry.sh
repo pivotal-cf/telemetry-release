@@ -59,6 +59,15 @@ fi
 
 echo "Running smith bosh -l testbed-lease/metadata:"
 smith bosh -l testbed-lease/metadata
+
+# Writing variables to temp file
+echo "Write vars to temp file"
+smith bosh -l testbed-lease/metadata > temp_env.sh
+
+# Sourcing Temp File
+echo "Source tempfile"
+source temp_env.sh
+
 eval $(smith bosh -l testbed-lease/metadata)
 
 echo "BOSH_ENVIRONMENT: $BOSH_ENVIRONMENT"
