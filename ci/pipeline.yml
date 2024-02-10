@@ -41,6 +41,13 @@ resources:
     owner: pivotal-cf
     repository: om
     access_token: ((github.pivotal-cf-access-token))
+- name: bbl-cli-github-release
+  type: github-release
+  source:
+    owner: cloudfoundry
+    repository: bosh-bootloader
+    release: true
+    access_token: ((github.pivotal-cf-access-token))
 - name: telemetry-receiver-app
   type: cf
   source:
@@ -135,6 +142,10 @@ jobs:
         params:
           globs:
           - bosh-cli-*-linux-amd64
+      - get: bbl-cli-github-release
+        params:
+          globs:
+          - bbl-*_linux_amd64
     - task: bump-ruby-package
       file: ci/ci/tasks/bump-ruby-package.yml
       params:
@@ -160,6 +171,10 @@ jobs:
         params:
           globs:
           - bosh-cli-*-linux-amd64
+      - get: bbl-cli-github-release
+        params:
+          globs:
+          - bbl-*_linux_amd64
     - task: update-release-package
       file: ci/ci/tasks/update-release-package.yml
       params:
@@ -223,6 +238,10 @@ jobs:
       resource: om-cli-github-release
       params:
         globs: ["*linux*"]
+    - get: bbl-cli-github-release
+      params:
+        globs:
+        - bbl-*_linux_amd64
   - task: create-release
     file: ci/ci/tasks/create-release.yml
   - put: testbed-lease
@@ -280,6 +299,10 @@ jobs:
       resource: om-cli-github-release
       params:
         globs: ["*linux*"]
+    - get: bbl-cli-github-release
+      params:
+        globs:
+        - bbl-*_linux_amd64
   - task: create-release
     file: ci/ci/tasks/create-release.yml
   - put: testbed-lease
@@ -337,6 +360,10 @@ jobs:
       resource: om-cli-github-release
       params:
         globs: ["*linux*"]
+    - get: bbl-cli-github-release
+      params:
+        globs:
+        - bbl-*_linux_amd64
     - get: testbed-lease
       passed: [deploy-telemetry-acceptance-audit]
   - task: test-acceptance-sends-to-centralizer
@@ -426,6 +453,10 @@ jobs:
       resource: om-cli-github-release
       params:
         globs: ["*linux*"]
+    - get: bbl-cli-github-release
+      params:
+        globs:
+        - bbl-*_linux_amd64
   - task: create-release
     file: ci/ci/tasks/create-release.yml
   - task: deploy-telemetry
@@ -470,6 +501,10 @@ jobs:
     - get: telemetry-release
       passed: [deploy-telemetry-staging]
     - get: ci
+    - get: bbl-cli-github-release
+      params:
+        globs:
+        - bbl-*_linux_amd64
   - task: create-final-release
     file: ci/ci/tasks/create-final-release.yml
     params:

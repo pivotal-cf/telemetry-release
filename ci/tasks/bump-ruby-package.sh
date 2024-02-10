@@ -11,6 +11,9 @@ BOSH_CLI=("$TASK_DIR"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
 chmod 755 "$BOSH_CLI"
 
 
+BBL_CLI=/usr/local/bin/bbl
+cp "$PWD"/bbl-cli-github-release/bbl-*_linux_amd64 "$BBL_CLI"
+chmod 755 "$BBL_CLI"
 
 apt-get update
 apt-get -y install git

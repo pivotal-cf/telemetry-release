@@ -12,6 +12,7 @@ inputs:
   - name: bosh-cli-github-release
   - name: pivotal-telemetry-collector
   - name: ci
+  - name: bbl-cli-github-release
 
 outputs:
   - name: telemetry-release

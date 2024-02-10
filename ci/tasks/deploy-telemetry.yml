@@ -19,6 +19,7 @@ inputs:
   optional: true
 - name: smith
 - name: om
+- name: bbl-cli-github-release
 
 run:
   path: ci/ci/tasks/deploy-telemetry.sh

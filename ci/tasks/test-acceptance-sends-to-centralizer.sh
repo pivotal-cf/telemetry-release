@@ -39,10 +39,15 @@ export om_cli="om/om-linux-amd64-$(cat om/version)"
 chmod 755 "$om_cli"
 cp "$om_cli" /usr/local/bin/om
 
-echo "Setting up Smith CLI"
+echo "Setting up SMITH CLI"
 SMITH_CLI=/usr/local/bin/smith
 cp "$PWD"/smith/smith_linux_amd64 "$SMITH_CLI"
 chmod 755 "$SMITH_CLI"
+
+echo "Setting up BBL CLI"
+BBL_CLI=/usr/local/bin/bbl
+cp "$PWD"/bbl-cli-github-release/bbl-*_linux_amd64 "$BBL_CLI"
+chmod 755 "$BBL_CLI"
 
 echo "Evaluating smith environment"
 if [[ -n $TOOLSMITHS_ENV_LOCKFILE ]]; then

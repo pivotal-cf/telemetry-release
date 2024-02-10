@@ -12,6 +12,7 @@ inputs:
   - name: bosh-cli-github-release
   - name: ruby-release
   - name: ci
+  - name: bosh-cli-github-release
 
 outputs:
   - name: telemetry-release

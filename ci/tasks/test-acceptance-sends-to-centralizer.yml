@@ -15,6 +15,7 @@ inputs:
   - name: smith
   - name: testbed-lease
   - name: om
+  - name: bbl-cli-github-release
 
 run:
   path: ci/ci/tasks/test-acceptance-sends-to-centralizer.sh

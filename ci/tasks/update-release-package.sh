@@ -6,6 +6,10 @@ task_dir="$PWD"
 bosh_cli=("$task_dir"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
 chmod 755 "$bosh_cli"
 
+BBL_CLI=/usr/local/bin/bbl
+cp "$PWD"/bbl-cli-github-release/bbl-*_linux_amd64 "$BBL_CLI"
+chmod 755 "$BBL_CLI"
+
 version=$(cat pivotal-telemetry-collector/version | cut -d '#' -f 1)
 
 apt-get update
