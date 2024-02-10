@@ -55,22 +55,22 @@ if [[ -n $TOOLSMITHS_ENV_LOCKFILE ]]; then
   echo "$TOOLSMITHS_ENV_LOCKFILE" > testbed-lease/metadata
 fi
 
-eval $("$SMITH_CLI" om -l testbed-lease/metadata)
-eval $("$SMITH_CLI" bosh -l testbed-lease/metadata)
+eval $(smith om -l testbed-lease/metadata)
+eval $(smith bosh -l testbed-lease/metadata)
 
-export NETWORK="$("$SMITH_CLI" read --lockfile=testbed-lease/metadata | jq -r .ert_subnet)"
-export AZ="$("$SMITH_CLI" read --lockfile=testbed-lease/metadata | jq -r .azs[0])"
+export NETWORK=$(smith read --lockfile=testbed-lease/metadata | jq -r .ert_subnet)
+export AZ=$(smith read --lockfile=testbed-lease/metadata | jq -r .azs[0])
 
 echo "Uploading stemcell..."
 
-retry 5 "$BOSH_CLI" upload-stemcell "$TASK_DIR/stemcell/stemcell.tgz"
+retry 5 bosh upload-stemcell "$TASK_DIR/stemcell/stemcell.tgz"
 
 echo "Uploading releases..."
-retry 5 "$BOSH_CLI" upload-release -n "$TASK_DIR/release-tarball/release.tgz"
-retry 5 "$BOSH_CLI" upload-release -n "$TASK_DIR/bpm-release/release.tgz"
+retry 5 bosh upload-release -n "$TASK_DIR/release-tarball/release.tgz"
+retry 5 bosh upload-release -n "$TASK_DIR/bpm-release/release.tgz"
 
 echo "Deploying telemetry centralizer"
-retry 5 "$BOSH_CLI" deploy -n -d "$CENTRALIZER_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
+retry 5 bosh deploy -n -d "$CENTRALIZER_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
     --var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
     --var audit_mode="$AUDIT_MODE" \
     --var loader_api_key="$LOADER_API_KEY" \
@@ -96,7 +96,7 @@ retry 5 "$BOSH_CLI" deploy -n -d "$CENTRALIZER_DEPLOYMENT_NAME" "$TASK_DIR/telem
     --var operational_data_only="$OPERATIONAL_DATA_ONLY"
 
 echo "Deploying telemetry agent"
-retry 5 "$BOSH_CLI" deploy -n -d "$AGENT_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/agent.yml" \
+retry 5 bosh deploy -n -d "$AGENT_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/agent.yml" \
     --var agent_deployment_name="$AGENT_DEPLOYMENT_NAME" \
     --var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
     --var network_name="$NETWORK" \

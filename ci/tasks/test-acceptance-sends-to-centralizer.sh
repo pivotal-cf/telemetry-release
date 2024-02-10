@@ -55,7 +55,7 @@ if [[ -n $TOOLSMITHS_ENV_LOCKFILE ]]; then
   echo "$TOOLSMITHS_ENV_LOCKFILE" > testbed-lease/metadata
 fi
 
-eval $("$SMITH_CLI" om -l testbed-lease/metadata)
-eval $("$SMITH_CLI" bosh -l testbed-lease/metadata)
+eval $(smith om -l testbed-lease/metadata)
+eval $(smith bosh -l testbed-lease/metadata)
 
 $PWD/ci/ci/tasks/run-acceptance-tests.sh

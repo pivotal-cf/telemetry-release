@@ -12,7 +12,7 @@ inputs:
   - name: bosh-cli-github-release
   - name: version
   - name: ci
-  - name: bosh-cli-github-release
+  - name: bbl-cli-github-release
 
 outputs:
   - name: telemetry-release
