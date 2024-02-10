@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euxo pipefail
 
 cd telemetry-release/src/acceptance_tests/telemetry_receiver
 

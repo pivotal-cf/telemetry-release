@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euxo pipefail
 
 TASK_DIR="$PWD"
 BOSH_CLI=("$TASK_DIR"/bosh-cli-github-release/bosh-cli-*-linux-amd64)

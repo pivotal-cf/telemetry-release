@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euxo pipefail
 
 # Since moving to the VMware network there have been frequent network failures
 # when connecting to pooled environments on GCP.

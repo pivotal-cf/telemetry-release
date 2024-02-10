@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euxo pipefail
 
 export BOSH_ENVIRONMENT=10.0.0.5
 

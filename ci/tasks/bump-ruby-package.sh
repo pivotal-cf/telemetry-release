@@ -4,7 +4,7 @@
 # ruby 3.1 release. For now, it only turns the
 # the pipeline red if there is a new release.
 
-set -euo pipefail
+set -euxo pipefail
 
 TASK_DIR="$PWD"
 BOSH_CLI=("$TASK_DIR"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
