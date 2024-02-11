@@ -57,6 +57,14 @@ if [[ -n $TOOLSMITHS_ENV_LOCKFILE ]]; then
   echo "$TOOLSMITHS_ENV_LOCKFILE" > testbed-lease/metadata
 fi
 
+# Writing variables to temp file
+echo "Write vars to temp file"
+smith bosh -l testbed-lease/metadata > temp_env.sh
+
+# Sourcing Temp File
+echo "Source tempfile"
+source temp_env.sh
+
 eval $(smith bosh -l testbed-lease/metadata)
 echo "BOSH_ENVIRONMENT: $BOSH_ENVIRONMENT"
 eval $(smith om -l testbed-lease/metadata)
