@@ -3,7 +3,7 @@ GEM
   specs:
     concurrent-ruby (1.2.3)
     cool.io (1.8.0)
-    diff-lcs (1.5.0)
+    diff-lcs (1.5.1)
     fluentd (1.16.3)
       bundler
       cool.io (>= 1.4.5, < 2.0.0)
@@ -19,28 +19,28 @@ GEM
     http_parser.rb (0.8.0)
     msgpack (1.7.2)
     power_assert (2.0.3)
-    rspec (3.12.0)
-      rspec-core (~> 3.12.0)
-      rspec-expectations (~> 3.12.0)
-      rspec-mocks (~> 3.12.0)
-    rspec-core (3.12.2)
-      rspec-support (~> 3.12.0)
-    rspec-expectations (3.12.3)
+    rspec (3.13.0)
+      rspec-core (~> 3.13.0)
+      rspec-expectations (~> 3.13.0)
+      rspec-mocks (~> 3.13.0)
+    rspec-core (3.13.0)
+      rspec-support (~> 3.13.0)
+    rspec-expectations (3.13.0)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.12.0)
-    rspec-mocks (3.12.6)
+      rspec-support (~> 3.13.0)
+    rspec-mocks (3.13.0)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.12.0)
-    rspec-support (3.12.1)
+      rspec-support (~> 3.13.0)
+    rspec-support (3.13.1)
     serverengine (2.3.2)
       sigdump (~> 0.2.2)
     sigdump (0.2.5)
     strptime (0.2.5)
-    test-unit (3.6.1)
+    test-unit (3.6.2)
       power_assert
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    tzinfo-data (1.2023.4)
+    tzinfo-data (1.2024.1)
       tzinfo (>= 1.0.0)
     webrick (1.8.1)
     yajl-ruby (1.4.3)
@@ -57,4 +57,4 @@ DEPENDENCIES
   test-unit
 
 BUNDLED WITH
-   2.4.22
+   2.5.6

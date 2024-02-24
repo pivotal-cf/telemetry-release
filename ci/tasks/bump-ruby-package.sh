@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This script can be used to update our bundled
-# ruby 3.1 release. For now, it only turns the
+# ruby 3.2 release. For now, it only turns the
 # the pipeline red if there is a new release.
 
 set -euxo pipefail
@@ -29,7 +29,7 @@ blobstore:
       $(echo $GCS_SERVICE_ACCOUNT_KEY)
 EOM
 
-  "$BOSH_CLI" vendor-package ruby-3.1 "$TASK_DIR/ruby-release"
+  "$BOSH_CLI" vendor-package ruby-3.2 "$TASK_DIR/ruby-release"
 
   if [ -z "$(git status --porcelain)" ]; then
     echo "No new version of ruby-release"
@@ -38,11 +38,11 @@ EOM
 
   git add .
 
-  package_version=$(cat "$TASK_DIR/ruby-release/packages/ruby-3.1/version")
+  package_version=$(cat "$TASK_DIR/ruby-release/packages/ruby-3.2/version")
   git config --global user.name ${GITHUB_NAME}
   git config --global user.email ${GITHUB_EMAIL}
-  git commit -m "Update ruby-3.1 package to ${package_version} from ruby-release"
+  git commit -m "Update ruby-3.2 package to ${package_version} from ruby-release"
 
-  echo "Updated ruby-3.1 package to ${package_version} from ruby-release"
+  echo "Updated ruby-3.2 package to ${package_version} from ruby-release"
   exit 0
 popd

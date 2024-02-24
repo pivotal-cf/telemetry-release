@@ -23,7 +23,7 @@ GEM
     strptime (0.2.5)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    tzinfo-data (1.2023.4)
+    tzinfo-data (1.2024.1)
       tzinfo (>= 1.0.0)
     webrick (1.8.1)
     yajl-ruby (1.4.3)
@@ -38,4 +38,4 @@ DEPENDENCIES
   fluentd
 
 BUNDLED WITH
-   2.4.22
+   2.5.6

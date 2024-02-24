@@ -5,7 +5,7 @@ set -euo pipefail
 mkdir -p ${BOSH_INSTALL_TARGET}/{bin,gem_home}
 cd fluentd
 
-source /var/vcap/packages/ruby-3.1/bosh/compile.env
+source /var/vcap/packages/ruby-3.2/bosh/compile.env
 
 cp -R Gemfile Gemfile.lock vendor "${BOSH_INSTALL_TARGET}"
 
