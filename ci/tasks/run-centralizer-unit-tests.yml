@@ -5,7 +5,7 @@ image_resource:
   type: registry-image
   source:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ruby
-    tag: 3.2.2
+    tag: 3.2.3
 
 inputs:
   - name: telemetry-receiver-source
