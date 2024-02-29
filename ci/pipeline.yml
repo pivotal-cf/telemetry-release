@@ -409,6 +409,10 @@ jobs:
       resource: om-cli-github-release
       params:
         globs: ["*linux*"]
+    - get: bbl-cli-github-release
+      params:
+        globs:
+        - bbl-*_linux_amd64
     - get: testbed-lease
       passed: [deploy-telemetry-acceptance]
   - task: test-acceptance-sends-to-centralizer
