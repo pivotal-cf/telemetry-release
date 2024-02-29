@@ -30,7 +30,6 @@ GEM
 
 PLATFORMS
   ruby
-  x86_64-darwin-21
   x86_64-darwin-22
   x86_64-linux
 
@@ -38,4 +37,4 @@ DEPENDENCIES
   fluentd
 
 BUNDLED WITH
-   2.5.6
+   2.4.22
