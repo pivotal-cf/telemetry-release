@@ -2,6 +2,7 @@
 name: telemetry-agent
 
 templates:
+  pre-start.erb: bin/pre-start
   bpm.yml.erb: config/bpm.yml
   config.erb: config/fluent.cnf
   ca_cert.pem.erb: config/ca_cert.pem
