@@ -1,6 +1,8 @@
 builds:
   0037580c-7919-43c7-4271-2158ab6204f3:
     version: 0.13.4-jammy
+  02baf1b0-e71d-496a-503f-4627c9d8b5df:
+    version: 0.13.9
   07e26d36-cfa8-4c3b-4b28-173d01f80d36:
     version: 0.13.4-xenial
   08acf386-79ff-4feb-5275-f188008250c7:
