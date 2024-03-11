@@ -13,7 +13,6 @@ provides:
   type: address
 
 templates:
-  pre-start.erb: bin/pre-start
   bpm.yml.erb: config/bpm.yml
   telemetry_centralizer.erb: bin/telemetry_centralizer
   config.erb: config/fluent.cnf

@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-if chown -R vcap:vcap /var/vcap/sys/log; then
-  echo "telemetry-centralizer ownership change successful"
-else
-  echo "telemetry-centralizer ownership change failed with exit status $?."
-fi
