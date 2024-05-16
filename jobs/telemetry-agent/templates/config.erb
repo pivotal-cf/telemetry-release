@@ -13,14 +13,15 @@
     # =========
     # Set the verbosity level of the service, values can be:
     #
+    # - off
     # - error
-    # - warning
+    # - warn
     # - info
     # - debug
     # - trace
     #
     # By default 'info' is set, that means it includes 'error' and 'warning'.
-    Log_Level    info
+    Log_Level    off
 
     # HTTP Server
     # ===========
@@ -34,6 +35,7 @@
     Path /var/vcap/sys/log/**/*
     Exclude_Path  /var/vcap/sys/log/telemetry-agent/*
     DB /var/vcap/data/telemetry-agent/db-state/tail-input-state.db
+    Read_from_Head true
 
 [FILTER]
     Name   grep
