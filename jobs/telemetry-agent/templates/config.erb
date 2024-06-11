@@ -21,7 +21,7 @@
     # - trace
     #
     # By default 'info' is set, that means it includes 'error' and 'warning'.
-    Log_Level    off
+    Log_Level    info
 
     # HTTP Server
     # ===========
@@ -36,6 +36,11 @@
     Exclude_Path  /var/vcap/sys/log/telemetry-agent/*
     DB /var/vcap/data/telemetry-agent/db-state/tail-input-state.db
     Read_from_Head true
+
+[FILTER]
+    Name    grep
+    Match   *
+    Exclude /.*error.*/
 
 [FILTER]
     Name   grep
