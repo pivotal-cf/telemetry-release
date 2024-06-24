@@ -2,19 +2,28 @@ resource_types:
 - name: bbl-state-resource
   type: docker-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfinfrastructure/bbl-state-resource
+    repository: tpi-docker-virtual.usw1.packages.broadcom.com/cfinfrastructure/bbl-state-resource
+    username: ((jfrog-artifactory.jfrog-username))
+    password: ((jfrog-artifactory.jfrog-password))
 - name: bosh-deployment
   type: docker-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cloudfoundry/bosh-deployment-resource
+    repository: tpi-docker-virtual.usw1.packages.broadcom.com/cloudfoundry/bosh-deployment-resource
+    username: ((jfrog-artifactory.jfrog-username))
+    password: ((jfrog-artifactory.jfrog-password))
 - name: pivnet
   type: registry-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pivotalcf/pivnet-resource
+    repository: tpi-docker-virtual.usw1.packages.broadcom.com/pivotalcf/pivnet-resource
     tag: latest-final
+    username: ((jfrog-artifactory.jfrog-username))
+    password: ((jfrog-artifactory.jfrog-password))
 - name: github-release
   type: registry-image
-  source: {repository: harbor-repo.vmware.com/dockerhub-proxy-cache/concourse/github-release-resource}
+  source:
+    repository: tpi-docker-virtual.usw1.packages.broadcom.com/concourse/github-release-resource
+    username: ((jfrog-artifactory.jfrog-username))
+    password: ((jfrog-artifactory.jfrog-password))
 - name: shepherd
   type: registry-image
   source:
