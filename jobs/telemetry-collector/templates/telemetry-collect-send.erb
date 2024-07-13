@@ -9,12 +9,7 @@ COLLECTOR_BIN=/var/vcap/packages/telemetry-collector/telemetry-collector-linux
 # Update value usage function
 create_or_update_options() {
     local file_path=$1
-
-    local multi_select_key="data-collection-multi-select-options:"
-    local target_key="operational-data-only:"
-
-    local operational_data_multiselect='["operational_data"]'
-    local ceip_data_multiselect='["ceip_data"]'
+    local op_data_key="operational-data-only:"
 
     local strings_to_remove=(
       "cf-api-url"
@@ -25,43 +20,62 @@ create_or_update_options() {
       "usage-service-timeout"
     )
 
-    if ! grep -q "$multi_select_key" "$file_path"; then
-        # Exits without making any changes
+    # We only need to process the file if the
+    # data-collection-multi-select-options property
+    # exists. If it doesn't, that indicates that the
+    # tile that set these properties is from the 1.x
+    # line and didn't allow users to choose operational_data
+    # without ceip_data.
+    if ! grep -q "data-collection-multi-select-options:" "$file_path"; then
         return
     fi
 
-    local multiselect_value=$(grep "$multi_select_key" "$file_path" | awk '{$1=""; print $0}' | tr -d ' ')
+    local multiselect_value=$(grep "data-collection-multi-select-options:" "$file_path" | awk '{$1=""; print $0}' | tr -d ' ')
 
-    if [ "$multiselect_value" == "$ceip_data_multiselect" ]; then
+    # If only ceip is selected, remove the usage service variables
+    if [ "$multiselect_value" == '["ceip_data"]' ]; then
         for string in "${strings_to_remove[@]}"; do
             sed -i.bak "/$string/d" "$file_path"
         done
     fi
 
-    if ! grep -q "$target_key" "$file_path"; then
-        if [ "$multiselect_value" == "$operational_data_multiselect" ]; then
-          echo "${target_key} true" >> "$file_path"
-        else
-          echo "${target_key} false" >> "$file_path"
-        fi
-    else
-        if [ "$multiselect_value" == "$operational_data_multiselect" ]; then
-            sed -i.bak "/$target_key/{s/false/true/;}" "$file_path"
-        else
-            sed -i.bak "/$target_key/{s/true/false/;}" "$file_path"
-        fi
+    # If tas-installed-selector == 'Disabled', remove the usage service variables
+    local tas_installed_value=$(grep "tas-installed-selector:" "$file_path" | awk '{$1=""; print $0}' | tr -d ' ')
+
+    if [ "$tas_installed_value" == 'Disabled' ]; then
+        for string in "${strings_to_remove[@]}"; do
+            sed -i.bak "/$string/d" "$file_path"
+        done
     fi
 
-    local strings_exist=0
-    for string in "${strings_to_remove[@]}"; do
-        if grep -q "$string" "$file_path"; then
-            strings_exist=1
-            break
+    # Append `https://app-usage.` to usage-service-url if it
+    # has a value and doesn't already start with `http`.
+    local usage_service_value=$(grep "usage-service-url:" "$file_path" | awk -F': ' '{print $2}' | tr -d ' ')
+    if [[ -n "$usage_service_value" && ! "$usage_service_value" =~ ^http ]]; then
+        local updated_value="https://app-usage.$usage_service_value"
+
+        sed -i.bak "s~usage-service-url: $usage_service_value~usage-service-url: $updated_value~" "$file_path"
+    fi
+
+
+    # Set correct value for operational-data-only (either true or false).
+    # Create this property if it doesn't already exist.
+    if ! grep -q "$op_data_key" "$file_path"; then
+        if [ "$multiselect_value" == '["operational_data"]' ]; then
+          echo "${op_data_key} true" >> "$file_path"
+        else
+          echo "${op_data_key} false" >> "$file_path"
         fi
-    done
+    else
+        if [ "$multiselect_value" == '["operational_data"]' ]; then
+            sed -i.bak "/$op_data_key/{s/false/true/;}" "$file_path"
+        else
+            sed -i.bak "/$op_data_key/{s/true/false/;}" "$file_path"
+        fi
+    fi
 }
 
-# Paths (absolute!)
+# Config paths
 pre_start_config="/var/vcap/jobs/telemetry-collector/config/pre-start-collect.yml"
 config="/var/vcap/jobs/telemetry-collector/config/collect.yml"
 
