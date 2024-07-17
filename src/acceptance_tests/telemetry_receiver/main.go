@@ -49,6 +49,7 @@ func main() {
 	http.HandleFunc("/received_messages", readMessagesForUser(messages))
 	http.HandleFunc("/received_batch_messages", readMessagesForUser(batchMessages))
 	http.HandleFunc("/clear_messages", clearMessages)
+	http.HandleFunc("/up", upHandler)
 
 	err := http.ListenAndServe(bindAddr, nil)
 	if err != nil {
@@ -127,6 +128,40 @@ func clearMessages(w http.ResponseWriter, r *http.Request) {
 	}
 	delete(messages, userID)
 	delete(batchMessages, userID)
+}
+
+type UpResponse struct {
+	Status    string `json:"status"`
+	AppName   string `json:"app_name"`
+	OrgName   string `json:"org_name"`
+	SpaceName string `json:"space_name"`
+}
+
+func upHandler(w http.ResponseWriter, r *http.Request) {
+	vcapApplication := os.Getenv("VCAP_APPLICATION")
+	var appInfo map[string]interface{}
+	if vcapApplication != "" {
+		_ = json.Unmarshal([]byte(vcapApplication), &appInfo)
+	}
+
+	response := UpResponse{
+		Status:    "200",
+		AppName:   getString(appInfo, "application_name", "local"),
+		OrgName:   getString(appInfo, "organization_name", "local"),
+		SpaceName: getString(appInfo, "space_name", "local"),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(response)
+}
+
+func getString(data map[string]interface{}, key, defaultValue string) string {
+	if value, exists := data[key]; exists {
+		if strValue, ok := value.(string); ok {
+			return strValue
+		}
+	}
+	return defaultValue
 }
 
 func authenticated(h http.Header, validUserApiKeys map[string][]string) (string, bool) {
