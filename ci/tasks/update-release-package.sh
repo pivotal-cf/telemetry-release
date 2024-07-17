@@ -12,10 +12,10 @@ BBL_CLI=/usr/local/bin/bbl
 cp "$PWD"/bbl-cli-github-release/bbl-*_linux_amd64 "$BBL_CLI"
 chmod 755 "$BBL_CLI"
 
-version=$(git -C "$PWD"/aqueduct-courier-source-code tag --sort=-v:refname | head -n 1)
-
 apt-get update
 apt-get -y install git
+
+version=$(git -C "$PWD"/aqueduct-courier-source-code tag --sort=-v:refname | head -n 1)
 
 pushd telemetry-release
   cat > config/private.yml <<EOM
