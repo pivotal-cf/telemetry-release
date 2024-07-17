@@ -12,7 +12,7 @@ BBL_CLI=/usr/local/bin/bbl
 cp "$PWD"/bbl-cli-github-release/bbl-*_linux_amd64 "$BBL_CLI"
 chmod 755 "$BBL_CLI"
 
-version=$(cat pivotal-telemetry-collector/version | cut -d '#' -f 1)
+version=$(git -C "$PWD"/aqueduct-courier-source-code tag --sort=-v:refname | head -n 1)
 
 apt-get update
 apt-get -y install git
@@ -37,7 +37,7 @@ EOM
   set -e
 
   old_blob=$("$bosh_cli" blobs | grep telemetry-collector | awk '{print $1}')
-  new_blob_path="$task_dir"/pivotal-telemetry-collector/telemetry-collector-linux-amd64
+  new_blob_path="$task_dir"/binary/telemetry-collector-linux-amd64
   new_blob="telemetry-collector/telemetry-collector-linux-$version"
 
   "$bosh_cli" remove-blob "$old_blob"

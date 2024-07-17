@@ -12,7 +12,8 @@ image_resource:
 inputs:
   - name: telemetry-release
   - name: bosh-cli-github-release
-  - name: pivotal-telemetry-collector
+  - name: aqueduct-courier-source-code
+  - name: binary
   - name: ci
   - name: bbl-cli-github-release
 

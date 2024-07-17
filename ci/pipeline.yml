@@ -31,6 +31,18 @@ resource_types:
     tag: v1
 
 resources:
+- name: aqueduct-courier-source-code
+  type: git
+  source:
+    branch: main
+    uri: git@github.com:pivotal-cf/aqueduct-courier
+    private_key: ((github.courier-git-deploy-private-key))
+- name: aqueduct-courier-production-linux-binary
+  type: gcs-resource
+  source:
+    bucket: ((aqueduct-courier-repo.courier-production-builds-bucket))
+    json_key: ((service-accounts/gcp.ci-759-gcp-service-account-key))
+    versioned_file: telemetry-collector-linux-amd64
 - name: bosh-cli-github-release
   type: github-release
   source:
@@ -120,13 +132,6 @@ resources:
         name: tas-6_0
     compatibility-mode: environments-app
 
-- name: pivotal-telemetry-collector
-  type: pivnet
-  source:
-    api_token: ((pivnet.refresh-token))
-    product_slug: pivotal-telemetry-collector
-    copy_metadata: true
-    product_version: '1.3.*'
 - name: ruby-release
   type: git
   source:
@@ -171,11 +176,8 @@ jobs:
     - in_parallel:
       - get: telemetry-release
       - get: ci
-      - get: pivotal-telemetry-collector
-        trigger: true
-        params:
-          unpack: true
-          globs: ["*.tgz"]
+      - get: aqueduct-courier-source-code
+      - get: aqueduct-courier-production-linux-binary
       - get: bosh-cli-github-release
         params:
           globs:
@@ -185,6 +187,8 @@ jobs:
           globs:
           - bbl-*_linux_amd64
     - task: update-release-package
+      input_mapping:
+        binary: aqueduct-courier-production-linux-binary
       file: ci/ci/tasks/update-release-package.yml
       params:
         GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.ci-gcs-service-account-key))
