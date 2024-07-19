@@ -9,6 +9,7 @@ describe 'Agent to centralizer communication' do
     uri = URI(ENV["LOADER_URL"])
     client = Net::HTTP.new(uri.hostname, uri.port)
     client.use_ssl = true
+    client.verify_mode = OpenSSL::SSL::VERIFY_NONE
     client
   }
 
