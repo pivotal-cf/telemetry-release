@@ -76,14 +76,14 @@ resources:
     repository: bosh-bootloader
     release: true
     access_token: ((github.pivotal-cf-access-token))
-- name: telemetry-receiver-app
-  type: cf
-  source:
-    api: ((service-accounts/pcf1-deploy.api-url))
-    username: ((service-accounts/pcf1-deploy.username))
-    password: ((service-accounts/pcf1-deploy.password))
-    organization: ((service-accounts/pcf1-deploy.org))
-    space: stage
+# - name: telemetry-receiver-app
+#   type: cf
+#   source:
+#     api: ((service-accounts/pcf1-deploy.api-url))
+#     username: ((service-accounts/pcf1-deploy.username))
+#     password: ((service-accounts/pcf1-deploy.password))
+#     organization: ((service-accounts/pcf1-deploy.org))
+#     space: stage
 - name: stemcell
   type: bosh-io-stemcell
   source:
@@ -206,22 +206,22 @@ jobs:
         repository: telemetry-release
         rebase: true
 
-- name: deploy-telemetry-receiver-app
-  serial_groups: [telemetry-receiver, telemetry-receiver-audit]
-  plan:
-  - in_parallel:
-    - get: telemetry-release
-      resource: telemetry-receiver-source
-      trigger: true
-    - get: ci
-  - task: test-telemetry-receiver
-    file: ci/ci/tasks/run-telemetry-receiver-tests.yml
-  - put: telemetry-receiver-app
-    params:
-      manifest: telemetry-release/src/acceptance_tests/telemetry_receiver/manifest.yml
-      environment_variables:
-        VALID_API_KEYS: ((telemetry-release-repo.acceptance-loader-api-keys))
-        MESSAGE_LIMIT: "50"
+# - name: deploy-telemetry-receiver-app
+#   serial_groups: [telemetry-receiver, telemetry-receiver-audit]
+#   plan:
+#   - in_parallel:
+#     - get: telemetry-release
+#       resource: telemetry-receiver-source
+#       trigger: true
+#     - get: ci
+#   - task: test-telemetry-receiver
+#     file: ci/ci/tasks/run-telemetry-receiver-tests.yml
+#   - put: telemetry-receiver-app
+#     params:
+#       manifest: telemetry-release/src/acceptance_tests/telemetry_receiver/manifest.yml
+#       environment_variables:
+#         VALID_API_KEYS: ((telemetry-release-repo.acceptance-loader-api-keys))
+#         MESSAGE_LIMIT: "50"
 
 - name: run-centralizer-unit-tests
   serial_groups: [version]
