@@ -38,7 +38,8 @@ instance_groups:
       telemetry:
         endpoint: "((loader_endpoint))/components"
         api_key: ((loader_api_key))
-        data_collection_multi_select_options: ((data_collection_multi_select_options))
+        tas_installed_selector: 'Enabled'
+        data_collection_multi_select_options: '["ceip_data"]'
         operational_data_only: ((operational_data_only))
         env_type: ((env_type))
         foundation_nickname: ((foundation_nickname))
@@ -56,6 +57,8 @@ instance_groups:
     properties:
       audit_mode: ((audit_mode))
       telemetry:
+        tas_installed_selector: 'Enabled'
+        data_collection_multi_select_options: '["ceip_data"]'
         env_type: ((env_type))
         foundation_nickname: ((foundation_nickname))
         api_key: ((loader_api_key))
