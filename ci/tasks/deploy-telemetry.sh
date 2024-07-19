@@ -24,7 +24,12 @@ function retry {
   return 0
 }
 apt-get update
-apt-get -y install git jq
+apt-get -y install git jq ca-certificates
+
+# Trust telemetry-acceptance-loader cert
+echo -n | openssl s_client -showcerts -connect telemetry-acceptance-loader.apps.titan.tanzu.broadcom.com:443 -servername telemetry-acceptance-loader.apps.titan.tanzu.broadcom.com | openssl x509 > telemetry-acceptance-loader.crt
+cp telemetry-acceptance-loader.crt /usr/local/share/ca-certificates/telemetry-acceptance-loader.crt
+update-ca-certificates
 
 TASK_DIR="$PWD"
 VERSION=$(cat version/version)
