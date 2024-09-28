@@ -105,6 +105,8 @@ builds:
     version: 0.13.7-xenial
   ddea02b7-9b2a-44c8-6f39-933902e3155c:
     version: 0.0.9
+  df559c43-05ea-4aa5-49be-73c6e6e4dfbf:
+    version: 0.14.0
   e241822d-4a5e-491f-7980-2fc181773de4:
     version: 0.0.37
   e42fe2a1-4f1f-4df8-411f-1c7cb98ca667:
