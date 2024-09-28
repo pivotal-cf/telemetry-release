@@ -42,7 +42,7 @@ resources:
   type: git
   source:
     branch: main
-    uri: git@github.com:pivotal-cf/aqueduct-courier
+    uri: git@github.gwd.broadcom.net:TNZ/tpi-aqueduct-courier
     private_key: ((github.courier-git-deploy-private-key))
 - name: aqueduct-courier-production-linux-binary
   type: gcs-resource
