@@ -50,13 +50,13 @@ GEM
       concurrent-ruby (~> 1.0)
     tzinfo-data (1.2024.2)
       tzinfo (>= 1.0.0)
-    webrick (1.8.1)
+    webrick (1.8.2)
     yajl-ruby (1.4.3)
 
 PLATFORMS
   ruby
-  x86_64-linux
   x86_64-darwin-23
+  x86_64-linux
 
 DEPENDENCIES
   fluentd
