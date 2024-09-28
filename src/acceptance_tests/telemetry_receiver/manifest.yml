@@ -1,8 +1,10 @@
 ---
 applications:
   - name: telemetry-acceptance-loader
+    memory: 512M
     path: .
     buildpacks:
-    - https://github.com/cloudfoundry/go-buildpack.git#develop
+    - https://github.com/cloudfoundry/go-buildpack.git#master
     env:
-      GOVERSION: go1.21
+      GOVERSION: go1.23
+      MESSAGE_LIMIT: "50"
