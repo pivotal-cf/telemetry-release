@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# This script can be used to update our bundled
-# ruby 3.2 release. For now, it only turns the
-# the pipeline red if there is a new release.
+# This script is used to update our bundled
+# ruby 3.2 release.
 
 set -euxo pipefail
 
