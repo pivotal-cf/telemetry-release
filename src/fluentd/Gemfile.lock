@@ -3,7 +3,7 @@ GEM
   specs:
     base64 (0.2.0)
     concurrent-ruby (1.3.4)
-    cool.io (1.8.1)
+    cool.io (1.9.0)
     csv (3.3.0)
     drb (2.2.1)
     fluentd (1.17.1)
@@ -24,8 +24,10 @@ GEM
       yajl-ruby (~> 1.0)
     http_parser.rb (0.8.0)
     logger (1.6.1)
-    msgpack (1.7.2)
-    serverengine (2.3.2)
+    msgpack (1.7.5)
+    serverengine (2.4.0)
+      base64 (~> 0.1)
+      logger (~> 1.4)
       sigdump (~> 0.2.2)
     sigdump (0.2.5)
     strptime (0.2.5)
@@ -33,12 +35,12 @@ GEM
       concurrent-ruby (~> 1.0)
     tzinfo-data (1.2024.2)
       tzinfo (>= 1.0.0)
-    webrick (1.8.2)
+    webrick (1.9.0)
     yajl-ruby (1.4.3)
 
 PLATFORMS
   ruby
-  x86_64-darwin-23
+  x86_64-darwin-24
   x86_64-linux
 
 DEPENDENCIES
