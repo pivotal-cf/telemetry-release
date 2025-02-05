@@ -31,6 +31,12 @@ resource_types:
     repository: tpi-docker-virtual.usw1.packages.broadcom.com/concourse/github-release-resource
     username: ((jfrog-artifactory.jfrog-username))
     password: ((jfrog-artifactory.jfrog-password))
+- name: bosh-io-stemcell
+  type: docker-image
+  source:
+    repository: tpi-docker-virtual.usw1.packages.broadcom.com/concourse/bosh-io-stemcell-resource
+    username: ((jfrog-artifactory.jfrog-username))
+    password: ((jfrog-artifactory.jfrog-password))
 - name: shepherd
   type: registry-image
   source:
