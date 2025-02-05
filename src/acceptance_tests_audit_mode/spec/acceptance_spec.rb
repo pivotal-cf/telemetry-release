@@ -14,17 +14,21 @@ describe 'Agent to centralizer communication' do
   }
 
   def insert_telemetry_msg_log(message)
+    # telemetry-agent-acceptance-audit
+    # telemetry-agent
     `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh #{ENV["AGENT_BOSH_INSTANCE"]} -c 'echo '"'"'#{message}'"'"' | sudo tee -a /var/vcap/sys/log/bpm/telemetry-messages.stdout.log'`
     expect($?).to(be_success)
   end
 
   def get_centralizer_logs
+    # telemetry-centralizer-acceptance-audit
     logs = `#{ENV["BOSH_CLI"]} -d #{ENV["CENTRALIZER_BOSH_DEPLOYMENT"]} ssh telemetry-centralizer -c 'sudo grep my-origin /var/vcap/sys/log/telemetry-centralizer/telemetry-centralizer.stdout.log | tail -20'`
     expect($?).to(be_success)
     return logs.split("\n")
   end
 
   def get_centralizer_audit_logs
+    # telemetry-centralizer-acceptance-audit
     logs = `#{ENV["BOSH_CLI"]} -d #{ENV["CENTRALIZER_BOSH_DEPLOYMENT"]} ssh telemetry-centralizer -c 'sudo grep my-origin /var/vcap/sys/log/telemetry-centralizer/audit.log | tail -20'`
     expect($?).to(be_success)
     logs.split("\n").collect do |log|
@@ -38,6 +42,7 @@ describe 'Agent to centralizer communication' do
   end
 
   def get_agent_logs
+    # messages get sent here
     logs = `#{ENV["BOSH_CLI"]} -d #{ENV["AGENT_BOSH_DEPLOYMENT"]} ssh #{ENV["AGENT_BOSH_INSTANCE"]} -c 'sudo grep my-origin /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log | tail -20'`
     expect($?).to(be_success)
     return logs.split("\n")
