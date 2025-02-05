@@ -87,7 +87,7 @@ resources:
 - name: stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-google-kvm-ubuntu-jammy-go_agent
+    name: bosh-warden-boshlite-ubuntu-jammy-go_agent
 - name: bpm-release
   type: bosh-io-release
   source:
@@ -460,14 +460,11 @@ jobs:
     - get: stemcell
     - get: bpm-release
     - get: version
-      passed: [run-centralizer-unit-tests]
     - get: bosh-cli-github-release
       params:
         globs:
         - bosh-cli-*-linux-amd64
     - get: telemetry-release
-      passed: [update-telemetry-collector]
-      trigger: true
     - get: ci
     - get: smith
       resource: smith-cli-github-release
