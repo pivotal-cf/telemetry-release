@@ -21,7 +21,7 @@ instance_groups:
   vm_type: default
   stemcell: default
   networks:
-    - name: default
+    - name: network
   azs: [z1]
   instances: 1
   jobs:
