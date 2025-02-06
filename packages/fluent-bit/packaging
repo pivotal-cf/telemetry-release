@@ -4,7 +4,8 @@ tar xzf fluent-bit/fluent-bit-*
 pushd fluent-bit-*
   cd build/
   cmake .. \
-    -DCMAKE_INSTALL_PREFIX=${BOSH_INSTALL_TARGET}
+    -DCMAKE_INSTALL_PREFIX=${BOSH_INSTALL_TARGET} \
+    -DFLB_CONFIG_YAML=Off
 
   make
   make install
