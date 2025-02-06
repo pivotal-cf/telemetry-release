@@ -18,11 +18,11 @@ update:
 
 instance_groups:
   - name: telemetry-agent
-    vm_type: default
+    vm_type: e2-micro
     stemcell: default
     networks:
-      - name: default
-    azs: [z1]
+      - name: ((network_name))
+    azs: [((az))]
     instances: 1
     jobs:
       - name: bpm

@@ -93,7 +93,7 @@ resources:
 - name: stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-warden-boshlite-ubuntu-jammy-go_agent
+    name: bosh-google-kvm-ubuntu-jammy-go_agent
 - name: bpm-release
   type: bosh-io-release
   source:

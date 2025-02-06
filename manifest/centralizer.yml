@@ -18,12 +18,13 @@ update:
 
 instance_groups:
 - name: telemetry-centralizer
-  vm_type: default
+  vm_type: e2-micro
   stemcell: default
   networks:
-    - name: network
-  azs: ["null"]
+    - name: ((network_name))
+  azs: [((az))]
   instances: 1
+  vm_extensions: ["public_ip"]
   jobs:
   - name: bpm
     release: bpm
