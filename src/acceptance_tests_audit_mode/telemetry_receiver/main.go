@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -195,18 +193,18 @@ func validateEnvConfigured() error {
 	for _, e := range requiredEnvVars {
 		value := os.Getenv(e)
 		if value == "" {
-			return errors.Errorf(RequiredEnvVarNotSetErrorFormat, e)
+			return fmt.Errorf(RequiredEnvVarNotSetErrorFormat, e)
 		}
 	}
 
 	err := json.Unmarshal([]byte(os.Getenv(ApiKeysEnvVar)), &userApiKeys)
 	if err != nil {
-		return errors.Wrapf(err, FailedUnmarshalErrorFormat, ApiKeysEnvVar)
+		return fmt.Errorf(FailedUnmarshalErrorFormat+": %w", ApiKeysEnvVar, err)
 	}
 
 	messageLimit, err = strconv.Atoi(os.Getenv(MessageLimitEnvVar))
 	if err != nil {
-		return errors.Wrap(err, InvalidMessageLimitError)
+		return fmt.Errorf(InvalidMessageLimitError+": %w", err)
 	}
 
 	return nil
@@ -237,7 +235,7 @@ func readTarBatch(contents []byte, contentEncoding string) ([]map[string]interfa
 	if contentEncoding == "gzip" {
 		gzipReader, err := gzip.NewReader(bytesReader)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to read gzip contents")
+			return nil, fmt.Errorf("failed to read gzip contents: %w", err)
 		}
 		tarReader = tar.NewReader(gzipReader)
 	} else {
@@ -251,7 +249,7 @@ func readTarBatch(contents []byte, contentEncoding string) ([]map[string]interfa
 			break
 		}
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to read header")
+			return nil, fmt.Errorf("failed to read header: %w", err)
 		}
 
 		if hdr.Typeflag == tar.TypeReg {
@@ -263,7 +261,7 @@ func readTarBatch(contents []byte, contentEncoding string) ([]map[string]interfa
 
 				err := json.NewDecoder(tarReader).Decode(&metadata)
 				if err != nil {
-					return nil, errors.Wrapf(err, "failed to read file contents %s", hdr.Name)
+					return nil, fmt.Errorf("failed to read file contents %s: %w", hdr.Name, err)
 				}
 
 				messagesInTar = append(messagesInTar, map[string]interface{}{
