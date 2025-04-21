@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -eu
 
+<% if p('enabled') == false %>
+  rm -f /etc/cron.d/telemetry-collector-cron
+  echo "The telemetry-collector is not enabled.  Exiting"
+  exit 0
+<% end %>
+
+
 set +e
 chown -R vcap:vcap /var/vcap/sys/log
 /var/vcap/jobs/telemetry-collector/bin/telemetry-collect-send /var/vcap/jobs/telemetry-collector/config/pre-start-collect.yml
