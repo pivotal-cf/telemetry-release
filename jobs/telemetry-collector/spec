@@ -13,6 +13,9 @@ packages:
   - telemetry-collector
 
 properties:
+  enabled:
+    description: If enabled, this process will run as a cron job
+    default: true
   schedule:
     description: Schedule in cron format to run collect and send of telemetry data
     default: "random"
