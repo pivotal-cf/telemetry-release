@@ -54,7 +54,7 @@ resources:
   type: gcs-resource
   source:
     bucket: ((aqueduct-courier-repo.courier-production-builds-bucket))
-    json_key: ((service-accounts/gcp.ci-759-gcp-service-account-key))
+    json_key: ((service-accounts/gcp.unified-service-account))
     versioned_file: telemetry-collector-linux-amd64
 - name: bosh-cli-github-release
   type: github-release
@@ -176,7 +176,7 @@ jobs:
     - task: bump-ruby-package
       file: ci/ci/tasks/bump-ruby-package.yml
       params:
-        GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.ci-gcs-service-account-key))
+        GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.unified-service-account))
         GITHUB_NAME: ((telemetry-release-repo.github-name))
         GITHUB_EMAIL: ((telemetry-release-repo.github-email))
     - put: telemetry-release
@@ -204,7 +204,7 @@ jobs:
         binary: aqueduct-courier-production-linux-binary
       file: ci/ci/tasks/update-release-package.yml
       params:
-        GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.ci-gcs-service-account-key))
+        GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.unified-service-account))
         GITHUB_NAME: ((telemetry-release-repo.github-name))
         GITHUB_EMAIL: ((telemetry-release-repo.github-email))
     - put: telemetry-release
@@ -535,7 +535,7 @@ jobs:
   - task: create-final-release
     file: ci/ci/tasks/create-final-release.yml
     params:
-      GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.ci-gcs-service-account-key))
+      GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.unified-service-account))
       GITHUB_NAME: ((telemetry-release-repo.github-name))
       GITHUB_EMAIL: ((telemetry-release-repo.github-email))
   - put: telemetry-release
