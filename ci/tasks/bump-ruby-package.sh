@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This script is used to update our bundled
-# ruby 3.2 release.
+# ruby 3.4 release.
 
 set -euxo pipefail
 
@@ -28,7 +28,7 @@ blobstore:
       $(echo $GCS_SERVICE_ACCOUNT_KEY)
 EOM
 
-  "$BOSH_CLI" vendor-package ruby-3.2 "$TASK_DIR/ruby-release"
+  "$BOSH_CLI" vendor-package ruby-3.4 "$TASK_DIR/ruby-release"
 
   if [ -z "$(git status --porcelain)" ]; then
     echo "No new version of ruby-release"
@@ -37,11 +37,11 @@ EOM
 
   git add .
 
-  package_version=$(cat "$TASK_DIR/ruby-release/packages/ruby-3.2/version")
+  package_version=$(cat "$TASK_DIR/ruby-release/packages/ruby-3.4/version")
   git config --global user.name ${GITHUB_NAME}
   git config --global user.email ${GITHUB_EMAIL}
-  git commit -m "Update ruby-3.2 package to ${package_version} from ruby-release"
+  git commit -m "Update ruby-3.4 package to ${package_version} from ruby-release"
 
-  echo "Updated ruby-3.2 package to ${package_version} from ruby-release"
+  echo "Updated ruby-3.4 package to ${package_version} from ruby-release"
   exit 0
 popd
