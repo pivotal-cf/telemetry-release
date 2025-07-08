@@ -2,5 +2,5 @@
 blobstore:
   provider: gcs
   options:
-    bucket_name: telemetry-release-blobs
+    bucket_name: tpi-telemetry-release-blobs
 final_name: telemetry
