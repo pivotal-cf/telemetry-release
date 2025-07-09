@@ -54,7 +54,8 @@
 
 [OUTPUT]
     Name file
-    Path /var/vcap/sys/log/telemetry-agent/telemetry-agent.stdout.log
+    Path /var/vcap/sys/log/telemetry-agent/
+    File telemetry-agent.stdout.log
     Match *
     Format template
     Template {time} Message received: {log}
