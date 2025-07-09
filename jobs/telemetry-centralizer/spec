@@ -23,7 +23,7 @@ templates:
 
 packages:
 - fluentd
-- ruby-3.2
+- ruby-3.4
 
 properties:
   audit_mode:
