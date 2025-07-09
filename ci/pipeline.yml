@@ -63,20 +63,20 @@ resources:
     repository: bosh-cli
     release: true
     access_token: ((github.pivotal-cf-access-token))
-- name: smith-cli-github-release
-  type: github-release
-  source:
-    owner: TNZ
-    repository: smith
-    access_token: ((github.broadcom-github-access-token))
-    github_api_url: https://github.gwd.broadcom.net/api/v3
-    github_uploads_url: https://github.gwd.broadcom.net/api/uploads
-- name: om-cli-github-release
-  type: github-release
-  source:
-    owner: pivotal-cf
-    repository: om
-    access_token: ((github.pivotal-cf-access-token))
+# - name: smith-cli-github-release
+#   type: github-release
+#   source:
+#     owner: TNZ
+#     repository: smith
+#     access_token: ((github.broadcom-github-access-token))
+#     github_api_url: https://github.gwd.broadcom.net/api/v3
+#     github_uploads_url: https://github.gwd.broadcom.net/api/uploads
+# - name: om-cli-github-release
+#   type: github-release
+#   source:
+#     owner: pivotal-cf
+#     repository: om
+#     access_token: ((github.pivotal-cf-access-token))
 - name: bbl-cli-github-release
   type: github-release
   source:
@@ -92,14 +92,14 @@ resources:
 #     password: ((service-accounts/pcf1-deploy.password))
 #     organization: ((service-accounts/pcf1-deploy.org))
 #     space: stage
-- name: stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-google-kvm-ubuntu-jammy-go_agent
-- name: bpm-release
-  type: bosh-io-release
-  source:
-    repository: cloudfoundry/bpm-release
+# - name: stemcell
+#   type: bosh-io-stemcell
+#   source:
+#     name: bosh-google-kvm-ubuntu-jammy-go_agent
+# - name: bpm-release
+#   type: bosh-io-release
+#   source:
+#     repository: cloudfoundry/bpm-release
 - name: telemetry-release
   type: git
   source:
@@ -462,59 +462,59 @@ jobs:
 #       action: release
 #       resource: testbed-lease
 
-- name: deploy-telemetry-staging
-  plan:
-  - in_parallel:
-    - get: stemcell
-    - get: bpm-release
-    - get: version
-    - get: bosh-cli-github-release
-      params:
-        globs:
-        - bosh-cli-*-linux-amd64
-    - get: telemetry-release
-    - get: ci
-    - get: smith
-      resource: smith-cli-github-release
-      params:
-        globs: ["*linux*"]
-    - get: om
-      resource: om-cli-github-release
-      params:
-        globs: ["*linux*"]
-    - get: bbl-cli-github-release
-      params:
-        globs:
-        - bbl-*_linux_amd64
-  - task: create-release
-    file: ci/ci/tasks/create-release.yml
-  - task: deploy-telemetry
-    file: ci/ci/tasks/deploy-telemetry.yml
-    params:
-      CENTRALIZER_DEPLOYMENT_NAME: telemetry-centralizer-staging
-      AGENT_DEPLOYMENT_NAME: telemetry-agent-staging
-      AUDIT_MODE: false
-      LOADER_API_KEY: ((telemetry-release-repo.staging-loader-api-key))
-      LOADER_ENDPOINT: ((telemetry-release-repo.staging-loader-endpoint))
-      ENV_TYPE: development
-      IAAS_TYPE: google
-      FOUNDATION_ID: ((toolsmiths/staging-jammy.p-bosh-id-guid))
-      FOUNDATION_NICKNAME: release-staging
-      FLUSH_INTERVAL: 10
-      COLLECTOR_CRON_SCHEDULE: "0 0 * * *"
-      OPSMANAGER_HOSTNAME: ((toolsmiths/acceptance-jammy.ops-manager-hostname))
-      OPSMANAGER_CLIENT_NAME: ((toolsmiths/acceptance-jammy.opsman-client-id))
-      OPSMANAGER_CLIENT_SECRET: ((toolsmiths/acceptance-jammy.opsman-uaa-client-secret))
-      OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: true
-      CF_API_URL: ((toolsmiths/acceptance-jammy.cf-api-url))
-      USAGE_SERVICE_URL: ((toolsmiths/acceptance-jammy.usage-service-url))
-      USAGE_SERVICE_CLIENT_ID: ((toolsmiths/acceptance-jammy.usage-service-client-id))
-      USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/acceptance-jammy.telemetry-usage-service-password))
-      USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
-      SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
-      TOOLSMITHS_ENV_LOCKFILE: ((toolsmiths/staging-jammy-lockfile))
-      DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
-      OPERATIONAL_DATA_ONLY: false
+# - name: deploy-telemetry-staging
+#   plan:
+#   - in_parallel:
+#     - get: stemcell
+#     - get: bpm-release
+#     - get: version
+#     - get: bosh-cli-github-release
+#       params:
+#         globs:
+#         - bosh-cli-*-linux-amd64
+#     - get: telemetry-release
+#     - get: ci
+#     - get: smith
+#       resource: smith-cli-github-release
+#       params:
+#         globs: ["*linux*"]
+#     - get: om
+#       resource: om-cli-github-release
+#       params:
+#         globs: ["*linux*"]
+#     - get: bbl-cli-github-release
+#       params:
+#         globs:
+#         - bbl-*_linux_amd64
+#   - task: create-release
+#     file: ci/ci/tasks/create-release.yml
+#   - task: deploy-telemetry
+#     file: ci/ci/tasks/deploy-telemetry.yml
+#     params:
+#       CENTRALIZER_DEPLOYMENT_NAME: telemetry-centralizer-staging
+#       AGENT_DEPLOYMENT_NAME: telemetry-agent-staging
+#       AUDIT_MODE: false
+#       LOADER_API_KEY: ((telemetry-release-repo.staging-loader-api-key))
+#       LOADER_ENDPOINT: ((telemetry-release-repo.staging-loader-endpoint))
+#       ENV_TYPE: development
+#       IAAS_TYPE: google
+#       FOUNDATION_ID: ((toolsmiths/staging-jammy.p-bosh-id-guid))
+#       FOUNDATION_NICKNAME: release-staging
+#       FLUSH_INTERVAL: 10
+#       COLLECTOR_CRON_SCHEDULE: "0 0 * * *"
+#       OPSMANAGER_HOSTNAME: ((toolsmiths/acceptance-jammy.ops-manager-hostname))
+#       OPSMANAGER_CLIENT_NAME: ((toolsmiths/acceptance-jammy.opsman-client-id))
+#       OPSMANAGER_CLIENT_SECRET: ((toolsmiths/acceptance-jammy.opsman-uaa-client-secret))
+#       OPSMANAGER_INSECURE_SKIP_TLS_VERIFY: true
+#       CF_API_URL: ((toolsmiths/acceptance-jammy.cf-api-url))
+#       USAGE_SERVICE_URL: ((toolsmiths/acceptance-jammy.usage-service-url))
+#       USAGE_SERVICE_CLIENT_ID: ((toolsmiths/acceptance-jammy.usage-service-client-id))
+#       USAGE_SERVICE_CLIENT_SECRET: ((toolsmiths/acceptance-jammy.telemetry-usage-service-password))
+#       USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY: true
+#       SHEPHERD_SECRET: ((shepherd/tpi-telemetry.secret))
+#       TOOLSMITHS_ENV_LOCKFILE: ((toolsmiths/staging-jammy-lockfile))
+#       DATA_COLLECTION_MULTI_SELECT_OPTIONS: '["ceip_data"]'
+#       OPERATIONAL_DATA_ONLY: false
 
 - name: finalize-release
   serial_groups: [version]
@@ -522,13 +522,13 @@ jobs:
   - in_parallel:
     - get: version
       params: {bump: final}
-      passed: [deploy-telemetry-staging]
+      # passed: [deploy-telemetry-staging]
     - get: bosh-cli-github-release
       params:
         globs:
         - bosh-cli-*-linux-amd64
     - get: telemetry-release
-      passed: [deploy-telemetry-staging]
+      # passed: [deploy-telemetry-staging]
     - get: ci
     - get: bbl-cli-github-release
       params:
