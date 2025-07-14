@@ -37,11 +37,11 @@ resource_types:
 #     repository: tpi-docker-virtual.usw1.packages.broadcom.com/concourse/bosh-io-stemcell-resource
 #     username: ((jfrog-artifactory.jfrog-username))
 #     password: ((jfrog-artifactory.jfrog-password))
-- name: shepherd
-  type: registry-image
-  source:
-    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
-    tag: v1
+# - name: shepherd
+#   type: registry-image
+#   source:
+#     repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+#     tag: v1
 
 resources:
 - name: aqueduct-courier-source-code
