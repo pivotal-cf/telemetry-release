@@ -8,4 +8,4 @@ go version
 
 go install github.com/onsi/ginkgo/ginkgo@latest
 
-ginkgo -failOnPending -race -randomizeAllSpecs -randomizeSuites -r .
+ginkgo --fail-on-pending -race --randomize-all --randomize-suites -r .
