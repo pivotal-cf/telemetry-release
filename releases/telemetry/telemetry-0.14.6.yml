@@ -1,0 +1,50 @@
+name: telemetry
+version: 0.14.6
+commit_hash: 6c87746
+uncommitted_changes: false
+jobs:
+- name: telemetry-agent
+  version: d014ac444acc27b832f266ece70be7a55d458fba2eb3674d7fdd032fe78e6dd6
+  fingerprint: d014ac444acc27b832f266ece70be7a55d458fba2eb3674d7fdd032fe78e6dd6
+  sha1: sha256:4bd6cca7bca16ecd6cdc64c57d99e41d6fbfd66e04af817242d8ba964a1da7a9
+  packages:
+  - fluent-bit
+- name: telemetry-centralizer
+  version: 9844a32a2868a6f33b95c0f91554f3f35bdd13c01b3742350b9bf1e4db72fcac
+  fingerprint: 9844a32a2868a6f33b95c0f91554f3f35bdd13c01b3742350b9bf1e4db72fcac
+  sha1: sha256:1cf9843cb747c6c618520217a00355c590a1fc0723e51fc8d2150a31c85d36d0
+  packages:
+  - fluentd
+  - ruby-3.4
+- name: telemetry-collector
+  version: 9e436bf18eaf747a538685c23753244e55df443b79dcf22886c8f8b1cb086ef8
+  fingerprint: 9e436bf18eaf747a538685c23753244e55df443b79dcf22886c8f8b1cb086ef8
+  sha1: sha256:7cb0c3d622ee65559afa947b2ccbde70509c9dd85a1fcdd9f767bdf6ea79d759
+  packages:
+  - telemetry-collector
+packages:
+- name: fluent-bit
+  version: 72f4338028a0e5d5ebc3566906af16fca631432b94c0e5c2b1bbdef899246c97
+  fingerprint: 72f4338028a0e5d5ebc3566906af16fca631432b94c0e5c2b1bbdef899246c97
+  sha1: sha256:b223fb2199b3fb40f929289370b41addbe4787cecf127af304237e189fad7e3a
+  dependencies: []
+- name: fluentd
+  version: 2a29e946f79c99355ac24d53c6c95c9b8f0b6dfba5323d31f485b70d7fd2ccfe
+  fingerprint: 2a29e946f79c99355ac24d53c6c95c9b8f0b6dfba5323d31f485b70d7fd2ccfe
+  sha1: sha256:6a6ffae4e8b5ee1a43bf4d13d6c7b4c3f5973efa971756afbfe6e64d78f1ab6a
+  dependencies:
+  - ruby-3.4
+- name: ruby-3.4
+  version: 075617cc26154c22331302f4795564acb518f5b70c8f8be497eeeeecf00e05ff
+  fingerprint: 075617cc26154c22331302f4795564acb518f5b70c8f8be497eeeeecf00e05ff
+  sha1: sha256:b7ca0aea486ec2656ef79d101ce32d216c0aa75fc89c6cc085012c5b72d2285c
+  dependencies: []
+- name: telemetry-collector
+  version: d65fe9fa9cb0cc3e4dd7ef4e470a51a7b6d34288f0d20b8bc3175fa2b4bf01e1
+  fingerprint: d65fe9fa9cb0cc3e4dd7ef4e470a51a7b6d34288f0d20b8bc3175fa2b4bf01e1
+  sha1: sha256:f37812c11b70166163a6667fe5541cfd5411a05c187013301461a28555dcddb7
+  dependencies: []
+license:
+  version: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  fingerprint: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  sha1: sha256:6c5cf721475eff1c39ac926578ae96afd1713f3bf522d0fd3088c5a174459617
