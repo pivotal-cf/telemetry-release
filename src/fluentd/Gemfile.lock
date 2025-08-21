@@ -62,7 +62,7 @@ GEM
     metrics (0.13.0)
     msgpack (1.8.0)
     protocol-hpack (1.5.1)
-    protocol-http (0.51.1)
+    protocol-http (0.53.0)
     protocol-http1 (0.34.1)
       protocol-http (~> 0.22)
     protocol-http2 (0.22.1)
