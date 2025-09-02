@@ -37,6 +37,8 @@ builds:
     version: 0.0.16
   3e05c2ea-1f1a-4875-4cf3-5aa58e359ef1:
     version: 0.13.7-jammy
+  3e9efa21-0eac-45de-5799-6129991f7fa8:
+    version: 0.14.8
   3fecdf22-3d20-4f6b-628b-a2d7ea1b4975:
     version: 0.13.5-xenial
   401912e9-59d8-41d7-7534-75f6680b2e6f:
