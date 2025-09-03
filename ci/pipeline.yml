@@ -193,6 +193,7 @@ jobs:
       - get: ci
       - get: aqueduct-courier-source-code
       - get: aqueduct-courier-production-linux-binary
+        trigger: true
       - get: bosh-cli-github-release
         params:
           globs:
