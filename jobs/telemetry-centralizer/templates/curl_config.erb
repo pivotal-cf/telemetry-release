@@ -1,5 +1,7 @@
 header = "Authorization: Bearer <%= p('telemetry.api_key') %>"
 header = "Content-Type: application/x-telemetry-json-batch"
+user-agent = "TelemetryCentralizer/0.0.2"
 request = "POST"
 data = "@-"
 url = "<%= p('telemetry.endpoint') %>"
+http1.1
