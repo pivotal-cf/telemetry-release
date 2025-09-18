@@ -15,7 +15,7 @@ chmod 755 "$BBL_CLI"
 apt-get update
 apt-get -y install git
 
-version=$(git -C "$PWD"/aqueduct-courier-source-code tag --sort=-v:refname | head -n 1)
+version=$(git -C "$PWD"/telemetry-cli-source-code tag --sort=-v:refname | head -n 1)
 
 pushd telemetry-release
   cat > config/private.yml <<EOM
@@ -29,16 +29,16 @@ EOM
 
   # Check if new version already exists
   set +e
-  "$bosh_cli" blobs | grep telemetry-collector-linux-"$version"
+  "$bosh_cli" blobs | grep telemetry-cli-linux-"$version"
   if [[ $? == "0" ]]; then
     echo "Version has not changed"
     exit 0
   fi
   set -e
 
-  old_blob=$("$bosh_cli" blobs | grep telemetry-collector | awk '{print $1}')
-  new_blob_path="$task_dir"/binary/telemetry-collector-linux-amd64
-  new_blob="telemetry-collector/telemetry-collector-linux-$version"
+  old_blob=$("$bosh_cli" blobs | grep telemetry-cli | awk '{print $1}')
+  new_blob_path="$task_dir"/binary/telemetry-cli-linux-amd64
+  new_blob="telemetry-cli/telemetry-cli-linux-$version"
 
   "$bosh_cli" remove-blob "$old_blob"
   "$bosh_cli" add-blob "$new_blob_path" "$new_blob"
@@ -47,5 +47,5 @@ EOM
   git add .
   git config --global user.name $GITHUB_NAME
   git config --global user.email $GITHUB_EMAIL
-  git commit -m "Update telemetry-collector blob to version $version"
+  git commit -m "Update telemetry-cli blob to version $version"
 popd

@@ -10,7 +10,7 @@ templates:
   collect.yml.erb: config/collect.yml
 
 packages:
-  - telemetry-collector
+  - telemetry-cli
 
 properties:
   enabled:

@@ -1,4 +1,0 @@
-set -e
-
-cp telemetry-collector/telemetry-collector-linux-* ${BOSH_INSTALL_TARGET}/telemetry-collector-linux
-chmod +x ${BOSH_INSTALL_TARGET}/telemetry-collector-linux

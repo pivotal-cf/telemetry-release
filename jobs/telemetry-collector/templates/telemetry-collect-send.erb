@@ -4,7 +4,7 @@ set -eu
 
 rm -f /var/vcap/data/telemetry-collector/*.tar
 chown -R vcap:vcap /var/vcap/jobs/telemetry-collector/config/
-COLLECTOR_BIN=/var/vcap/packages/telemetry-collector/telemetry-collector-linux
+COLLECTOR_BIN=/var/vcap/packages/telemetry-cli/telemetry-cli-linux
 
 # Update value usage function
 create_or_update_options() {

@@ -1,0 +1,4 @@
+set -e
+
+cp telemetry-cli/telemetry-cli-linux-* ${BOSH_INSTALL_TARGET}/telemetry-cli-linux
+chmod +x ${BOSH_INSTALL_TARGET}/telemetry-cli-linux

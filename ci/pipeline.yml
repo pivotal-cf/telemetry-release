@@ -44,18 +44,18 @@ resource_types:
 #     tag: v1
 
 resources:
-- name: aqueduct-courier-source-code
+- name: telemetry-cli-source-code
   type: git
   source:
     branch: main
-    uri: git@github.gwd.broadcom.net:TNZ/tpi-aqueduct-courier
-    private_key: ((github.courier-git-deploy-private-key))
-- name: aqueduct-courier-production-linux-binary
+    uri: git@github.gwd.broadcom.net:TNZ/tpi-telemetry-cli
+    private_key: ((github.cli-git-deploy-private-key))
+- name: telemetry-cli-production-linux-binary
   type: gcs-resource
   source:
-    bucket: ((aqueduct-courier-repo.courier-production-builds-bucket))
+    bucket: ((tpi-telemetry-cli-repo.cli-production-builds-bucket))
     json_key: ((service-accounts/gcp.unified-service-account))
-    versioned_file: telemetry-collector-linux-amd64
+    versioned_file: telemetry-cli-linux-amd64
 - name: bosh-cli-github-release
   type: github-release
   source:
@@ -186,13 +186,13 @@ jobs:
         repository: telemetry-release
         rebase: true
 
-- name: update-telemetry-collector
+- name: update-telemetry-cli
   plan:
     - in_parallel:
       - get: telemetry-release
       - get: ci
-      - get: aqueduct-courier-source-code
-      - get: aqueduct-courier-production-linux-binary
+      - get: telemetry-cli-source-code
+      - get: telemetry-cli-production-linux-binary
         trigger: true
       - get: bosh-cli-github-release
         params:
@@ -204,7 +204,7 @@ jobs:
           - bbl-*_linux_amd64
     - task: update-release-package
       input_mapping:
-        binary: aqueduct-courier-production-linux-binary
+        binary: telemetry-cli-production-linux-binary
       file: ci/ci/tasks/update-release-package.yml
       params:
         GCS_SERVICE_ACCOUNT_KEY: ((service-accounts/gcp.unified-service-account))

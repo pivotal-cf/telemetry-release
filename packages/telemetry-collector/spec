@@ -1,7 +1,0 @@
----
-name: telemetry-collector
-
-dependencies: []
-
-files:
-- telemetry-collector/telemetry-collector-linux-*

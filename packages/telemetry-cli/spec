@@ -1,0 +1,7 @@
+---
+name: telemetry-cli
+
+dependencies: []
+
+files:
+- telemetry-cli/telemetry-cli-linux-*
