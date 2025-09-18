@@ -3,6 +3,8 @@ builds:
     version: 0.13.4-jammy
   02baf1b0-e71d-496a-503f-4627c9d8b5df:
     version: 0.13.9
+  0315faca-f335-487c-57dc-3b99802273ab:
+    version: 2.3.0
   07e26d36-cfa8-4c3b-4b28-173d01f80d36:
     version: 0.13.4-xenial
   08acf386-79ff-4feb-5275-f188008250c7:
