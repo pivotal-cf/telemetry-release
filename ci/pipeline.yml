@@ -547,15 +547,15 @@ jobs:
       rebase: true
       tag: version/version
 
-- name: auto-patch
-  serial_groups: [version]
-  plan:
-  - get: version
-    passed: [finalize-release]
-    params: {bump: patch, pre: build}
-    trigger: true
-  - put: version
-    params: {file: version/version}
+# - name: auto-patch
+#   serial_groups: [version]
+#   plan:
+#   - get: version
+#     passed: [finalize-release]
+#     params: {bump: patch, pre: build}
+#     trigger: true
+#   - put: version
+#     params: {file: version/version}
 
 - name: major
   serial_groups: [version]
