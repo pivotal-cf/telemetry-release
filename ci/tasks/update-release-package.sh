@@ -29,14 +29,14 @@ EOM
 
   # Check if new version already exists
   set +e
-  "$bosh_cli" blobs | grep telemetry-cli-linux-"$version"
+  "$bosh_cli" blobs | grep -E "telemetry-(cli|collector)-linux-$version"
   if [[ $? == "0" ]]; then
     echo "Version has not changed"
     exit 0
   fi
   set -e
 
-  old_blob=$("$bosh_cli" blobs | grep telemetry-cli | awk '{print $1}')
+  old_blob=$("$bosh_cli" blobs | grep -E "telemetry-cli|telemetry-collector" | awk '{print $1}' | sed 's/:$//')
   new_blob_path="$task_dir"/binary/telemetry-cli-linux-amd64
   new_blob="telemetry-cli/telemetry-cli-linux-$version"
 
