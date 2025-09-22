@@ -15,3 +15,4 @@ releases/**/*.tgz
 .envrc
 .go-version
 .ruby-version
+service_account.json
