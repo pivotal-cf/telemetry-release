@@ -52,7 +52,7 @@ var _ = Describe("Main", func() {
 		Describe("/components", func() {
 			It("allows retrieval of messages for user sent to /components", func() {
 				resp := makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -63,11 +63,11 @@ var _ = Describe("Main", func() {
 
 				telemetryMsg := generateTelemetryMsg()
 				resp = makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, telemetryMsg)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err = io.ReadAll(resp.Body)
@@ -89,7 +89,7 @@ var _ = Describe("Main", func() {
 
 			It("returns empty array when the only messages sent to /components were empty", func() {
 				resp := makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 				respBody, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
@@ -98,11 +98,11 @@ var _ = Describe("Main", func() {
 				Expect(messages).To(Equal([]map[string]interface{}{}))
 
 				resp = makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, []byte{})
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err = io.ReadAll(resp.Body)
@@ -113,15 +113,15 @@ var _ = Describe("Main", func() {
 			It("appends to previous messages", func() {
 				telemetryMsg := generateTelemetryMsg()
 				resp := makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, telemetryMsg)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, telemetryMsg)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -155,11 +155,11 @@ var _ = Describe("Main", func() {
 			It("only returns messages sent by a specific user", func() {
 				telemetryMsg := generateTelemetryMsg()
 				resp := makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, telemetryMsg)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -180,7 +180,7 @@ var _ = Describe("Main", func() {
 				}))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_messages", "Bearer second-token", nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err = io.ReadAll(resp.Body)
@@ -192,15 +192,15 @@ var _ = Describe("Main", func() {
 			It("users can clear previously sent messages", func() {
 				telemetryMsg := generateTelemetryMsg()
 				resp := makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, telemetryMsg)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodPost, serverUrl+"/clear_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -216,11 +216,11 @@ var _ = Describe("Main", func() {
 				for i := 0; i <= limit; i++ {
 					msg := []byte(fmt.Sprintf(`{"msgNum": %d}`, i))
 					resp := makeRequest(http.MethodPost, serverUrl+"/components", validTokenContent, msg)
-					resp.Body.Close()
+					_ = resp.Body.Close()
 					Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 				}
 				resp := makeRequest(http.MethodGet, serverUrl+"/received_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -241,7 +241,7 @@ var _ = Describe("Main", func() {
 		Describe("/collections/batch", func() {
 			It("allows retrieval of data about messages sent by a user to /batch", func() {
 				resp := makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -251,11 +251,11 @@ var _ = Describe("Main", func() {
 				Expect(messages).To(Equal([]map[string]interface{}{}))
 
 				resp = makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err = io.ReadAll(resp.Body)
@@ -272,15 +272,15 @@ var _ = Describe("Main", func() {
 
 			It("appends to previous messages", func() {
 				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -303,11 +303,11 @@ var _ = Describe("Main", func() {
 
 			It("only returns messages sent by a specific user", func() {
 				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -323,7 +323,7 @@ var _ = Describe("Main", func() {
 				}))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", "Bearer second-token", nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err = io.ReadAll(resp.Body)
@@ -334,15 +334,15 @@ var _ = Describe("Main", func() {
 
 			It("users can clear previously sent messages", func() {
 				resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents("best-foundation-id", true))
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodPost, serverUrl+"/clear_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -355,15 +355,15 @@ var _ = Describe("Main", func() {
 			It("users can send uncompressed batch messages", func() {
 
 				resp := makeRequest(http.MethodPost, serverUrl+"/clear_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				resp = makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, false, generateTarFileContents("best-foundation-id", false))
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
 				resp = makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -379,7 +379,7 @@ var _ = Describe("Main", func() {
 				}))
 
 				resp = makeRequest(http.MethodPost, serverUrl+"/clear_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			})
 
@@ -388,12 +388,12 @@ var _ = Describe("Main", func() {
 				Expect(err).NotTo(HaveOccurred())
 				for i := 0; i <= limit; i++ {
 					resp := makeBatchRequest(http.MethodPost, serverUrl, validTokenContent, true, generateTarFileContents(strconv.Itoa(i), true))
-					resp.Body.Close()
+					_ = resp.Body.Close()
 					Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 				}
 
 				resp := makeRequest(http.MethodGet, serverUrl+"/received_batch_messages", validTokenContent, nil)
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				respBody, err := io.ReadAll(resp.Body)
@@ -454,7 +454,7 @@ var _ = Describe("Main", func() {
 	DescribeTable("returns an unauthorized response when invalid token is passed",
 		func(path string) {
 			resp := makeRequest(http.MethodGet, serverUrl+path, "no good token", nil)
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 			Expect(resp.StatusCode).To(Equal(http.StatusUnauthorized))
 		},
 		Entry("/components", "/components"),
@@ -518,7 +518,7 @@ func findFreePort() (string, error) {
 	if err != nil {
 		return "0", err
 	}
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	return strconv.Itoa(listener.Addr().(*net.TCPAddr).Port), nil
 }
@@ -578,7 +578,7 @@ func gzippedTarForContents(contents []byte, fileName string) []byte {
 	buffer := &bytes.Buffer{}
 	writer := gzip.NewWriter(buffer)
 	_, _ = writer.Write(tarForContents(contents, fileName))
-	writer.Close()
+	_ = writer.Close()
 
 	return buffer.Bytes()
 }
@@ -595,7 +595,7 @@ func tarForContents(contents []byte, fileName string) []byte {
 	_, err := tWriter.Write(contents)
 	Expect(err).NotTo(HaveOccurred())
 
-	tWriter.Close()
+	_ = tWriter.Close()
 
 	return tarBuffer.Bytes()
 }

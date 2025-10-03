@@ -70,7 +70,7 @@ func postMessageHandler(
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 		recMessages, err := messageReader(reqBody, r.Header.Get("Content-Encoding"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
