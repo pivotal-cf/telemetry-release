@@ -2,7 +2,7 @@ fluent-bit/fluent-bit-4.1.0.tar.gz:
   size: 37596937
   object_id: ceeb6af0-d548-4c74-44cd-af8c2679caee
   sha: sha256:2ce0b5d30433f2cde54ce81685ab9a7cfea7851e0c65b3554462df1d7065a45f
-telemetry-cli/telemetry-cli-linux-2.3.1:
-  size: 17659793
-  object_id: 298a0828-bd4f-4d39-4730-62772e32a885
-  sha: sha256:5e291e3d864954eca004cd689dbc2373836f6b945d787d3fc708515755ccecff
+telemetry-cli/telemetry-cli-linux-2.3.0:
+  size: 17332747
+  object_id: 9ae0b6e6-1d27-40c6-6ce7-de35393fa214
+  sha: sha256:cd55d9e22b2cfa5228aec4c0d16d33b0b089e7fc65fb46204648e9d0fd58b1f4
