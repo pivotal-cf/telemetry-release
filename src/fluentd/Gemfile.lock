@@ -63,7 +63,7 @@ GEM
     msgpack (1.8.0)
     protocol-hpack (1.5.1)
     protocol-http (0.54.0)
-    protocol-http1 (0.35.1)
+    protocol-http1 (0.35.2)
       protocol-http (~> 0.22)
     protocol-http2 (0.23.0)
       protocol-hpack (~> 1.4)
@@ -82,7 +82,7 @@ GEM
     uri (1.0.3)
     webrick (1.9.1)
     yajl-ruby (1.4.3)
-    zstd-ruby (1.5.7.0)
+    zstd-ruby (1.5.7.1)
 
 PLATFORMS
   ruby
