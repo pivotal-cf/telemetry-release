@@ -10,8 +10,8 @@ source /var/vcap/packages/ruby-3.4/bosh/compile.env
 cp -R Gemfile Gemfile.lock vendor "${BOSH_INSTALL_TARGET}"
 
 pushd "${BOSH_INSTALL_TARGET}"
-    bosh_bundle_local
-    bosh_generate_runtime_env
+bosh_bundle_local
+bosh_generate_runtime_env
 popd
 
 mkdir -p ${BOSH_INSTALL_TARGET}/telemetry-filter-plugin
