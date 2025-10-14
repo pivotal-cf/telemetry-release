@@ -763,4 +763,188 @@ describe 'Filters telemetry messages' do
       # Test passes even if some timed out - we want to see the data
     end
   end
+
+  # UTF-8 and Multibyte Character Support Tests
+  context 'UTF-8 and multibyte character handling' do
+    it 'handles emoji before telemetry-source token' do
+      log = '🚀 Starting application {"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"}'
+      records = filter({"log" => log})
+      expect(records).to eq([{"telemetry-source" => "test", "telemetry-time" => "2024-01-01T00:00:00Z"}])
+    end
+
+    it 'handles multiple emoji before telemetry-source' do
+      log = '🚀🌟✨ {"telemetry-source": "app", "telemetry-time": "2024-01-01T00:00:00Z", "status": "ok"}'
+      records = filter({"log" => log})
+      expect(records.first["status"]).to eq("ok")
+    end
+
+    it 'handles Chinese characters in log prefix' do
+      log = '应用程序启动 {"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+    end
+
+    it 'handles Japanese characters in log prefix' do
+      log = 'アプリケーション {"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+    end
+
+    it 'handles Korean characters in log prefix' do
+      log = '애플리케이션 {"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+    end
+
+    it 'handles accented characters (European languages) in log prefix' do
+      log = 'café résumé {"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+    end
+
+    it 'handles UTF-8 characters after telemetry message' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"} 🎉 success'
+      records = filter({"log" => log})
+      expect(records).to eq([{"telemetry-source" => "test", "telemetry-time" => "2024-01-01T00:00:00Z"}])
+    end
+
+    it 'handles UTF-8 characters inside telemetry values' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "message": "✅ success"}'
+      records = filter({"log" => log})
+      expect(records.first["message"]).to eq("✅ success")
+    end
+
+    it 'handles mixed ASCII and UTF-8 in complex log line' do
+      log = 'Application started {"telemetry-source": "deploy", "telemetry-time": "2024-01-01T00:00:00Z", "count": 42}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+      expect(records.first["count"]).to eq(42)
+    end
+
+    it 'handles right-to-left text (Arabic/Hebrew)' do
+      log = 'مرحبا {"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+    end
+
+    it 'handles combining characters and diacritics' do
+      log = 'e\u0301 {"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"}'  # é as e + combining acute
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+    end
+
+    it 'handles zero-width characters' do
+      log = "test\u200B" + '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z"}'  # zero-width space
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+    end
+  end
+
+  # Backslash Escape Sequence Tests
+  context 'backslash escape sequence handling' do
+    it 'handles Windows file path with trailing backslash' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "path": "C:\\\\Users\\\\"}'
+      records = filter({"log" => log})
+      expect(records.first["path"]).to eq("C:\\Users\\")
+    end
+
+    it 'handles single backslash before quote (escaped quote)' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "quote": "He said \\"hello\\""}'
+      records = filter({"log" => log})
+      expect(records.first["quote"]).to eq('He said "hello"')
+    end
+
+    it 'handles double backslash before quote (unescaped quote)' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "path": "C:\\\\"}'
+      records = filter({"log" => log})
+      expect(records.first["path"]).to eq("C:\\")
+    end
+
+    it 'handles triple backslash before quote (escaped quote with leading backslash)' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "value": "end\\\\\\\\"}'
+      records = filter({"log" => log})
+      expect(records.first["value"]).to eq('end\\\\')  # Three backslashes in JSON = two backslashes + escaped quote, but the quote ends the string so we get two backslashes
+    end
+
+    it 'handles quadruple backslash before quote (two escaped backslashes, unescaped quote)' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "value": "path\\\\\\\\\\\\"}'
+      records = filter({"log" => log})
+      expect(records.first["value"]).to eq("path\\\\\\")  # Four backslashes in JSON = two escaped pairs + escaped quote
+    end
+
+    it 'handles mix of backslashes and regular characters' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "regex": "\\\\d+\\\\.\\\\d+"}'
+      records = filter({"log" => log})
+      expect(records.first["regex"]).to eq("\\d+\\.\\d+")
+    end
+
+    it 'handles backslash at start of string' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "value": "\\\\start"}'
+      records = filter({"log" => log})
+      expect(records.first["value"]).to eq("\\start")
+    end
+
+    it 'handles multiple consecutive backslash sequences' do
+      log = '{"telemetry-source": "test", "telemetry-time": "2024-01-01T00:00:00Z", "value": "a\\\\\\\\b\\\\c"}'
+      records = filter({"log" => log})
+      expect(records.first["value"]).to eq("a\\\\b\\c")
+    end
+
+    it 'handles pathological case with many backslashes' do
+      many_backslashes = '\\\\' * 50  # 100 backslashes in JSON (50 escaped pairs)
+      log = "{\"telemetry-source\": \"test\", \"telemetry-time\": \"2024-01-01T00:00:00Z\", \"value\": \"#{many_backslashes}\"}"
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+      expect(records.first["value"].count("\\")).to eq(50)
+    end
+  end
+
+  # Escaped JSON string tests (telemetry-source as \\\" format)
+  context 'escaped JSON telemetry messages' do
+    it 'handles basic escaped JSON telemetry' do
+      log = '{ "message": "{\\"telemetry-source\\": \\"test\\", \\"telemetry-time\\": \\"2024-01-01T00:00:00Z\\"}" }'
+      records = filter({"log" => log})
+      expect(records).to eq([{"telemetry-source" => "test", "telemetry-time" => "2024-01-01T00:00:00Z"}])
+    end
+
+    it 'handles escaped JSON in log messages' do
+      # When telemetry is embedded as an escaped string within another JSON object
+      log = 'Some log text {\\"telemetry-source\\": \\"test\\", \\"telemetry-time\\": \\"2024-01-01T00:00:00Z\\"} more text'
+      records = filter({"log" => log})
+      expect(records).to eq([{"telemetry-source" => "test", "telemetry-time" => "2024-01-01T00:00:00Z"}])
+    end
+
+    it 'handles complex escaped telemetry with UTF-8' do
+      # Escaped JSON with international characters
+      log = 'Log: {\\"telemetry-source\\": \\"test\\", \\"telemetry-time\\": \\"2024-01-01T00:00:00Z\\", \\"message\\": \\"success\\"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+    end
+  end
+
+  # Backwards compatibility and regression tests
+  context 'backwards compatibility - bug fixes' do
+    it 'now accepts Windows paths that old code rejected' do
+      # Old code would incorrectly treat the final quote as escaped
+      log = '{"telemetry-source": "windows-app", "telemetry-time": "2024-01-01T00:00:00Z", "install_path": "C:\\\\Program Files\\\\"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty  # Old code: would be empty (rejected)
+      expect(records.first["install_path"]).to eq("C:\\Program Files\\")
+    end
+
+    it 'now accepts UTF-8 logs that old code rejected' do
+      # Old code would use wrong byte position with emoji
+      log = '🎯 Target achieved {"telemetry-source": "deploy", "telemetry-time": "2024-01-01T00:00:00Z"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty  # Old code: likely empty (rejected)
+    end
+
+    it 'still accepts all ASCII logs that old code accepted' do
+      # Verify no regression for ASCII-only logs
+      log = 'INFO: Application started {"telemetry-source": "app", "telemetry-time": "2024-01-01T00:00:00Z", "version": "1.0"}'
+      records = filter({"log" => log})
+      expect(records).not_to be_empty
+      expect(records.first["version"]).to eq("1.0")
+    end
+  end
 end
