@@ -5,29 +5,29 @@ set -euxo pipefail
 # Since moving to the VMware network there have been frequent network failures
 # when connecting to pooled environments on GCP.
 function retry {
-  local retries=$1
-  local count=0
-  shift
+	local retries=$1
+	local count=0
+	shift
 
-  until "$@"; do
-    exit=$?
-    count=$(($count + 1))
-    if [ $count -lt $retries ]; then
-      echo "Attempt $count/$retries ended with exit $exit"
-      # Need a short pause between smith CLI executions or it fails unexpectedly.
-      sleep 30
-    else
-      echo "Attempted $count/$retries times and failed."
-      return $exit
-    fi
-  done
-  return 0
+	until "$@"; do
+		exit=$?
+		count=$(($count + 1))
+		if [ $count -lt $retries ]; then
+			echo "Attempt $count/$retries ended with exit $exit"
+			# Need a short pause between smith CLI executions or it fails unexpectedly.
+			sleep 30
+		else
+			echo "Attempted $count/$retries times and failed."
+			return $exit
+		fi
+	done
+	return 0
 }
 apt-get update
 apt-get -y install git jq ca-certificates
 
 # Trust telemetry-acceptance-loader cert
-echo -n | openssl s_client -showcerts -connect telemetry-acceptance-loader.apps.titan.tanzu.broadcom.com:443 -servername telemetry-acceptance-loader.apps.titan.tanzu.broadcom.com | openssl x509 > telemetry-acceptance-loader.crt
+echo -n | openssl s_client -showcerts -connect telemetry-acceptance-loader.apps.titan.tanzu.broadcom.com:443 -servername telemetry-acceptance-loader.apps.titan.tanzu.broadcom.com | openssl x509 >telemetry-acceptance-loader.crt
 cp telemetry-acceptance-loader.crt /usr/local/share/ca-certificates/telemetry-acceptance-loader.crt
 update-ca-certificates
 
@@ -58,8 +58,8 @@ chmod 755 "$BBL_CLI"
 
 echo "Evaluating smith environment"
 if [[ -n $TOOLSMITHS_ENV_LOCKFILE ]]; then
-  mkdir -p testbed-lease
-  echo "$TOOLSMITHS_ENV_LOCKFILE" > testbed-lease/metadata
+	mkdir -p testbed-lease
+	echo "$TOOLSMITHS_ENV_LOCKFILE" >testbed-lease/metadata
 fi
 
 echo "Running smith bosh -l testbed-lease/metadata:"
@@ -67,7 +67,7 @@ smith bosh -l testbed-lease/metadata
 
 # Writing variables to temp file
 echo "Write vars to temp file"
-smith bosh -l testbed-lease/metadata > temp_env.sh
+smith bosh -l testbed-lease/metadata >temp_env.sh
 
 # Sourcing Temp File
 echo "Source tempfile"
@@ -91,34 +91,33 @@ retry 5 bosh upload-release -n "$TASK_DIR/bpm-release/release.tgz"
 
 echo "Deploying telemetry centralizer"
 retry 5 bosh deploy -n -d "$CENTRALIZER_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/centralizer.yml" \
-    --var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
-    --var audit_mode="$AUDIT_MODE" \
-    --var loader_api_key="$LOADER_API_KEY" \
-    --var loader_endpoint="$LOADER_ENDPOINT" \
-    --var env_type="$ENV_TYPE" \
-    --var iaas_type="$IAAS_TYPE" \
-    --var foundation_id="$FOUNDATION_ID" \
-    --var foundation_nickname="$FOUNDATION_NICKNAME" \
-    --var flush_interval="$FLUSH_INTERVAL" \
-    --var collector_cron_schedule="'$COLLECTOR_CRON_SCHEDULE'" \
-    --var opsmanager_hostname="$OPSMANAGER_HOSTNAME" \
-    --var opsmanager_client_name="$OPSMANAGER_CLIENT_NAME" \
-    --var opsmanager_client_secret="$OPSMANAGER_CLIENT_SECRET" \
-    --var opsmanager_insecure_skip_tls_verify="$OPSMANAGER_INSECURE_SKIP_TLS_VERIFY" \
-    --var cf_api_url="$CF_API_URL" \
-    --var usage_service_url="$USAGE_SERVICE_URL" \
-    --var usage_service_client_id="$USAGE_SERVICE_CLIENT_ID" \
-    --var usage_service_client_secret="$USAGE_SERVICE_CLIENT_SECRET" \
-    --var usage_service_insecure_skip_tls_verify="$USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY" \
-    --var network_name="$NETWORK" \
-    --var az="$AZ" \
-    --var data_collection_multi_select_options="$DATA_COLLECTION_MULTI_SELECT_OPTIONS" \
-    --var operational_data_only="$OPERATIONAL_DATA_ONLY"
+	--var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
+	--var audit_mode="$AUDIT_MODE" \
+	--var loader_api_key="$LOADER_API_KEY" \
+	--var loader_endpoint="$LOADER_ENDPOINT" \
+	--var env_type="$ENV_TYPE" \
+	--var iaas_type="$IAAS_TYPE" \
+	--var foundation_id="$FOUNDATION_ID" \
+	--var foundation_nickname="$FOUNDATION_NICKNAME" \
+	--var flush_interval="$FLUSH_INTERVAL" \
+	--var collector_cron_schedule="'$COLLECTOR_CRON_SCHEDULE'" \
+	--var opsmanager_hostname="$OPSMANAGER_HOSTNAME" \
+	--var opsmanager_client_name="$OPSMANAGER_CLIENT_NAME" \
+	--var opsmanager_client_secret="$OPSMANAGER_CLIENT_SECRET" \
+	--var opsmanager_insecure_skip_tls_verify="$OPSMANAGER_INSECURE_SKIP_TLS_VERIFY" \
+	--var cf_api_url="$CF_API_URL" \
+	--var usage_service_url="$USAGE_SERVICE_URL" \
+	--var usage_service_client_id="$USAGE_SERVICE_CLIENT_ID" \
+	--var usage_service_client_secret="$USAGE_SERVICE_CLIENT_SECRET" \
+	--var usage_service_insecure_skip_tls_verify="$USAGE_SERVICE_INSECURE_SKIP_TLS_VERIFY" \
+	--var network_name="$NETWORK" \
+	--var az="$AZ" \
+	--var data_collection_multi_select_options="$DATA_COLLECTION_MULTI_SELECT_OPTIONS" \
+	--var operational_data_only="$OPERATIONAL_DATA_ONLY"
 
 echo "Deploying telemetry agent"
 retry 5 bosh deploy -n -d "$AGENT_DEPLOYMENT_NAME" "$TASK_DIR/telemetry-release/manifest/agent.yml" \
-    --var agent_deployment_name="$AGENT_DEPLOYMENT_NAME" \
-    --var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
-    --var network_name="$NETWORK" \
-    --var az="$AZ"
-
+	--var agent_deployment_name="$AGENT_DEPLOYMENT_NAME" \
+	--var centralizer_deployment_name="$CENTRALIZER_DEPLOYMENT_NAME" \
+	--var network_name="$NETWORK" \
+	--var az="$AZ"

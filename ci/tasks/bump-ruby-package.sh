@@ -19,7 +19,7 @@ apt-get update
 apt-get -y install git
 pushd telemetry-release
 
-  cat > config/private.yml <<EOM
+cat >config/private.yml <<EOM
 ---
 blobstore:
   options:
@@ -28,20 +28,21 @@ blobstore:
       $(echo $GCS_SERVICE_ACCOUNT_KEY)
 EOM
 
-  "$BOSH_CLI" vendor-package ruby-3.4 "$TASK_DIR/ruby-release"
+"$BOSH_CLI" vendor-package ruby-3.4 "$TASK_DIR/ruby-release"
 
-  if [ -z "$(git status --porcelain)" ]; then
-    echo "No new version of ruby-release"
-    exit 0
-  fi
+if [ -z "$(git status --porcelain)" ]; then
+	echo "No new version of ruby-release"
+	popd
+	exit 0
+fi
 
-  git add .
+git add .
 
-  package_version=$(cat "$TASK_DIR/ruby-release/packages/ruby-3.4/version")
-  git config --global user.name ${GITHUB_NAME}
-  git config --global user.email ${GITHUB_EMAIL}
-  git commit -m "Update ruby-3.4 package to ${package_version} from ruby-release"
+package_version=$(cat "$TASK_DIR/ruby-release/packages/ruby-3.4/version")
+git config --global user.name "${GITHUB_NAME}"
+git config --global user.email "${GITHUB_EMAIL}"
+git commit -m "Update ruby-3.4 package to ${package_version} from ruby-release"
 
-  echo "Updated ruby-3.4 package to ${package_version} from ruby-release"
-  exit 0
+echo "Updated ruby-3.4 package to ${package_version} from ruby-release"
 popd
+exit 0

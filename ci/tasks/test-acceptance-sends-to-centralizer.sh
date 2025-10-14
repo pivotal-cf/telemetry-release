@@ -5,23 +5,23 @@ set -euxo pipefail
 # Since moving to the VMware network there have been frequent network failures
 # when connecting to pooled environments on GCP.
 function retry {
-  local retries=$1
-  local count=0
-  shift
+	local retries=$1
+	local count=0
+	shift
 
-  until "$@"; do
-    exit=$?
-    count=$(($count + 1))
-    if [ $count -lt $retries ]; then
-      echo "Attempt $count/$retries ended with exit $exit"
-      # Need a short pause between smith CLI executions or it fails unexpectedly.
-      sleep 30
-    else
-      echo "Attempted $count/$retries times and failed."
-      return $exit
-    fi
-  done
-  return 0
+	until "$@"; do
+		exit=$?
+		count=$(($count + 1))
+		if [ $count -lt $retries ]; then
+			echo "Attempt $count/$retries ended with exit $exit"
+			# Need a short pause between smith CLI executions or it fails unexpectedly.
+			sleep 30
+		else
+			echo "Attempted $count/$retries times and failed."
+			return $exit
+		fi
+	done
+	return 0
 }
 apt-get update
 apt-get -y install git jq ssh netcat-openbsd
@@ -53,13 +53,13 @@ chmod 755 "$BBL_CLI"
 
 echo "Evaluating smith environment"
 if [[ -n $TOOLSMITHS_ENV_LOCKFILE ]]; then
-  mkdir -p testbed-lease
-  echo "$TOOLSMITHS_ENV_LOCKFILE" > testbed-lease/metadata
+	mkdir -p testbed-lease
+	echo "$TOOLSMITHS_ENV_LOCKFILE" >testbed-lease/metadata
 fi
 
 # Writing variables to temp file
 echo "Write vars to temp file"
-smith bosh -l testbed-lease/metadata > temp_env.sh
+smith bosh -l testbed-lease/metadata >temp_env.sh
 
 # Sourcing Temp File
 echo "Source tempfile"

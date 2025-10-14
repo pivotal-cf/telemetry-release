@@ -18,7 +18,7 @@ apt-get -y install git
 version=$(git -C "$PWD"/telemetry-cli-source-code tag --sort=-v:refname | head -n 1)
 
 pushd telemetry-release
-  cat > config/private.yml <<EOM
+cat >config/private.yml <<EOM
 ---
 blobstore:
   options:
@@ -27,25 +27,27 @@ blobstore:
       $(echo $GCS_SERVICE_ACCOUNT_KEY)
 EOM
 
-  # Check if new version already exists
-  set +e
-  "$bosh_cli" blobs | grep -E "telemetry-(cli|collector)-linux-$version"
-  if [[ $? == "0" ]]; then
-    echo "Version has not changed"
-    exit 0
-  fi
-  set -e
+# Check if new version already exists
+set +e
+"$bosh_cli" blobs | grep -E "telemetry-(cli|collector)-linux-${version}"
+exit_code=$?
+set -e
 
-  old_blob=$("$bosh_cli" blobs | grep -E "telemetry-cli|telemetry-collector" | awk '{print $1}' | sed 's/:$//')
-  new_blob_path="$task_dir"/binary/telemetry-cli-linux-amd64
-  new_blob="telemetry-cli/telemetry-cli-linux-$version"
+if [[ "${exit_code}" == "0" ]]; then
+	echo "Version has not changed"
+	exit 0
+fi
 
-  "$bosh_cli" remove-blob "$old_blob"
-  "$bosh_cli" add-blob "$new_blob_path" "$new_blob"
-  "$bosh_cli" upload-blobs
+old_blob=$("$bosh_cli" blobs | grep -E "telemetry-cli|telemetry-collector" | awk '{print $1}' | sed 's/:$//')
+new_blob_path="${task_dir}/binary/telemetry-cli-linux-amd64"
+new_blob="telemetry-cli/telemetry-cli-linux-${version}"
 
-  git add .
-  git config --global user.name $GITHUB_NAME
-  git config --global user.email $GITHUB_EMAIL
-  git commit -m "Update telemetry-cli blob to version $version"
+"$bosh_cli" remove-blob "${old_blob}"
+"$bosh_cli" add-blob "${new_blob_path}" "${new_blob}"
+"$bosh_cli" upload-blobs
+
+git add .
+git config --global user.name "${GITHUB_NAME}"
+git config --global user.email "${GITHUB_EMAIL}"
+git commit -m "Update telemetry-cli blob to version ${version}"
 popd
