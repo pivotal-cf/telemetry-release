@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -30,6 +32,10 @@ var (
 	batchMessages map[string][]map[string]interface{}
 
 	messageLimit int
+
+	// messageMutex protects concurrent access to messages and batchMessages maps
+	// These maps are accessed by multiple HTTP handler goroutines simultaneously
+	messageMutex sync.RWMutex
 )
 
 func main() {
@@ -65,14 +71,22 @@ func postMessageHandler(
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+
+		// Close body immediately after reading
 		reqBody, err := io.ReadAll(r.Body)
+		closeErr := r.Body.Close()
 		if err != nil {
+			log.Printf("Error reading request body for user %s: %v", userID, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		defer func() { _ = r.Body.Close() }()
+		if closeErr != nil {
+			log.Printf("Error closing request body for user %s: %v", userID, closeErr)
+		}
+
 		recMessages, err := messageReader(reqBody, r.Header.Get("Content-Encoding"))
 		if err != nil {
+			log.Printf("Error parsing messages for user %s: %v", userID, err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -83,7 +97,12 @@ func postMessageHandler(
 	}
 }
 
+// updateMessages safely updates the message storage for a user with proper locking
+// to prevent race conditions when multiple HTTP requests arrive concurrently.
 func updateMessages(userID string, messagesToUpdate map[string][]map[string]interface{}, receivedMessages []map[string]interface{}) {
+	messageMutex.Lock()
+	defer messageMutex.Unlock()
+
 	currMessages, ok := messagesToUpdate[userID]
 	if !ok {
 		currMessages = []map[string]interface{}{}
@@ -104,16 +123,30 @@ func readMessagesForUser(receivedMessages map[string][]map[string]interface{}) h
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+
+		messageMutex.RLock()
 		userMessages, ok := receivedMessages[userID]
-		if ok {
-			msgBytes, err := json.Marshal(&userMessages)
+		// Make a copy of the messages to avoid holding the lock during marshaling
+		messagesCopy := make([]map[string]interface{}, len(userMessages))
+		copy(messagesCopy, userMessages)
+		messageMutex.RUnlock()
+
+		if ok && len(messagesCopy) > 0 {
+			msgBytes, err := json.Marshal(&messagesCopy)
 			if err != nil {
+				log.Printf("Error marshaling messages for user %s: %v", userID, err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			_, _ = w.Write(msgBytes)
+			_, err = w.Write(msgBytes)
+			if err != nil {
+				log.Printf("Error writing response for user %s: %v", userID, err)
+			}
 		} else {
-			_, _ = w.Write([]byte("[]"))
+			_, err := w.Write([]byte("[]"))
+			if err != nil {
+				log.Printf("Error writing empty response for user %s: %v", userID, err)
+			}
 		}
 	}
 }
@@ -124,8 +157,11 @@ func clearMessages(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
+	messageMutex.Lock()
 	delete(messages, userID)
 	delete(batchMessages, userID)
+	messageMutex.Unlock()
 }
 
 type UpResponse struct {
@@ -139,7 +175,9 @@ func upHandler(w http.ResponseWriter, r *http.Request) {
 	vcapApplication := os.Getenv("VCAP_APPLICATION")
 	var appInfo map[string]interface{}
 	if vcapApplication != "" {
-		_ = json.Unmarshal([]byte(vcapApplication), &appInfo)
+		if err := json.Unmarshal([]byte(vcapApplication), &appInfo); err != nil {
+			log.Printf("Warning: failed to unmarshal VCAP_APPLICATION: %v", err)
+		}
 	}
 
 	response := UpResponse{
@@ -150,7 +188,9 @@ func upHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding health check response: %v", err)
+	}
 }
 
 func getString(data map[string]interface{}, key, defaultValue string) string {
