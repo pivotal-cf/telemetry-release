@@ -1,7 +1,24 @@
 <%
   sched_input = p('schedule')
   if sched_input == 'random'
-    schedule = "#{rand(60)} #{rand(24)} * * *"
+    # Get VM index with safe defaults for edge cases
+    vm_index = (spec.index || 0).to_i.abs
+    
+    # Use a fixed seed for deterministic base time (same for all VMs in foundation)
+    # This ensures all VMs in the same foundation get the same base time
+    srand(12345)  # Fixed seed for deterministic base time
+    base_minute = rand(60)
+    base_hour = rand(24)
+    
+    # Stagger VMs within 60-minute window
+    stagger_minute = vm_index % 60
+    
+    # Calculate final schedule with hour rollover handling
+    total_minutes = base_minute + stagger_minute
+    final_minute = total_minutes % 60
+    final_hour = (base_hour + (total_minutes / 60)) % 24
+    
+    schedule = "#{final_minute} #{final_hour} * * *"
   else
     schedule = sched_input
   end

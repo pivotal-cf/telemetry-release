@@ -1,0 +1,17 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: ruby
+    tag: "3.4"
+
+inputs:
+  - name: telemetry-release-source
+
+outputs:
+  - name: test-results
+
+run:
+  path: telemetry-release-source/ci/tasks/run-collector-unit-tests.sh

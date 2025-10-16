@@ -245,6 +245,19 @@ jobs:
     - put: version
       params: {file: version/version}
 
+- name: run-collector-unit-tests
+  serial_groups: [version]
+  plan:
+    - get: telemetry-release
+      trigger: true
+    - get: version
+      params: {pre: build}
+    - get: ci
+    - task: run-collector-unit-tests
+      file: ci/ci/tasks/run-collector-unit-tests.yml
+    - put: version
+      params: {file: version/version}
+
 # - name: deploy-telemetry-acceptance
 #   serial_groups: [acceptance]
 #   plan:
