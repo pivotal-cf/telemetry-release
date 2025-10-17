@@ -126,6 +126,40 @@ describe 'Telemetry Collector Cron Schedule' do
       
       expect(schedule1).not_to eq(schedule2)
     end
+
+    it 'generates different base times for different deployments' do
+      # Test that different deployments get different base times
+      foundation1_schedules = generate_schedules_for_vms(10, deployment: 'foundation-1')
+      foundation2_schedules = generate_schedules_for_vms(10, deployment: 'foundation-2')
+      
+      # Get base times (VM 0 schedule for each foundation)
+      foundation1_base = foundation1_schedules[0]
+      foundation2_base = foundation2_schedules[0]
+      
+      # They should be different
+      expect(foundation1_base).not_to eq(foundation2_base)
+    end
+
+    it 'maintains 60-minute window within each deployment' do
+      # Test multiple deployments
+      ['foundation-1', 'foundation-2', 'foundation-3'].each do |deployment|
+        schedules = generate_schedules_for_vms(100, deployment: deployment)
+        
+        time_windows = schedules.map { |s| time_in_minutes(s[:hour], s[:minute]) }
+        min_time = time_windows.min
+        max_time = time_windows.max
+        
+        # Handle day rollover
+        if max_time - min_time > 720
+          adjusted_times = time_windows.map { |t| t < 720 ? t + 1440 : t }
+          min_time = adjusted_times.min
+          max_time = adjusted_times.max
+        end
+        
+        expect(max_time - min_time).to be <= 60, 
+          "Foundation #{deployment} spans #{max_time - min_time} minutes, should be ≤ 60"
+      end
+    end
   end
 
   describe 'cron schedule format' do
@@ -183,11 +217,11 @@ describe 'Telemetry Collector Cron Schedule' do
 
   private
 
-  def generate_schedules_for_vms(vm_count, base_hour: nil, base_minute: nil)
+  def generate_schedules_for_vms(vm_count, base_hour: nil, base_minute: nil, deployment: 'test-foundation')
     schedules = []
     
     vm_count.times do |vm_index|
-      spec_data = { index: vm_index }
+      spec_data = { index: vm_index, deployment: deployment }
       properties = { 'schedule' => 'random' }
       
       # Override base time if specified (for testing hour rollover)
@@ -210,8 +244,8 @@ describe 'Telemetry Collector Cron Schedule' do
     schedules
   end
 
-  def compile_schedule_for_vm(vm_index)
-    spec_data = { index: vm_index }
+  def compile_schedule_for_vm(vm_index, deployment: 'test-foundation')
+    spec_data = { index: vm_index, deployment: deployment }
     properties = { 'schedule' => 'random' }
     
     result = compile_erb_template(template_content, properties, spec_data)

@@ -4,9 +4,13 @@
     # Get VM index with safe defaults for edge cases
     vm_index = (spec.index || 0).to_i.abs
     
-    # Use a fixed seed for deterministic base time (same for all VMs in foundation)
-    # This ensures all VMs in the same foundation get the same base time
-    srand(12345)  # Fixed seed for deterministic base time
+    # Use foundation-specific seed for deterministic base time
+    # This ensures all VMs in the same foundation get the same base time,
+    # but different foundations get different base times
+    require 'digest'
+    deployment_name = (spec.deployment || 'default').to_s
+    foundation_seed = Digest::MD5.hexdigest(deployment_name).to_i(16) % (2**31 - 1)
+    srand(foundation_seed)
     base_minute = rand(60)
     base_hour = rand(24)
     
