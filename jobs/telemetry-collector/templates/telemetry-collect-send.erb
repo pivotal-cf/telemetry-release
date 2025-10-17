@@ -97,7 +97,7 @@ if [ $collect_exit_code -ne 0 ]; then
   exit $collect_exit_code
 fi
 
-TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar" -type f | head -n 1)
+TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar" -type f 2>/dev/null | head -n 1 || true)
 
 # Verify tarball exists after successful collection
 if [ -z "$TAR_FILE" ]; then
@@ -120,8 +120,10 @@ if [ "${audit_mode}" != "true" ]; then
   export https_proxy=<%= p("telemetry.proxy_settings.https_proxy") %>
   
   # Attempt send but don't fail if it errors
+  set +e
   send_output=$($COLLECTOR_BIN send --path "$TAR_FILE" --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
   send_exit_code=$?
+  set -e
   
   if [ $send_exit_code -ne 0 ]; then
     # Log structured error for monitoring
