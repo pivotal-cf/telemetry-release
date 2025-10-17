@@ -85,15 +85,64 @@ create_or_update_options "$pre_start_config"
 # Check and update collect.yml
 create_or_update_options "$config"
 
+# Always collect data (must succeed)
 $COLLECTOR_BIN collect --config "$1"
+collect_exit_code=$?
+
+if [ $collect_exit_code -ne 0 ]; then
+  echo "ERROR: Telemetry data collection failed with exit code $collect_exit_code" >&2
+  exit $collect_exit_code
+fi
 
 TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar")
 
-export no_proxy=<%= p("telemetry.proxy_settings.no_proxy") %>
-export http_proxy=<%= p("telemetry.proxy_settings.http_proxy") %>
-export https_proxy=<%= p("telemetry.proxy_settings.https_proxy") %>
-
+# Only attempt to send if not in audit mode
 audit_mode=<%= p("audit_mode") %>
 if [ "${audit_mode}" != "true" ]; then
-  $COLLECTOR_BIN send --path $TAR_FILE --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %>
+  export no_proxy=<%= p("telemetry.proxy_settings.no_proxy") %>
+  export http_proxy=<%= p("telemetry.proxy_settings.http_proxy") %>
+  export https_proxy=<%= p("telemetry.proxy_settings.https_proxy") %>
+  
+  # Attempt send but don't fail if it errors
+  send_output=$($COLLECTOR_BIN send --path $TAR_FILE --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
+  send_exit_code=$?
+  
+  if [ $send_exit_code -ne 0 ]; then
+    # Log structured error for monitoring
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    log_file="/var/vcap/sys/log/telemetry-collector/send-failures.log"
+    
+    # Classify error type based on output
+    if echo "$send_output" | grep -qi "unauthorized\|not authorized\|401"; then
+      error_type="CUSTOMER_CONFIG_ERROR"
+      error_msg="API key is invalid or expired"
+    elif echo "$send_output" | grep -qi "connection refused\|timeout\|503\|502\|504"; then
+      error_type="MIDDLEWARE_PIPELINE_ERROR"
+      error_msg="Telemetry infrastructure is temporarily unavailable"
+    else
+      error_type="UNKNOWN_ERROR"
+      error_msg="Telemetry send failed"
+    fi
+    
+    # Log structured error
+    echo "{\"timestamp\":\"$timestamp\",\"error_type\":\"$error_type\",\"message\":\"$error_msg\",\"exit_code\":$send_exit_code,\"output\":\"$send_output\"}" >> "$log_file"
+    
+    # Also log human-readable warning
+    echo "WARNING: Telemetry send failed during startup - data collected successfully and will be retried by cron job" >&2
+    echo "  Error type: $error_type" >&2
+    echo "  Details: $error_msg" >&2
+    
+    # Return success to allow installation to continue
+    exit 0
+  else
+    # Log successful send
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    log_file="/var/vcap/sys/log/telemetry-collector/send-success.log"
+    echo "{\"timestamp\":\"$timestamp\",\"status\":\"success\",\"message\":\"Telemetry sent successfully during startup\"}" >> "$log_file"
+  fi
+else
+  echo "INFO: Audit mode enabled - data collected but not sent"
 fi
+
+# Always exit successfully if we reach here
+exit 0

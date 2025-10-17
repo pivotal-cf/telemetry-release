@@ -8,13 +8,10 @@ set -eu
 <% end %>
 
 
-set +e
+# Ensure log directory has correct permissions
 chown -R vcap:vcap /var/vcap/sys/log
+
+# Run collect-send script (will always succeed unless collection fails)
 /var/vcap/jobs/telemetry-collector/bin/telemetry-collect-send /var/vcap/jobs/telemetry-collector/config/pre-start-collect.yml
-exit_code=$?
-if [[ "$exit_code" == "1" ]]; then
-  exit 1
-fi
-set -e
 
 cp /var/vcap/jobs/telemetry-collector/config/telemetry-collector-cron /etc/cron.d/telemetry-collector-cron

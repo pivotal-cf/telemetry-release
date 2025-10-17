@@ -16,7 +16,34 @@ module ERBTestHelper
     
     # Add spec method
     binding_context.define_singleton_method(:spec) do
-      OpenStruct.new(spec_data)
+      spec_obj = OpenStruct.new(spec_data)
+      # Ensure deployment is available
+      spec_obj.deployment ||= spec_data[:deployment] || 'test-deployment'
+      spec_obj
+    end
+    
+    # Add if_p method for ERB templates
+    binding_context.define_singleton_method(:if_p) do |key, &block|
+      # Handle nested properties like 'telemetry.endpoint_override'
+      if key.include?('.')
+        parts = key.split('.')
+        value = properties
+        parts.each do |part|
+          if value.is_a?(Hash) && value.key?(part)
+            value = value[part]
+          else
+            value = nil
+            break
+          end
+        end
+        if !value.nil?
+          block.call(value)
+        end
+      else
+        if properties.key?(key) && !properties[key].nil?
+          block.call(properties[key])
+        end
+      end
     end
     
     # Compile and evaluate the ERB template
@@ -41,8 +68,38 @@ module ERBTestHelper
     minute = minutes % 60
     { hour: hour, minute: minute }
   end
+  
+  def parse_json_log_line(log_line)
+    JSON.parse(log_line.strip)
+  rescue JSON::ParserError
+    nil
+  end
+  
+  def mock_telemetry_cli_behavior(collect_exit_code: 0, send_exit_code: 0, send_output: "")
+    # This would be used in integration tests to mock the telemetry-cli behavior
+    # For now, we'll implement this in the actual test files
+    { collect_exit_code: collect_exit_code, send_exit_code: send_exit_code, send_output: send_output }
+  end
+  
+  def create_temp_log_directory
+    require 'tmpdir'
+    temp_dir = Dir.mktmpdir("telemetry_test_logs")
+    FileUtils.mkdir_p("#{temp_dir}/telemetry-collector")
+    temp_dir
+  end
+  
+  def cleanup_temp_directory(temp_dir)
+    FileUtils.rm_rf(temp_dir) if temp_dir && Dir.exist?(temp_dir)
+  end
 end
 
 RSpec.configure do |config|
   config.include ERBTestHelper
+  
+  # Cleanup temp directories after each test
+  config.after(:each) do
+    if @temp_log_dir
+      cleanup_temp_directory(@temp_log_dir)
+    end
+  end
 end

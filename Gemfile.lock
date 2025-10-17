@@ -5,6 +5,8 @@ GEM
     diff-lcs (1.6.2)
     erb (4.0.4)
       cgi (>= 0.3.3)
+    fileutils (1.7.3)
+    json (2.15.1)
     rspec (3.13.1)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -25,6 +27,8 @@ PLATFORMS
 
 DEPENDENCIES
   erb (~> 4.0)
+  fileutils (~> 1.6)
+  json (~> 2.6)
   rspec (~> 3.12)
 
 RUBY VERSION
