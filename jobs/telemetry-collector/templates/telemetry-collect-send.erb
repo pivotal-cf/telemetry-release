@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -e
 
 rm -f /var/vcap/data/telemetry-collector/*.tar
 chown -R vcap:vcap /var/vcap/jobs/telemetry-collector/config/
@@ -99,8 +99,21 @@ fi
 
 TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar" -type f | head -n 1)
 
+# Verify tarball exists after successful collection
+if [ -z "$TAR_FILE" ]; then
+  echo "ERROR: No tarball found after collection" >&2
+  exit 1
+fi
+
+if [ ! -f "$TAR_FILE" ]; then
+  echo "ERROR: Tarball does not exist: $TAR_FILE" >&2
+  exit 1
+fi
+
 # Only attempt to send if not in audit mode
-audit_mode=<%= p("audit_mode") %>
+audit_mode="<%= p("audit_mode") %>"
+echo "DEBUG: Found tarball: $TAR_FILE" >&2
+echo "DEBUG: Audit mode: $audit_mode" >&2
 if [ "${audit_mode}" != "true" ]; then
   export no_proxy=<%= p("telemetry.proxy_settings.no_proxy") %>
   export http_proxy=<%= p("telemetry.proxy_settings.http_proxy") %>
@@ -114,6 +127,9 @@ if [ "${audit_mode}" != "true" ]; then
     # Log structured error for monitoring
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     log_file="/var/vcap/sys/log/telemetry-collector/send-failures.log"
+    
+    # Ensure log directory exists
+    mkdir -p "$(dirname "$log_file")"
     
     # Classify error type based on output
     if echo "$send_output" | grep -qi "unauthorized\|not authorized\|401"; then
@@ -141,6 +157,10 @@ if [ "${audit_mode}" != "true" ]; then
     # Log successful send
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     log_file="/var/vcap/sys/log/telemetry-collector/send-success.log"
+    
+    # Ensure log directory exists
+    mkdir -p "$(dirname "$log_file")"
+    
     echo "{\"timestamp\":\"$timestamp\",\"status\":\"success\",\"message\":\"Telemetry sent successfully during startup\"}" >> "$log_file"
   fi
 else
