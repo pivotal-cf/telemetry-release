@@ -73,6 +73,9 @@ create_or_update_options() {
             sed -i.bak "/$op_data_key/{s/true/false/;}" "$file_path"
         fi
     fi
+    
+    # Clean up backup files created by sed
+    rm -f "${file_path}.bak"
 }
 
 # Config paths
@@ -94,7 +97,7 @@ if [ $collect_exit_code -ne 0 ]; then
   exit $collect_exit_code
 fi
 
-TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar")
+TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar" -type f | head -n 1)
 
 # Only attempt to send if not in audit mode
 audit_mode=<%= p("audit_mode") %>
@@ -104,7 +107,7 @@ if [ "${audit_mode}" != "true" ]; then
   export https_proxy=<%= p("telemetry.proxy_settings.https_proxy") %>
   
   # Attempt send but don't fail if it errors
-  send_output=$($COLLECTOR_BIN send --path $TAR_FILE --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
+  send_output=$($COLLECTOR_BIN send --path "$TAR_FILE" --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
   send_exit_code=$?
   
   if [ $send_exit_code -ne 0 ]; then
