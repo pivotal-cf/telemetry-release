@@ -3,8 +3,6 @@ builds:
     version: 0.13.4-jammy
   02baf1b0-e71d-496a-503f-4627c9d8b5df:
     version: 0.13.9
-  0315faca-f335-487c-57dc-3b99802273ab:
-    version: 2.3.0
   07e26d36-cfa8-4c3b-4b28-173d01f80d36:
     version: 0.13.4-xenial
   08acf386-79ff-4feb-5275-f188008250c7:
@@ -111,8 +109,6 @@ builds:
     version: 0.13.8
   b2bfb4e1-b82e-4200-4265-c7387c698595:
     version: 0.0.20
-  bc85319f-d2dd-4978-4258-d8f245437b92:
-    version: 2.3.1
   c2bb3483-bfab-4216-6e91-608c5a7cbf4b:
     version: 0.14.6
   c54ff485-7c56-4825-54d1-d3514ca2909c:
