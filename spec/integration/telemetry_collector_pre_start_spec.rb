@@ -52,7 +52,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
       }
       
       result = compile_erb_template(collect_send_template, properties)
-      expect(result).to include('audit_mode=true')
+      expect(result).to include('audit_mode="true"')
     end
 
     it 'handles endpoint override in collect-send template' do
