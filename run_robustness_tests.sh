@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Telemetry Release - Robustness Test Runner
-# 
+#
 # This script runs all robustness tests and generates a report
 # showing production risks in the codebase.
 #
@@ -26,16 +26,16 @@ GENERATE_HTML=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
-    case $1 in
-        --html)
-            GENERATE_HTML=true
-            shift
-            ;;
-        *)
-            echo "Unknown option: $1"
-            exit 1
-            ;;
-    esac
+	case $1 in
+	--html)
+		GENERATE_HTML=true
+		shift
+		;;
+	*)
+		echo "Unknown option: $1"
+		exit 1
+		;;
+	esac
 done
 
 # Create output directory
@@ -62,8 +62,8 @@ echo ""
 BASH_TEST_SCRIPT="$SCRIPT_DIR/jobs/telemetry-collector/templates/telemetry-collect-send_test.sh"
 
 if [ ! -f "$BASH_TEST_SCRIPT" ]; then
-    echo -e "${RED}ERROR: Test script not found: $BASH_TEST_SCRIPT${NC}"
-    exit 1
+	echo -e "${RED}ERROR: Test script not found: $BASH_TEST_SCRIPT${NC}"
+	exit 1
 fi
 
 chmod +x "$BASH_TEST_SCRIPT"
@@ -75,10 +75,10 @@ echo "Running: $BASH_TEST_SCRIPT"
 echo ""
 
 # Run bash tests and capture output
-if bash "$BASH_TEST_SCRIPT" > "$BASH_RESULT_FILE" 2>&1; then
-    BASH_EXIT_CODE=0
+if bash "$BASH_TEST_SCRIPT" >"$BASH_RESULT_FILE" 2>&1; then
+	BASH_EXIT_CODE=0
 else
-    BASH_EXIT_CODE=1
+	BASH_EXIT_CODE=1
 fi
 
 # Display results
@@ -86,9 +86,9 @@ cat "$BASH_RESULT_FILE"
 echo ""
 
 if [ $BASH_EXIT_CODE -eq 0 ]; then
-    echo -e "${GREEN}✓ All bash tests passed${NC}"
+	echo -e "${GREEN}✓ All bash tests passed${NC}"
 else
-    echo -e "${RED}✗ Bash tests failed (see issues above)${NC}"
+	echo -e "${RED}✗ Bash tests failed (see issues above)${NC}"
 fi
 
 echo ""
@@ -107,46 +107,46 @@ RUBY_RESULT_FILE="$OUTPUT_DIR/ruby_test_results.txt"
 RUBY_EXIT_CODE=0
 
 if [ ! -d "$RUBY_TEST_DIR" ]; then
-    echo -e "${YELLOW}⊘ Skipping Ruby tests: Directory not found${NC}"
-    echo ""
+	echo -e "${YELLOW}⊘ Skipping Ruby tests: Directory not found${NC}"
+	echo ""
 else
-    cd "$RUBY_TEST_DIR"
-    
-    # Check if bundle is available
-    if ! command -v bundle &> /dev/null; then
-        echo -e "${YELLOW}⊘ Skipping Ruby tests: bundler not installed${NC}"
-        echo "   Install with: gem install bundler"
-        echo ""
-    else
-        # Install dependencies if needed
-        if [ ! -f "Gemfile.lock" ] || ! bundle check &> /dev/null; then
-            echo "Installing Ruby dependencies..."
-            bundle install --quiet
-            echo ""
-        fi
-        
-        echo "Running: bundle exec rspec $RUBY_TEST_FILE"
-        echo ""
-        
-        # Run Ruby tests
-        if bundle exec rspec "$RUBY_TEST_FILE" --format documentation --no-color > "$RUBY_RESULT_FILE" 2>&1; then
-            RUBY_EXIT_CODE=0
-        else
-            RUBY_EXIT_CODE=1
-        fi
-        
-        # Display results
-        cat "$RUBY_RESULT_FILE"
-        echo ""
-        
-        if [ $RUBY_EXIT_CODE -eq 0 ]; then
-            echo -e "${GREEN}✓ All Ruby tests passed${NC}"
-        else
-            echo -e "${RED}✗ Ruby tests failed (see failures above)${NC}"
-        fi
-    fi
-    
-    cd "$SCRIPT_DIR"
+	cd "$RUBY_TEST_DIR"
+
+	# Check if bundle is available
+	if ! command -v bundle &>/dev/null; then
+		echo -e "${YELLOW}⊘ Skipping Ruby tests: bundler not installed${NC}"
+		echo "   Install with: gem install bundler"
+		echo ""
+	else
+		# Install dependencies if needed
+		if [ ! -f "Gemfile.lock" ] || ! bundle check &>/dev/null; then
+			echo "Installing Ruby dependencies..."
+			bundle install --quiet
+			echo ""
+		fi
+
+		echo "Running: bundle exec rspec $RUBY_TEST_FILE"
+		echo ""
+
+		# Run Ruby tests
+		if bundle exec rspec "$RUBY_TEST_FILE" --format documentation --no-color >"$RUBY_RESULT_FILE" 2>&1; then
+			RUBY_EXIT_CODE=0
+		else
+			RUBY_EXIT_CODE=1
+		fi
+
+		# Display results
+		cat "$RUBY_RESULT_FILE"
+		echo ""
+
+		if [ $RUBY_EXIT_CODE -eq 0 ]; then
+			echo -e "${GREEN}✓ All Ruby tests passed${NC}"
+		else
+			echo -e "${RED}✗ Ruby tests failed (see failures above)${NC}"
+		fi
+	fi
+
+	cd "$SCRIPT_DIR"
 fi
 
 echo ""
@@ -164,35 +164,35 @@ TOTAL_FAILURES=0
 
 # Count bash test results
 if [ -f "$BASH_RESULT_FILE" ]; then
-    BASH_TESTS=$(grep "Total Tests:" "$BASH_RESULT_FILE" | awk '{print $3}')
-    BASH_FAILURES=$(grep "Failed:" "$BASH_RESULT_FILE" | awk '{print $2}')
-    TOTAL_TESTS=$((TOTAL_TESTS + BASH_TESTS))
-    TOTAL_FAILURES=$((TOTAL_FAILURES + BASH_FAILURES))
-    
-    echo "Bash Tests:"
-    echo "  Total:  $BASH_TESTS"
-    echo "  Failed: $BASH_FAILURES"
-    echo ""
+	BASH_TESTS=$(grep "Total Tests:" "$BASH_RESULT_FILE" | awk '{print $3}')
+	BASH_FAILURES=$(grep "Failed:" "$BASH_RESULT_FILE" | awk '{print $2}')
+	TOTAL_TESTS=$((TOTAL_TESTS + BASH_TESTS))
+	TOTAL_FAILURES=$((TOTAL_FAILURES + BASH_FAILURES))
+
+	echo "Bash Tests:"
+	echo "  Total:  $BASH_TESTS"
+	echo "  Failed: $BASH_FAILURES"
+	echo ""
 fi
 
 # Count Ruby test results
 if [ -f "$RUBY_RESULT_FILE" ]; then
-    if grep -q "examples" "$RUBY_RESULT_FILE"; then
-        # Parse: "18 examples, 8 failures"
-        RUBY_TESTS=$(grep -oP '\d+(?= examples?)' "$RUBY_RESULT_FILE" | tail -1)
-        RUBY_FAILURES=$(grep -oP '\d+(?= failures?)' "$RUBY_RESULT_FILE" | tail -1)
-        
-        # Handle case where no failures (grep returns nothing)
-        RUBY_FAILURES=${RUBY_FAILURES:-0}
-        
-        TOTAL_TESTS=$((TOTAL_TESTS + RUBY_TESTS))
-        TOTAL_FAILURES=$((TOTAL_FAILURES + RUBY_FAILURES))
-        
-        echo "Ruby Tests:"
-        echo "  Total:  $RUBY_TESTS"
-        echo "  Failed: $RUBY_FAILURES"
-        echo ""
-    fi
+	if grep -q "examples" "$RUBY_RESULT_FILE"; then
+		# Parse: "18 examples, 8 failures"
+		RUBY_TESTS=$(grep -oP '\d+(?= examples?)' "$RUBY_RESULT_FILE" | tail -1)
+		RUBY_FAILURES=$(grep -oP '\d+(?= failures?)' "$RUBY_RESULT_FILE" | tail -1)
+
+		# Handle case where no failures (grep returns nothing)
+		RUBY_FAILURES=${RUBY_FAILURES:-0}
+
+		TOTAL_TESTS=$((TOTAL_TESTS + RUBY_TESTS))
+		TOTAL_FAILURES=$((TOTAL_FAILURES + RUBY_FAILURES))
+
+		echo "Ruby Tests:"
+		echo "  Total:  $RUBY_TESTS"
+		echo "  Failed: $RUBY_FAILURES"
+		echo ""
+	fi
 fi
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -202,22 +202,22 @@ echo "  Failed:       $TOTAL_FAILURES"
 echo ""
 
 if [ $TOTAL_FAILURES -gt 0 ]; then
-    PERCENT_FAILED=$((TOTAL_FAILURES * 100 / TOTAL_TESTS))
-    echo -e "${RED}⚠️  ${PERCENT_FAILED}% of tests FAILED${NC}"
-    echo ""
-    echo "These failures demonstrate PRODUCTION RISKS that will cause:"
-    echo "  • Silent failures and data loss"
-    echo "  • Disk space exhaustion"
-    echo "  • Memory exhaustion (OOM crashes)"
-    echo "  • Script failures on edge cases"
-    echo ""
-    echo "See ROBUSTNESS_TEST_RESULTS.md for detailed analysis."
-    OVERALL_EXIT_CODE=1
+	PERCENT_FAILED=$((TOTAL_FAILURES * 100 / TOTAL_TESTS))
+	echo -e "${RED}⚠️  ${PERCENT_FAILED}% of tests FAILED${NC}"
+	echo ""
+	echo "These failures demonstrate PRODUCTION RISKS that will cause:"
+	echo "  • Silent failures and data loss"
+	echo "  • Disk space exhaustion"
+	echo "  • Memory exhaustion (OOM crashes)"
+	echo "  • Script failures on edge cases"
+	echo ""
+	echo "See ROBUSTNESS_TEST_RESULTS.md for detailed analysis."
+	OVERALL_EXIT_CODE=1
 else
-    echo -e "${GREEN}✓ All tests passed!${NC}"
-    echo ""
-    echo "The codebase has strong robustness guarantees."
-    OVERALL_EXIT_CODE=0
+	echo -e "${GREEN}✓ All tests passed!${NC}"
+	echo ""
+	echo "The codebase has strong robustness guarantees."
+	OVERALL_EXIT_CODE=0
 fi
 
 echo ""
@@ -226,14 +226,14 @@ echo ""
 # Generate HTML Report (Optional)
 # ============================================================================
 if [ "$GENERATE_HTML" = true ]; then
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Generating HTML Report${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-    
-    HTML_FILE="$OUTPUT_DIR/robustness_report.html"
-    
-    cat > "$HTML_FILE" <<'HTML_HEADER'
+	echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+	echo -e "${BLUE}Generating HTML Report${NC}"
+	echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+	echo ""
+
+	HTML_FILE="$OUTPUT_DIR/robustness_report.html"
+
+	cat >"$HTML_FILE" <<'HTML_HEADER'
 <!DOCTYPE html>
 <html>
 <head>
@@ -307,29 +307,29 @@ if [ "$GENERATE_HTML" = true ]; then
         </div>
     </div>
 HTML_HEADER
-    
-    # Add bash results
-    if [ -f "$BASH_RESULT_FILE" ]; then
-        echo "<div class='summary'>" >> "$HTML_FILE"
-        echo "<h2>Bash Script Tests (Collector)</h2>" >> "$HTML_FILE"
-        echo "<pre>" >> "$HTML_FILE"
-        cat "$BASH_RESULT_FILE" | sed 's/\x1b\[[0-9;]*m//g' >> "$HTML_FILE"
-        echo "</pre>" >> "$HTML_FILE"
-        echo "</div>" >> "$HTML_FILE"
-    fi
-    
-    # Add Ruby results
-    if [ -f "$RUBY_RESULT_FILE" ]; then
-        echo "<div class='summary'>" >> "$HTML_FILE"
-        echo "<h2>Ruby Tests (Filter Memory)</h2>" >> "$HTML_FILE"
-        echo "<pre>" >> "$HTML_FILE"
-        cat "$RUBY_RESULT_FILE" >> "$HTML_FILE"
-        echo "</pre>" >> "$HTML_FILE"
-        echo "</div>" >> "$HTML_FILE"
-    fi
-    
-    # Add cost analysis
-    cat >> "$HTML_FILE" <<'HTML_FOOTER'
+
+	# Add bash results
+	if [ -f "$BASH_RESULT_FILE" ]; then
+		echo "<div class='summary'>" >>"$HTML_FILE"
+		echo "<h2>Bash Script Tests (Collector)</h2>" >>"$HTML_FILE"
+		echo "<pre>" >>"$HTML_FILE"
+		cat "$BASH_RESULT_FILE" | sed 's/\x1b\[[0-9;]*m//g' >>"$HTML_FILE"
+		echo "</pre>" >>"$HTML_FILE"
+		echo "</div>" >>"$HTML_FILE"
+	fi
+
+	# Add Ruby results
+	if [ -f "$RUBY_RESULT_FILE" ]; then
+		echo "<div class='summary'>" >>"$HTML_FILE"
+		echo "<h2>Ruby Tests (Filter Memory)</h2>" >>"$HTML_FILE"
+		echo "<pre>" >>"$HTML_FILE"
+		cat "$RUBY_RESULT_FILE" >>"$HTML_FILE"
+		echo "</pre>" >>"$HTML_FILE"
+		echo "</div>" >>"$HTML_FILE"
+	fi
+
+	# Add cost analysis
+	cat >>"$HTML_FILE" <<'HTML_FOOTER'
     
     <div class="cost">
         <h2>📊 Business Impact</h2>
@@ -361,16 +361,16 @@ HTML_HEADER
 </body>
 </html>
 HTML_FOOTER
-    
-    echo "HTML report generated: $HTML_FILE"
-    echo ""
-    
-    # Try to open in browser
-    if command -v open &> /dev/null; then
-        open "$HTML_FILE"
-    elif command -v xdg-open &> /dev/null; then
-        xdg-open "$HTML_FILE"
-    fi
+
+	echo "HTML report generated: $HTML_FILE"
+	echo ""
+
+	# Try to open in browser
+	if command -v open &>/dev/null; then
+		open "$HTML_FILE"
+	elif command -v xdg-open &>/dev/null; then
+		xdg-open "$HTML_FILE"
+	fi
 fi
 
 # ============================================================================
@@ -381,7 +381,7 @@ echo "Test Results:"
 echo "  • Bash: $BASH_RESULT_FILE"
 echo "  • Ruby: $RUBY_RESULT_FILE"
 if [ "$GENERATE_HTML" = true ]; then
-    echo "  • HTML: $HTML_FILE"
+	echo "  • HTML: $HTML_FILE"
 fi
 echo ""
 echo "For detailed analysis see:"
@@ -389,5 +389,3 @@ echo "  • ROBUSTNESS_TEST_RESULTS.md"
 echo ""
 
 exit $OVERALL_EXIT_CODE
-
-

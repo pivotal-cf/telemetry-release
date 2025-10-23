@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
 # Test Suite for telemetry-collect-send.erb
-# 
+#
 # This test suite demonstrates critical bugs in the collector script.
 # Run with: bash telemetry-collect-send_test.sh
 #
 # Expected: Multiple tests will FAIL, demonstrating production issues
 
-set +e  # Don't exit on failure - we want to see all test results
+set +e # Don't exit on failure - we want to see all test results
 
 # Colors for output
 RED='\033[0;31m'
@@ -34,7 +34,7 @@ echo ""
 
 # Mock telemetry-cli binary
 MOCK_CLI="$TEST_DIR/telemetry-cli-linux"
-cat > "$MOCK_CLI" <<'MOCK_EOF'
+cat >"$MOCK_CLI" <<'MOCK_EOF'
 #!/bin/bash
 # Mock telemetry-cli that creates a tarball
 if [ "$1" == "collect" ]; then
@@ -53,21 +53,21 @@ chmod +x "$MOCK_CLI"
 
 # Helper functions
 run_test() {
-    TESTS_RUN=$((TESTS_RUN + 1))
-    echo -e "${YELLOW}TEST $TESTS_RUN: $1${NC}"
+	TESTS_RUN=$((TESTS_RUN + 1))
+	echo -e "${YELLOW}TEST $TESTS_RUN: $1${NC}"
 }
 
 assert_fail() {
-    TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}  ✗ FAIL: $1${NC}"
-    if [ -n "$2" ]; then
-        echo "    Details: $2"
-    fi
+	TESTS_FAILED=$((TESTS_FAILED + 1))
+	echo -e "${RED}  ✗ FAIL: $1${NC}"
+	if [ -n "$2" ]; then
+		echo "    Details: $2"
+	fi
 }
 
 assert_pass() {
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}  ✓ PASS: $1${NC}"
+	TESTS_PASSED=$((TESTS_PASSED + 1))
+	echo -e "${GREEN}  ✓ PASS: $1${NC}"
 }
 
 # ============================================================================
@@ -76,7 +76,7 @@ assert_pass() {
 run_test "Multiple tarballs should not cause script failure"
 
 # Test the FIXED code snippet
-cat > "$TEST_DIR/test_multiple_tarballs.sh" <<'EOF'
+cat >"$TEST_DIR/test_multiple_tarballs.sh" <<'EOF'
 #!/bin/bash
 set -eu
 # This simulates the FIXED version: find with -type f | head -n 1
@@ -95,11 +95,11 @@ OUTPUT=$("$TEST_DIR/test_multiple_tarballs.sh" 2>&1 || echo "FAILED")
 WORD_COUNT=$(echo "$OUTPUT" | tail -n 1)
 
 if [ "$WORD_COUNT" -eq 1 ]; then
-    assert_pass "Fixed version selects only one tarball" \
-        "TAR_FILE contains $WORD_COUNT word, will pass 1 argument to send command"
+	assert_pass "Fixed version selects only one tarball" \
+		"TAR_FILE contains $WORD_COUNT word, will pass 1 argument to send command"
 else
-    assert_fail "Fixed version still has multiple tarball issue" \
-        "TAR_FILE contains $WORD_COUNT words (should be 1)"
+	assert_fail "Fixed version still has multiple tarball issue" \
+		"TAR_FILE contains $WORD_COUNT words (should be 1)"
 fi
 
 rm -f /tmp/data/*.tar
@@ -109,7 +109,7 @@ rm -f /tmp/data/*.tar
 # ============================================================================
 run_test "Spaces in tarball filename should be handled correctly"
 
-cat > "$TEST_DIR/test_quoted_var.sh" <<'EOF'
+cat >"$TEST_DIR/test_quoted_var.sh" <<'EOF'
 #!/bin/bash
 set -eu
 TAR_FILE=$(find /tmp/data -name "*.tar" -type f | head -n 1)
@@ -129,11 +129,11 @@ touch "/tmp/data/telemetry data 2024.tar"
 ARGS=$("$TEST_DIR/test_quoted_var.sh" 2>&1 || echo "0")
 
 if [ "$ARGS" -eq 1 ]; then
-    assert_pass "Quoted variable correctly treated as single argument" \
-        "Variable expanded to $ARGS argument (correct)"
+	assert_pass "Quoted variable correctly treated as single argument" \
+		"Variable expanded to $ARGS argument (correct)"
 else
-    assert_fail "Quoted variable still splits on spaces" \
-        "Variable expanded to $ARGS arguments (should be 1)"
+	assert_fail "Quoted variable still splits on spaces" \
+		"Variable expanded to $ARGS arguments (should be 1)"
 fi
 
 rm -f /tmp/data/*.tar
@@ -143,7 +143,7 @@ rm -f /tmp/data/*.tar
 # ============================================================================
 run_test "Combined fix handles multiple tarballs with spaces in filename"
 
-cat > "$TEST_DIR/test_comprehensive.sh" <<'EOF'
+cat >"$TEST_DIR/test_comprehensive.sh" <<'EOF'
 #!/bin/bash
 set -eu
 DATA_DIR="/tmp/data"
@@ -178,11 +178,11 @@ mkdir -p /tmp/data
 OUTPUT=$("$TEST_DIR/test_comprehensive.sh" 2>&1 | tail -n 1)
 
 if echo "$OUTPUT" | grep -q "SUCCESS:.*1"; then
-    assert_pass "Comprehensive fix works: single file selected and properly quoted" \
-        "Result: $OUTPUT (correctly handles multiple tarballs with spaces)"
+	assert_pass "Comprehensive fix works: single file selected and properly quoted" \
+		"Result: $OUTPUT (correctly handles multiple tarballs with spaces)"
 else
-    assert_fail "Comprehensive fix failed" \
-        "Result: $OUTPUT (should be SUCCESS:1)"
+	assert_fail "Comprehensive fix failed" \
+		"Result: $OUTPUT (should be SUCCESS:1)"
 fi
 
 rm -f /tmp/data/*.tar
@@ -192,7 +192,7 @@ rm -f /tmp/data/*.tar
 # ============================================================================
 run_test "Script should fail if collect command fails"
 
-cat > "$TEST_DIR/test_error_check.sh" <<'EOF'
+cat >"$TEST_DIR/test_error_check.sh" <<'EOF'
 #!/bin/bash
 set -eu
 COLLECTOR_BIN=/tmp/fake-collector
@@ -211,10 +211,10 @@ chmod +x "$TEST_DIR/test_error_check.sh"
 OUTPUT=$("$TEST_DIR/test_error_check.sh" 2>&1 || echo "SCRIPT_FAILED")
 
 if echo "$OUTPUT" | grep -q "Script continued after failure"; then
-    assert_fail "Script continues after collect failure" \
-        "Should exit immediately when collect fails"
+	assert_fail "Script continues after collect failure" \
+		"Should exit immediately when collect fails"
 else
-    assert_pass "Script properly fails on collect error"
+	assert_pass "Script properly fails on collect error"
 fi
 
 # ============================================================================
@@ -222,12 +222,12 @@ fi
 # ============================================================================
 run_test ".bak files should be cleaned up after sed operations"
 
-cat > "$TEST_DIR/test_config.yml" <<'EOF'
+cat >"$TEST_DIR/test_config.yml" <<'EOF'
 usage-service-url: example.com
 operational-data-only: false
 EOF
 
-cat > "$TEST_DIR/test_bak_files.sh" <<'EOF'
+cat >"$TEST_DIR/test_bak_files.sh" <<'EOF'
 #!/bin/bash
 set -eu
 CONFIG="/tmp/test_config.yml"
@@ -248,11 +248,11 @@ cp "$TEST_DIR/test_config.yml" /tmp/test_config.yml
 BAK_COUNT=$("$TEST_DIR/test_bak_files.sh" 2>&1 | tail -n 1)
 
 if [ "$BAK_COUNT" -eq 0 ]; then
-    assert_pass "Fixed version cleans up .bak files after sed operations" \
-        "Found $BAK_COUNT .bak files (correctly cleaned up)"
+	assert_pass "Fixed version cleans up .bak files after sed operations" \
+		"Found $BAK_COUNT .bak files (correctly cleaned up)"
 else
-    assert_fail "Fixed version still leaves .bak files" \
-        "Found $BAK_COUNT .bak files (should be 0)"
+	assert_fail "Fixed version still leaves .bak files" \
+		"Found $BAK_COUNT .bak files (should be 0)"
 fi
 
 rm -f /tmp/test_config.yml*
@@ -262,7 +262,7 @@ rm -f /tmp/test_config.yml*
 # ============================================================================
 run_test "Log files should not grow unbounded"
 
-cat > "$TEST_DIR/test_log_growth.sh" <<'EOF'
+cat >"$TEST_DIR/test_log_growth.sh" <<'EOF'
 #!/bin/bash
 set -eu
 LOG_FILE="/tmp/telemetry-collect-send.log"
@@ -285,10 +285,10 @@ chmod +x "$TEST_DIR/test_log_growth.sh"
 LOG_SIZE_MB=$("$TEST_DIR/test_log_growth.sh" 2>&1 | tail -n 1)
 
 if [ "$LOG_SIZE_MB" -gt 100 ]; then
-    assert_fail "Log file grows without rotation" \
-        "After 1 year: ${LOG_SIZE_MB}MB (no rotation configured)"
+	assert_fail "Log file grows without rotation" \
+		"After 1 year: ${LOG_SIZE_MB}MB (no rotation configured)"
 else
-    assert_pass "Log rotation in place"
+	assert_pass "Log rotation in place"
 fi
 
 rm -f /tmp/telemetry-collect-send.log
@@ -298,11 +298,11 @@ rm -f /tmp/telemetry-collect-send.log
 # ============================================================================
 run_test "Special characters in config values should not break sed"
 
-cat > "$TEST_DIR/test_config_regex.yml" <<'EOF'
+cat >"$TEST_DIR/test_config_regex.yml" <<'EOF'
 usage-service-url: api.*.example.com/v1
 EOF
 
-cat > "$TEST_DIR/test_regex_injection.sh" <<'EOF'
+cat >"$TEST_DIR/test_regex_injection.sh" <<'EOF'
 #!/bin/bash
 set +e  # Don't fail on sed error
 
@@ -332,10 +332,10 @@ cp "$TEST_DIR/test_config_regex.yml" /tmp/test_config_regex.yml
 RESULT=$("$TEST_DIR/test_regex_injection.sh" 2>&1 | tail -n 1)
 
 if [ "$RESULT" != "SUCCESS" ]; then
-    assert_fail "Sed fails or produces incorrect results with special characters" \
-        "Result: $RESULT (regex characters not escaped)"
+	assert_fail "Sed fails or produces incorrect results with special characters" \
+		"Result: $RESULT (regex characters not escaped)"
 else
-    assert_pass "Sed handles special characters correctly"
+	assert_pass "Sed handles special characters correctly"
 fi
 
 rm -f /tmp/test_config_regex.yml*
@@ -345,7 +345,7 @@ rm -f /tmp/test_config_regex.yml*
 # ============================================================================
 run_test "Pre-start should fail on any non-zero exit code"
 
-cat > "$TEST_DIR/test_exit_codes.sh" <<'EOF'
+cat >"$TEST_DIR/test_exit_codes.sh" <<'EOF'
 #!/bin/bash
 
 # Simulate actual pre-start error handling
@@ -378,11 +378,11 @@ chmod +x "$TEST_DIR/test_exit_codes.sh"
 OUTPUT=$("$TEST_DIR/test_exit_codes.sh" 2>&1)
 
 if echo "$OUTPUT" | grep -q "FAILED_ON_EXIT"; then
-    assert_pass "Script fails on all non-zero exit codes" \
-        "Correctly handles exit codes: $OUTPUT"
+	assert_pass "Script fails on all non-zero exit codes" \
+		"Correctly handles exit codes: $OUTPUT"
 else
-    assert_fail "Script does not fail on non-zero exit codes" \
-        "Expected failures but got: $OUTPUT"
+	assert_fail "Script does not fail on non-zero exit codes" \
+		"Expected failures but got: $OUTPUT"
 fi
 
 # ============================================================================
@@ -390,7 +390,7 @@ fi
 # ============================================================================
 run_test "Find should only match files, not directories"
 
-cat > "$TEST_DIR/test_find_dirs.sh" <<'EOF'
+cat >"$TEST_DIR/test_find_dirs.sh" <<'EOF'
 #!/bin/bash
 set -eu
 DATA_DIR="/tmp/data"
@@ -416,11 +416,11 @@ mkdir -p /tmp/data
 RESULT=$("$TEST_DIR/test_find_dirs.sh" 2>&1 | tail -n 1)
 
 if [ "$RESULT" = "FILE" ]; then
-    assert_pass "Fixed find command only matches files, not directories" \
-        "Correctly excluded directory and selected file"
+	assert_pass "Fixed find command only matches files, not directories" \
+		"Correctly excluded directory and selected file"
 else
-    assert_fail "Fixed find command still matches directories" \
-        "Result: $RESULT (should be FILE)"
+	assert_fail "Fixed find command still matches directories" \
+		"Result: $RESULT (should be FILE)"
 fi
 
 rm -rf /tmp/data
@@ -430,7 +430,7 @@ rm -rf /tmp/data
 # ============================================================================
 run_test "Cron schedule should be distributed across VMs"
 
-cat > "$TEST_DIR/test_randomization.rb" <<'EOF'
+cat >"$TEST_DIR/test_randomization.rb" <<'EOF'
 #!/usr/bin/env ruby
 
 # Simulate 100 VMs deployed at same time
@@ -454,18 +454,18 @@ end
 EOF
 chmod +x "$TEST_DIR/test_randomization.rb"
 
-if command -v ruby &> /dev/null; then
-    RESULT=$("$TEST_DIR/test_randomization.rb" 2>&1 | tail -n 1)
-    
-    if echo "$RESULT" | grep -q "WEAK"; then
-        UNIQUE=$(echo "$RESULT" | awk '{print $2}')
-        assert_fail "Weak randomization causes schedule collisions" \
-            "Only $UNIQUE unique schedules for 100 VMs (high collision rate)"
-    else
-        assert_pass "Good distribution of schedules"
-    fi
+if command -v ruby &>/dev/null; then
+	RESULT=$("$TEST_DIR/test_randomization.rb" 2>&1 | tail -n 1)
+
+	if echo "$RESULT" | grep -q "WEAK"; then
+		UNIQUE=$(echo "$RESULT" | awk '{print $2}')
+		assert_fail "Weak randomization causes schedule collisions" \
+			"Only $UNIQUE unique schedules for 100 VMs (high collision rate)"
+	else
+		assert_pass "Good distribution of schedules"
+	fi
 else
-    echo "  ⊘ SKIP: Ruby not installed"
+	echo "  ⊘ SKIP: Ruby not installed"
 fi
 
 # ============================================================================
@@ -481,20 +481,20 @@ echo -e "${RED}Failed:       $TESTS_FAILED${NC}"
 echo ""
 
 if [ $TESTS_FAILED -gt 0 ]; then
-    PERCENT_FAILED=$((TESTS_FAILED * 100 / TESTS_RUN))
-    echo -e "${RED}🚨 $PERCENT_FAILED% of tests FAILED${NC}"
-    echo ""
-    echo "These failures demonstrate production issues that will cause:"
-    echo "  • Silent failures and data loss"
-    echo "  • Disk space exhaustion"
-    echo "  • Script crashes on edge cases"
-    echo "  • Load spikes in large deployments"
-    echo ""
-    echo "See full analysis in the code review document."
-    EXIT_CODE=1
+	PERCENT_FAILED=$((TESTS_FAILED * 100 / TESTS_RUN))
+	echo -e "${RED}🚨 $PERCENT_FAILED% of tests FAILED${NC}"
+	echo ""
+	echo "These failures demonstrate production issues that will cause:"
+	echo "  • Silent failures and data loss"
+	echo "  • Disk space exhaustion"
+	echo "  • Script crashes on edge cases"
+	echo "  • Load spikes in large deployments"
+	echo ""
+	echo "See full analysis in the code review document."
+	EXIT_CODE=1
 else
-    echo -e "${GREEN}✓ All tests passed!${NC}"
-    EXIT_CODE=0
+	echo -e "${GREEN}✓ All tests passed!${NC}"
+	EXIT_CODE=0
 fi
 
 # Cleanup
@@ -502,5 +502,3 @@ rm -rf "$TEST_DIR"
 rm -rf /tmp/data
 
 exit $EXIT_CODE
-
-
