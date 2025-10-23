@@ -20,6 +20,7 @@ templates:
   cert.pem.erb: config/cert.pem
   private_key.pem.erb: config/private_key.pem
   curl_config.erb: config/curl_config
+  spnego-curl.sh.erb: bin/spnego-curl.sh
 
 packages:
 - fluentd

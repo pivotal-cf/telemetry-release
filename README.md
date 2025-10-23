@@ -8,6 +8,17 @@ identified messages are then forwarded to a centralizer job, which attempts to p
 from the message. If the centralizer successfully extracts a telemetry object from the message, then it is logged to the centralizer's
 stdout log file.
 
+## SPNEGO Proxy Support
+
+The telemetry-collector and telemetry-centralizer jobs support SPNEGO/Kerberos proxy authentication.
+
+Configuration:
+- Properties: `telemetry.proxy_settings.proxy_username/password/domain`
+- Requirements: kinit, curl with GSS-API support (included in Ubuntu Jammy)
+- Ticket renewal: Ticket caching with on-demand renewal (included in Ubuntu Jammy)
+
+See SPNEGO_OPERATIONS_GUIDE.md in tpi-p-telemetry for detailed documentation.
+
 ## Jobs
 ### telemetry-agent:
 - Responsible for collecting and emitting telemetry from components/jobs it is collocated with.

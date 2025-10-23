@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Read credentials from BOSH properties
+USERNAME="<%= p('telemetry.proxy_settings.proxy_username') %>"
+PASSWORD="<%= p('telemetry.proxy_settings.proxy_password') %>"
+DOMAIN="<%= p('telemetry.proxy_settings.proxy_domain') %>"
+
+# Check if all credentials are provided
+if [[ -z "$USERNAME" || -z "$PASSWORD" || -z "$DOMAIN" ]]; then
+	# No SPNEGO - use standard curl
+	exec curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config
+	exit $?
+fi
+
+# SPNEGO authentication required
+# Use ticket caching with on-demand renewal
+# This is called repeatedly by fluentd, so we reuse tickets when valid
+
+PRINCIPAL="${USERNAME}@${DOMAIN}"
+
+# Check if we have a valid ticket (klist -s returns 0 only if valid)
+if klist -s 2>/dev/null; then
+	# Valid ticket exists, reuse it
+	exec curl -s --negotiate --proxy-negotiate \
+		-K /var/vcap/jobs/telemetry-centralizer/config/curl_config
+	exit $?
+fi
+
+# No valid ticket or ticket is expiring - authenticate
+PASSWD_FILE=$(mktemp)
+chmod 0600 "$PASSWD_FILE"
+echo "$PASSWORD" >"$PASSWD_FILE"
+
+# Attempt authentication
+if ! kinit "$PRINCIPAL" <"$PASSWD_FILE" 2>&1; then
+	rm -f "$PASSWD_FILE"
+	echo "ERROR: Kerberos authentication failed for $PRINCIPAL" >&2
+	exit 1
+fi
+
+rm -f "$PASSWD_FILE"
+
+# Verify ticket was obtained
+if ! klist -s 2>/dev/null; then
+	echo "ERROR: No valid Kerberos ticket after kinit" >&2
+	exit 1
+fi
+
+# Make request with SPNEGO using the newly obtained ticket
+exec curl -s --negotiate --proxy-negotiate \
+	-K /var/vcap/jobs/telemetry-centralizer/config/curl_config

@@ -195,6 +195,9 @@ if [ "${audit_mode}" != "true" ]; then
     if echo "$send_output" | grep -qi "unauthorized\|not authorized\|401"; then
       error_type="CUSTOMER_CONFIG_ERROR"
       error_msg="API key is invalid or expired"
+    elif echo "$send_output" | grep -qi "kinit.*not found\|curl.*not found\|gss-api"; then
+      error_type="SYSTEM_REQUIREMENTS_ERROR"
+      error_msg="SPNEGO system requirements not met - kinit or curl with GSS-API missing"
     elif echo "$send_output" | grep -qi "connection refused\|timeout\|503\|502\|504"; then
       error_type="MIDDLEWARE_PIPELINE_ERROR"
       error_msg="Telemetry infrastructure is temporarily unavailable"
