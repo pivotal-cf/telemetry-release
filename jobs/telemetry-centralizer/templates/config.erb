@@ -32,6 +32,9 @@
 <% @env_no_proxy = "no_proxy=" + p('telemetry.proxy_settings.no_proxy') %>
 <% @env_http_proxy = "http_proxy=" + p('telemetry.proxy_settings.http_proxy') %>
 <% @env_https_proxy = "https_proxy=" + p('telemetry.proxy_settings.https_proxy') %>
+<% @env_proxy_username = "PROXY_USERNAME=" + p('telemetry.proxy_settings.proxy_username') %>
+<% @env_proxy_password = "PROXY_PASSWORD=" + p('telemetry.proxy_settings.proxy_password') %>
+<% @env_proxy_domain = "PROXY_DOMAIN=" + p('telemetry.proxy_settings.proxy_domain') %>
 
 ## match all and dump to console
 <match **>
@@ -48,7 +51,7 @@
     <% elsif p('audit_mode') %>
     <%= "command tee -a -p /var/vcap/sys/log/telemetry-centralizer/audit.log <" %>
     <% else %>
-    <%= "command #{@env_no_proxy} #{@env_http_proxy} #{@env_https_proxy} curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <" %>
+    <%= "command #{@env_no_proxy} #{@env_http_proxy} #{@env_https_proxy} #{@env_proxy_username} #{@env_proxy_password} #{@env_proxy_domain} curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <" %>
     <% end %>
     <format>
       @type json

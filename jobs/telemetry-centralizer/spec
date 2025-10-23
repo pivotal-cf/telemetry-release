@@ -49,6 +49,15 @@ properties:
   telemetry.proxy_settings.https_proxy:
     description: the https proxy to send telemetry data through
     default: ""
+  telemetry.proxy_settings.proxy_username:
+    description: username for SPNEGO/Kerberos proxy authentication (optional)
+    default: ""
+  telemetry.proxy_settings.proxy_password:
+    description: password for SPNEGO/Kerberos proxy authentication (optional)
+    default: ""
+  telemetry.proxy_settings.proxy_domain:
+    description: Active Directory domain for SPNEGO/Kerberos proxy authentication (optional)
+    default: ""
   telemetry.env_type:
     description: The environment type of the foundation
   telemetry.foundation_nickname:

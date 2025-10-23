@@ -78,15 +78,44 @@ create_or_update_options() {
     rm -f "${file_path}.bak"
 }
 
+# Set SPNEGO enabled flag based on whether all three credentials are provided
+set_spnego_enabled_flag() {
+    local file_path=$1
+    local spnego_key="spnego-enabled:"
+    
+    # Get SPNEGO credentials from BOSH properties
+    local proxy_username="<%= p('telemetry.proxy_settings.proxy_username') %>"
+    local proxy_password="<%= p('telemetry.proxy_settings.proxy_password') %>"
+    local proxy_domain="<%= p('telemetry.proxy_settings.proxy_domain') %>"
+    
+    # Determine if SPNEGO is enabled
+    # All three credentials must be non-empty
+    local spnego_enabled="false"
+    if [[ -n "$proxy_username" && -n "$proxy_password" && -n "$proxy_domain" ]]; then
+        spnego_enabled="true"
+    fi
+    
+    # Remove existing spnego-enabled line if present (for idempotency)
+    sed -i.bak "/$spnego_key/d" "$file_path"
+    
+    # Append the spnego-enabled flag
+    echo "${spnego_key} ${spnego_enabled}" >> "$file_path"
+    
+    # Clean up backup files
+    rm -f "${file_path}.bak"
+}
+
 # Config paths
 pre_start_config="/var/vcap/jobs/telemetry-collector/config/pre-start-collect.yml"
 config="/var/vcap/jobs/telemetry-collector/config/collect.yml"
 
 # Check and update pre-start-collect.yml
 create_or_update_options "$pre_start_config"
+set_spnego_enabled_flag "$pre_start_config"
 
 # Check and update collect.yml
 create_or_update_options "$config"
+set_spnego_enabled_flag "$config"
 
 # Always collect data (must succeed)
 $COLLECTOR_BIN collect --config "$1"
@@ -119,11 +148,40 @@ if [ "${audit_mode}" != "true" ]; then
   export http_proxy=<%= p("telemetry.proxy_settings.http_proxy") %>
   export https_proxy=<%= p("telemetry.proxy_settings.https_proxy") %>
   
+  # Get SPNEGO credentials from BOSH properties
+  SPNEGO_USERNAME="<%= p("telemetry.proxy_settings.proxy_username") %>"
+  SPNEGO_PASSWORD="<%= p("telemetry.proxy_settings.proxy_password") %>"
+  SPNEGO_DOMAIN="<%= p("telemetry.proxy_settings.proxy_domain") %>"
+  
+  # Export SPNEGO credentials as environment variables if all three are provided
+  if [[ -n "$SPNEGO_USERNAME" && -n "$SPNEGO_PASSWORD" && -n "$SPNEGO_DOMAIN" ]]; then
+    export PROXY_USERNAME="$SPNEGO_USERNAME"
+    export PROXY_PASSWORD="$SPNEGO_PASSWORD"
+    export PROXY_DOMAIN="$SPNEGO_DOMAIN"
+    echo "INFO: SPNEGO proxy authentication enabled for user ${SPNEGO_USERNAME}@${SPNEGO_DOMAIN}" >&2
+    
+    # Validate SPNEGO system requirements (kinit, curl with GSS-API)
+    if ! command -v kinit >/dev/null 2>&1; then
+      echo "ERROR: SPNEGO configured but kinit not found in PATH" >&2
+      echo "ERROR: This is unusual for Ubuntu stemcells and indicates a potential issue" >&2
+      # Don't fail deployment - log and continue
+    elif ! curl -V 2>&1 | grep -qi "gss\|kerberos"; then
+      echo "ERROR: SPNEGO configured but curl lacks GSS-API support" >&2
+      echo "ERROR: This is unusual for Ubuntu stemcells and indicates a potential issue" >&2
+      # Don't fail deployment - log and continue
+    else
+      echo "INFO: SPNEGO system requirements validated" >&2
+    fi
+  fi
+  
   # Attempt send but don't fail if it errors
   set +e
   send_output=$($COLLECTOR_BIN send --path "$TAR_FILE" --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
   send_exit_code=$?
   set -e
+  
+  # Clean up SPNEGO credentials from environment
+  unset PROXY_USERNAME PROXY_PASSWORD PROXY_DOMAIN SPNEGO_USERNAME SPNEGO_PASSWORD SPNEGO_DOMAIN
   
   if [ $send_exit_code -ne 0 ]; then
     # Log structured error for monitoring
@@ -140,6 +198,9 @@ if [ "${audit_mode}" != "true" ]; then
     elif echo "$send_output" | grep -qi "connection refused\|timeout\|503\|502\|504"; then
       error_type="MIDDLEWARE_PIPELINE_ERROR"
       error_msg="Telemetry infrastructure is temporarily unavailable"
+    elif echo "$send_output" | grep -qi "proxy.*authentication\|407\|spnego\|kerberos"; then
+      error_type="PROXY_AUTH_ERROR"
+      error_msg="Proxy authentication failed - check proxy credentials"
     else
       error_type="UNKNOWN_ERROR"
       error_msg="Telemetry send failed"
