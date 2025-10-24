@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Set unique credential cache to prevent race conditions (F001 fix)
+export KRB5CCNAME="/tmp/krb5cc_centralizer_$$"
+
+# Cleanup credential cache on exit
+cleanup() {
+    local exit_code=$?
+    if [[ -f "${PASSWD_FILE:-}" ]]; then
+        rm -f "$PASSWD_FILE"
+    fi
+    if [[ -n "${KRB5CCNAME:-}" && -f "$KRB5CCNAME" ]]; then
+        rm -f "$KRB5CCNAME"
+    fi
+    exit "$exit_code"
+}
+trap cleanup EXIT INT TERM
+
 # Read credentials from BOSH properties
 USERNAME="<%= p('telemetry.proxy_settings.proxy_username') %>"
 PASSWORD="<%= p('telemetry.proxy_settings.proxy_password') %>"

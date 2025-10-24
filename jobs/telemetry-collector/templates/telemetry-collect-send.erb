@@ -155,6 +155,8 @@ if [ "${audit_mode}" != "true" ]; then
   
   # Export SPNEGO credentials as environment variables if all three are provided
   if [[ -n "$SPNEGO_USERNAME" && -n "$SPNEGO_PASSWORD" && -n "$SPNEGO_DOMAIN" ]]; then
+    # Set unique credential cache to prevent race conditions (F001 fix)
+    export KRB5CCNAME="/tmp/krb5cc_collector_$$_$(date +%s%N)"
     export PROXY_USERNAME="$SPNEGO_USERNAME"
     export PROXY_PASSWORD="$SPNEGO_PASSWORD"
     export PROXY_DOMAIN="$SPNEGO_DOMAIN"
