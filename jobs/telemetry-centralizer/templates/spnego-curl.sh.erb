@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Add krb5 binaries to PATH for SPNEGO support (if available)
+if [ -d /var/vcap/packages/krb5/bin ]; then
+  export PATH=/var/vcap/packages/krb5/bin:$PATH
+fi
+
 # Set unique credential cache to prevent race conditions (F001 fix)
 export KRB5CCNAME="/tmp/krb5cc_centralizer_$$"
 

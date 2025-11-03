@@ -2,6 +2,11 @@
 
 set -e
 
+# Add krb5 binaries to PATH for SPNEGO support (if available)
+if [ -d /var/vcap/packages/krb5/bin ]; then
+  export PATH=/var/vcap/packages/krb5/bin:$PATH
+fi
+
 rm -f /var/vcap/data/telemetry-collector/*.tar
 chown -R vcap:vcap /var/vcap/jobs/telemetry-collector/config/
 COLLECTOR_BIN=/var/vcap/packages/telemetry-cli/telemetry-cli-linux

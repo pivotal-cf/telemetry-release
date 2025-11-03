@@ -23,6 +23,7 @@ templates:
   spnego-curl.sh.erb: bin/spnego-curl.sh
 
 packages:
+- krb5
 - fluentd
 - ruby-3.4
 
