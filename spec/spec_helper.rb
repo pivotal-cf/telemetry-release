@@ -11,7 +11,23 @@ module ERBTestHelper
     
     # Add properties method
     binding_context.define_singleton_method(:p) do |key|
-      properties[key]
+      # Handle nested properties like 'telemetry.proxy_settings.proxy_username'
+      if key.include?('.')
+        parts = key.split('.')
+        value = properties
+        parts.each do |part|
+          if value.is_a?(Hash) && value.key?(part)
+            value = value[part]
+          elsif value.is_a?(Hash) && value.key?(part.to_sym)
+            value = value[part.to_sym]
+          else
+            return ''  # Return empty string for missing properties (BOSH default)
+          end
+        end
+        value
+      else
+        properties[key] || properties[key.to_sym] || ''
+      end
     end
     
     # Add spec method

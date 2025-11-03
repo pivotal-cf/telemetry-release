@@ -286,7 +286,205 @@ describe 'Telemetry Collector Pre-Start Integration' do
     end
   end
 
+  describe 'SPNEGO proxy authentication properties' do
+    it 'compiles with all SPNEGO properties provided' do
+      properties = {
+        'audit_mode' => false,
+        'telemetry' => {
+          'api_key' => 'test-key',
+          'proxy_settings' => {
+            'no_proxy' => '',
+            'http_proxy' => 'http://proxy:8080',
+            'https_proxy' => 'https://proxy:8080',
+            'proxy_username' => 'testuser',
+            'proxy_password' => 'testpass',
+            'proxy_domain' => 'EXAMPLE.COM'
+          }
+        }
+      }
+      
+      compiled = compile_erb_template(collect_send_template, properties)
+      
+      expect(compiled).to include('SPNEGO_USERNAME="testuser"')
+      expect(compiled).to include('SPNEGO_PASSWORD="testpass"')
+      expect(compiled).to include('SPNEGO_DOMAIN="EXAMPLE.COM"')
+      expect(compiled).to include('export PROXY_USERNAME="$SPNEGO_USERNAME"')
+      expect(compiled).to include('export PROXY_PASSWORD="$SPNEGO_PASSWORD"')
+      expect(compiled).to include('export PROXY_DOMAIN="$SPNEGO_DOMAIN"')
+    end
+
+    it 'compiles with empty SPNEGO properties (backward compatibility)' do
+      properties = {
+        'audit_mode' => false,
+        'telemetry' => {
+          'api_key' => 'test-key',
+          'proxy_settings' => {
+            'no_proxy' => '',
+            'http_proxy' => '',
+            'https_proxy' => '',
+            'proxy_username' => '',
+            'proxy_password' => '',
+            'proxy_domain' => ''
+          }
+        }
+      }
+      
+      expect {
+        compile_erb_template(collect_send_template, properties)
+      }.not_to raise_error
+    end
+
+    it 'compiles without SPNEGO properties defined (backward compatibility)' do
+      properties = {
+        'audit_mode' => false,
+        'telemetry' => {
+          'api_key' => 'test-key',
+          'proxy_settings' => {
+            'no_proxy' => '',
+            'http_proxy' => '',
+            'https_proxy' => ''
+          }
+        }
+      }
+      
+      expect {
+        compile_erb_template(collect_send_template, properties)
+      }.not_to raise_error
+    end
+
+    it 'includes SPNEGO validation when credentials are provided' do
+      properties = {
+        'audit_mode' => false,
+        'telemetry' => {
+          'api_key' => 'test-key',
+          'proxy_settings' => {
+            'no_proxy' => '',
+            'http_proxy' => 'http://proxy:8080',
+            'https_proxy' => 'https://proxy:8080',
+            'proxy_username' => 'testuser',
+            'proxy_password' => 'testpass',
+            'proxy_domain' => 'EXAMPLE.COM'
+          }
+        }
+      }
+      
+      compiled = compile_erb_template(collect_send_template, properties)
+      
+      expect(compiled).to include('INFO: SPNEGO proxy authentication enabled')
+      expect(compiled).to include('if ! command -v kinit')
+      expect(compiled).to include('ERROR: SPNEGO configured but kinit not found in PATH')
+    end
+
+    it 'includes KRB5CCNAME environment variable for credential cache' do
+      properties = {
+        'audit_mode' => false,
+        'telemetry' => {
+          'api_key' => 'test-key',
+          'proxy_settings' => {
+            'no_proxy' => '',
+            'http_proxy' => 'http://proxy:8080',
+            'https_proxy' => 'https://proxy:8080',
+            'proxy_username' => 'testuser',
+            'proxy_password' => 'testpass',
+            'proxy_domain' => 'EXAMPLE.COM'
+          }
+        }
+      }
+      
+      compiled = compile_erb_template(collect_send_template, properties)
+      
+      expect(compiled).to include('export KRB5CCNAME="/tmp/krb5cc_collector_$$')
+    end
+
+    it 'includes credential cleanup after send' do
+      properties = {
+        'audit_mode' => false,
+        'telemetry' => {
+          'api_key' => 'test-key',
+          'proxy_settings' => {
+            'no_proxy' => '',
+            'http_proxy' => '',
+            'https_proxy' => '',
+            'proxy_username' => 'testuser',
+            'proxy_password' => 'testpass',
+            'proxy_domain' => 'EXAMPLE.COM'
+          }
+        }
+      }
+      
+      compiled = compile_erb_template(collect_send_template, properties)
+      
+      expect(compiled).to include('unset PROXY_USERNAME PROXY_PASSWORD PROXY_DOMAIN')
+    end
+
+    it 'classifies proxy authentication errors correctly' do
+      properties = {
+        'audit_mode' => false,
+        'telemetry' => {
+          'api_key' => 'test-key',
+          'proxy_settings' => {
+            'no_proxy' => '',
+            'http_proxy' => '',
+            'https_proxy' => ''
+          }
+        }
+      }
+      
+      compiled = compile_erb_template(collect_send_template, properties)
+      
+      expect(compiled).to include('407')
+      expect(compiled).to include('PROXY_AUTH_ERROR')
+      expect(compiled).to include('Proxy authentication failed - check proxy credentials')
+    end
+  end
+
+  describe 'krb5 package conditional PATH logic' do
+    it 'includes conditional check for krb5 directory' do
+      properties = minimal_properties
+      compiled = compile_erb_template(collect_send_template, properties)
+      
+      expect(compiled).to include('if [ -d /var/vcap/packages/krb5/bin ]')
+      expect(compiled).to include('export PATH=/var/vcap/packages/krb5/bin:$PATH')
+      expect(compiled).to include('Add krb5 binaries to PATH for SPNEGO support (if available)')
+    end
+
+    it 'does not fail compilation when krb5 properties are absent' do
+      properties = {
+        'audit_mode' => true,
+        'telemetry' => {
+          'api_key' => 'test',
+          'proxy_settings' => {
+            'no_proxy' => '',
+            'http_proxy' => '',
+            'https_proxy' => ''
+          }
+        }
+      }
+      
+      expect {
+        compile_erb_template(collect_send_template, properties)
+      }.not_to raise_error
+    end
+  end
+
   private
+
+  def minimal_properties
+    {
+      'audit_mode' => true,
+      'telemetry' => {
+        'api_key' => 'test',
+        'proxy_settings' => {
+          'no_proxy' => '',
+          'http_proxy' => '',
+          'https_proxy' => '',
+          'proxy_username' => '',
+          'proxy_password' => '',
+          'proxy_domain' => ''
+        }
+      }
+    }
+  end
 
   def simulate_pre_start_execution_with_accumulation(collect_exit_code:, send_exit_code: 0, send_output: "", audit_mode: false, existing_logs: {})
     log_contents = existing_logs.dup
