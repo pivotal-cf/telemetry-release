@@ -1,0 +1,8 @@
+---
+name: krb5
+
+dependencies: []
+
+files:
+- krb5/krb5-*.tar.gz
+

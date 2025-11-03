@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e -x
+
+# Extract MIT Kerberos source
+tar xzf krb5/krb5-*.tar.gz
+cd krb5-*/src
+
+# Configure with minimal dependencies
+./configure \
+  --prefix=${BOSH_INSTALL_TARGET} \
+  --without-system-verto \
+  --without-keyutils \
+  --disable-static
+
+# Compile and install
+make
+make install
+
