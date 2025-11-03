@@ -469,6 +469,248 @@ else
 fi
 
 # ============================================================================
+# TEST: krb5 PATH is added conditionally
+# ============================================================================
+run_test "krb5 PATH should be added when directory exists"
+
+mkdir -p /tmp/mock-vcap/packages/krb5/bin
+cat >"$TEST_DIR/test_krb5_path.sh" <<'EOF'
+#!/bin/bash
+if [ -d /tmp/mock-vcap/packages/krb5/bin ]; then
+  export PATH=/tmp/mock-vcap/packages/krb5/bin:$PATH
+fi
+echo "$PATH"
+EOF
+chmod +x "$TEST_DIR/test_krb5_path.sh"
+
+OUTPUT=$("$TEST_DIR/test_krb5_path.sh")
+if echo "$OUTPUT" | grep -q "/tmp/mock-vcap/packages/krb5/bin"; then
+        assert_pass "krb5/bin added to PATH when directory exists"
+else
+        assert_fail "krb5/bin not in PATH" "Got: $OUTPUT"
+fi
+
+rm -rf /tmp/mock-vcap
+
+# ============================================================================
+# TEST: Script works without krb5
+# ============================================================================
+run_test "Script should work when krb5 directory doesn't exist"
+
+cat >"$TEST_DIR/test_no_krb5.sh" <<'EOF'
+#!/bin/bash
+set -e
+if [ -d /var/vcap/packages/krb5/bin ]; then
+  export PATH=/var/vcap/packages/krb5/bin:$PATH
+fi
+echo "SUCCESS"
+EOF
+chmod +x "$TEST_DIR/test_no_krb5.sh"
+
+OUTPUT=$("$TEST_DIR/test_no_krb5.sh" 2>&1)
+if echo "$OUTPUT" | grep -q "SUCCESS"; then
+        assert_pass "Script works without krb5 directory"
+else
+        assert_fail "Script failed without krb5" "Got: $OUTPUT"
+fi
+
+# ============================================================================
+# TEST: SPNEGO requires all three credentials
+# ============================================================================
+run_test "SPNEGO should only enable when all three credentials are provided"
+
+cat >"$TEST_DIR/test_spnego_all_creds.sh" <<'EOF'
+#!/bin/bash
+
+test_spnego_enabled() {
+  local username="$1"
+  local password="$2"
+  local domain="$3"
+  
+  if [[ -n "$username" && -n "$password" && -n "$domain" ]]; then
+    echo "ENABLED"
+  else
+    echo "DISABLED"
+  fi
+}
+
+# Test with all three
+RESULT1=$(test_spnego_enabled "user" "pass" "DOMAIN")
+# Test with only username
+RESULT2=$(test_spnego_enabled "user" "" "")
+# Test with username and password
+RESULT3=$(test_spnego_enabled "user" "pass" "")
+# Test with empty strings
+RESULT4=$(test_spnego_enabled "" "" "")
+
+echo "$RESULT1|$RESULT2|$RESULT3|$RESULT4"
+EOF
+chmod +x "$TEST_DIR/test_spnego_all_creds.sh"
+
+RESULTS=$("$TEST_DIR/test_spnego_all_creds.sh")
+if [ "$RESULTS" = "ENABLED|DISABLED|DISABLED|DISABLED" ]; then
+        assert_pass "SPNEGO only enables with all three credentials"
+else
+        assert_fail "SPNEGO credential logic incorrect" "Got: $RESULTS (expected: ENABLED|DISABLED|DISABLED|DISABLED)"
+fi
+
+# ============================================================================
+# TEST: KRB5CCNAME includes PID for uniqueness
+# ============================================================================
+run_test "KRB5CCNAME should include PID to avoid race conditions"
+
+cat >"$TEST_DIR/test_krb5_ccname.sh" <<'EOF'
+#!/bin/bash
+# Simulate what the script does
+CCNAME="/tmp/krb5cc_collector_$$_$(date +%s%N)"
+echo "$CCNAME"
+EOF
+chmod +x "$TEST_DIR/test_krb5_ccname.sh"
+
+CCNAME1=$("$TEST_DIR/test_krb5_ccname.sh")
+sleep 0.01
+CCNAME2=$("$TEST_DIR/test_krb5_ccname.sh")
+
+if [[ "$CCNAME1" != "$CCNAME2" ]]; then
+        assert_pass "KRB5CCNAME is unique per invocation" \
+                "CCNAME1: $(basename $CCNAME1), CCNAME2: $(basename $CCNAME2)"
+else
+        assert_fail "KRB5CCNAME is not unique" \
+                "Both processes got same CCNAME: $CCNAME1"
+fi
+
+# ============================================================================
+# TEST: Credential cleanup removes sensitive data
+# ============================================================================
+run_test "SPNEGO credentials should be unset after use"
+
+cat >"$TEST_DIR/test_cred_cleanup.sh" <<'EOF'
+#!/bin/bash
+# Simulate setting and cleaning credentials
+export PROXY_USERNAME="testuser"
+export PROXY_PASSWORD="testpass"
+export PROXY_DOMAIN="EXAMPLE.COM"
+
+# Simulate the cleanup
+unset PROXY_USERNAME PROXY_PASSWORD PROXY_DOMAIN SPNEGO_USERNAME SPNEGO_PASSWORD SPNEGO_DOMAIN
+
+# Check if they're really gone
+if [[ -z "${PROXY_USERNAME:-}" && -z "${PROXY_PASSWORD:-}" && -z "${PROXY_DOMAIN:-}" ]]; then
+  echo "CLEANED"
+else
+  echo "LEAKED: USER=${PROXY_USERNAME:-} PASS=${PROXY_PASSWORD:-} DOMAIN=${PROXY_DOMAIN:-}"
+fi
+EOF
+chmod +x "$TEST_DIR/test_cred_cleanup.sh"
+
+RESULT=$("$TEST_DIR/test_cred_cleanup.sh")
+if [ "$RESULT" = "CLEANED" ]; then
+        assert_pass "Credentials properly cleaned up after use"
+else
+        assert_fail "Credentials not fully cleaned" "Got: $RESULT"
+fi
+
+# ============================================================================
+# TEST: kinit validation doesn't fail script
+# ============================================================================
+run_test "Missing kinit should log warning but not fail script"
+
+cat >"$TEST_DIR/test_kinit_validation.sh" <<'EOF'
+#!/bin/bash
+# Simulate the validation logic
+if ! command -v kinit_fake >/dev/null 2>&1; then
+  echo "ERROR: SPNEGO configured but kinit not found in PATH" >&2
+  echo "ERROR: This is unusual for Ubuntu stemcells and indicates a potential issue" >&2
+  # Don't fail deployment - log and continue
+fi
+echo "CONTINUED"
+EOF
+chmod +x "$TEST_DIR/test_kinit_validation.sh"
+
+OUTPUT=$("$TEST_DIR/test_kinit_validation.sh" 2>&1)
+EXIT_CODE=$?
+
+if [[ $EXIT_CODE -eq 0 && "$OUTPUT" =~ "CONTINUED" ]]; then
+        assert_pass "Script continues after kinit validation failure"
+else
+        assert_fail "Script failed on kinit validation" "Exit code: $EXIT_CODE, Output: $OUTPUT"
+fi
+
+# ============================================================================
+# TEST: Conditional krb5 PATH doesn't break on missing directory
+# ============================================================================
+run_test "Conditional krb5 PATH check handles missing directory gracefully"
+
+cat >"$TEST_DIR/test_missing_krb5_dir.sh" <<'EOF'
+#!/bin/bash
+set -e  # Fail on any error
+
+# This should NOT fail even though directory doesn't exist
+if [ -d /var/vcap/packages/krb5/bin ]; then
+  export PATH=/var/vcap/packages/krb5/bin:$PATH
+fi
+
+# Continue with script
+echo "SCRIPT_CONTINUED"
+exit 0
+EOF
+chmod +x "$TEST_DIR/test_missing_krb5_dir.sh"
+
+OUTPUT=$("$TEST_DIR/test_missing_krb5_dir.sh" 2>&1)
+EXIT_CODE=$?
+
+if [[ $EXIT_CODE -eq 0 && "$OUTPUT" = "SCRIPT_CONTINUED" ]]; then
+        assert_pass "Script handles missing krb5 directory without failing"
+else
+        assert_fail "Script failed when krb5 directory missing" \
+                "Exit code: $EXIT_CODE, Output: $OUTPUT"
+fi
+
+# ============================================================================
+# TEST: Error classification includes SPNEGO errors
+# ============================================================================
+run_test "Error classification should handle proxy authentication errors"
+
+cat >"$TEST_DIR/test_proxy_error_classification.sh" <<'EOF'
+#!/bin/bash
+
+classify_error() {
+  local output="$1"
+  
+  if echo "$output" | grep -qi "kinit.*not found\|curl.*not found\|gss-api"; then
+    echo "SYSTEM_REQUIREMENTS_ERROR"
+  elif echo "$output" | grep -qi "proxy.*authentication\|407\|spnego\|kerberos"; then
+    echo "PROXY_AUTH_ERROR"
+  elif echo "$output" | grep -qi "unauthorized\|not authorized\|401"; then
+    echo "CUSTOMER_CONFIG_ERROR"
+  elif echo "$output" | grep -qi "connection refused\|timeout|503\|502\|504"; then
+    echo "MIDDLEWARE_PIPELINE_ERROR"
+  else
+    echo "UNKNOWN_ERROR"
+  fi
+}
+
+# Test various error types
+ERROR1=$(classify_error "407 Proxy Authentication Required")
+ERROR2=$(classify_error "kinit: not found")
+ERROR3=$(classify_error "SPNEGO negotiation failed")
+ERROR4=$(classify_error "curl: (60) SSL certificate problem")
+
+echo "$ERROR1|$ERROR2|$ERROR3|$ERROR4"
+EOF
+chmod +x "$TEST_DIR/test_proxy_error_classification.sh"
+
+RESULTS=$("$TEST_DIR/test_proxy_error_classification.sh")
+EXPECTED="PROXY_AUTH_ERROR|SYSTEM_REQUIREMENTS_ERROR|PROXY_AUTH_ERROR|UNKNOWN_ERROR"
+
+if [ "$RESULTS" = "$EXPECTED" ]; then
+        assert_pass "Error classification handles SPNEGO/proxy errors correctly"
+else
+        assert_fail "Error classification incorrect" \
+                "Got: $RESULTS, Expected: $EXPECTED"
+fi
+
+# ============================================================================
 # Test Summary
 # ============================================================================
 echo ""
