@@ -16,3 +16,4 @@ releases/**/*.tgz
 .go-version
 .ruby-version
 service_account.json
+test-data/
