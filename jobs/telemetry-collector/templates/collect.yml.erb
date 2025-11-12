@@ -20,3 +20,19 @@ output-dir: /var/vcap/data/telemetry-collector/
 <% if_p('usage_service.client_secret') do |p| %>usage-service-client-secret: <%= p %> <% end %>
 <% if_p('usage_service.insecure_skip_tls_verify') do |p| %>usage-service-insecure-skip-tls-verify: <%= p %> <% end %>
 <% if_p('usage_service.timeout') do |p| %>usage-service-timeout: <%= p %> <% end %>
+
+<% if_p('telemetry.tile_name') do |tile_name| %>
+  <% if tile_name != "" %>
+collection-source: tile
+tile-name: <%= tile_name %>
+  <% end %>
+<% end %>
+<% if_p('telemetry.tile_version') do |tile_version| %>
+tile-version: <%= tile_version %>
+<% end %>
+<% if_p('telemetry.release_version') do |release_version| %>
+bosh-release-version: <%= release_version %>
+<% end %>
+<% if_p('audit_mode') do |audit_mode| %>
+tile-audit-mode: <%= audit_mode %>
+<% end %>
