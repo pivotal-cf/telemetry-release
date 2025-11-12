@@ -11,23 +11,20 @@ function retry {
 
 	until "$@"; do
 		exit=$?
-		count=$(($count + 1))
-		if [ $count -lt $retries ]; then
-			echo "Attempt $count/$retries ended with exit $exit"
+		count=$((count + 1))
+		if [ "${count}" -lt "${retries}" ]; then
+			echo "Attempt ${count}/${retries} ended with exit ${exit}"
 			# Need a short pause between smith CLI executions or it fails unexpectedly.
 			sleep 30
 		else
-			echo "Attempted $count/$retries times and failed."
-			return $exit
+			echo "Attempted ${count}/${retries} times and failed."
+			return "${exit}"
 		fi
 	done
 	return 0
 }
 apt-get update
 apt-get -y install git jq ssh netcat-openbsd
-
-TASK_DIR="$PWD"
-VERSION=$(cat version/version)
 
 export BOSH_ENVIRONMENT=10.0.0.5
 
@@ -37,7 +34,8 @@ cp "$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64 "$BOSH_CLI"
 chmod 755 "$BOSH_CLI"
 
 echo "Setting up OM CLI"
-export om_cli="om/om-linux-amd64-$(cat om/version)"
+om_cli="om/om-linux-amd64-$(cat om/version)"
+export om_cli
 chmod 755 "$om_cli"
 cp "$om_cli" /usr/local/bin/om
 
