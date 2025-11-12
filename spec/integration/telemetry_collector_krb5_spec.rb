@@ -61,7 +61,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
       compiled = compile_erb_template(spnego_curl_template, properties)
       
       expect(compiled).to include('if [ -d /var/vcap/packages/krb5/bin ]')
-      expect(compiled).to include('export PATH=/var/vcap/packages/krb5/bin:$PATH')
+      expect(compiled).to include('export PATH="/var/vcap/packages/krb5/bin:${PATH}"')
       expect(compiled).to include('fi')
     end
 
@@ -259,7 +259,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
       compiled = compile_erb_template(spnego_curl_template, properties)
       
       expect(compiled).to include('cleanup()')
-      expect(compiled).to include('rm -f "$KRB5CCNAME"')
+      expect(compiled).to include('rm -f "${KRB5CCNAME}"')
     end
 
     it 'sets up trap for cleanup on exit' do
