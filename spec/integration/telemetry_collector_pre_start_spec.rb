@@ -52,7 +52,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
       }
       
       result = compile_erb_template(collect_send_template, properties)
-      expect(result).to include('audit_mode="true"')
+      expect(result).to include("audit_mode='true'")
     end
 
     it 'handles endpoint override in collect-send template' do
@@ -305,12 +305,12 @@ describe 'Telemetry Collector Pre-Start Integration' do
       
       compiled = compile_erb_template(collect_send_template, properties)
       
-      expect(compiled).to include('SPNEGO_USERNAME="testuser"')
-      expect(compiled).to include('SPNEGO_PASSWORD="testpass"')
-      expect(compiled).to include('SPNEGO_DOMAIN="EXAMPLE.COM"')
-      expect(compiled).to include('export PROXY_USERNAME="$SPNEGO_USERNAME"')
-      expect(compiled).to include('export PROXY_PASSWORD="$SPNEGO_PASSWORD"')
-      expect(compiled).to include('export PROXY_DOMAIN="$SPNEGO_DOMAIN"')
+      expect(compiled).to include("SPNEGO_USERNAME='testuser'")
+      expect(compiled).to include("SPNEGO_PASSWORD='testpass'")
+      expect(compiled).to include("SPNEGO_DOMAIN='EXAMPLE.COM'")
+      expect(compiled).to include('export PROXY_USERNAME="${SPNEGO_USERNAME}"')
+      expect(compiled).to include('export PROXY_PASSWORD="${SPNEGO_PASSWORD}"')
+      expect(compiled).to include('export PROXY_DOMAIN="${SPNEGO_DOMAIN}"')
     end
 
     it 'compiles with empty SPNEGO properties (backward compatibility)' do
@@ -444,7 +444,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
       compiled = compile_erb_template(collect_send_template, properties)
       
       expect(compiled).to include('if [ -d /var/vcap/packages/krb5/bin ]')
-      expect(compiled).to include('export PATH=/var/vcap/packages/krb5/bin:$PATH')
+      expect(compiled).to include('export PATH="/var/vcap/packages/krb5/bin:${PATH}"')
       expect(compiled).to include('Add krb5 binaries to PATH for SPNEGO support (if available)')
     end
 
