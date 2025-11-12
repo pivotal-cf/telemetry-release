@@ -4,7 +4,7 @@ set -e
 
 # Add krb5 binaries to PATH for SPNEGO support (if available)
 if [ -d /var/vcap/packages/krb5/bin ]; then
-  export PATH=/var/vcap/packages/krb5/bin:$PATH
+  export PATH="/var/vcap/packages/krb5/bin:${PATH}"
 fi
 
 rm -f /var/vcap/data/telemetry-collector/*.tar
@@ -13,7 +13,7 @@ COLLECTOR_BIN=/var/vcap/packages/telemetry-cli/telemetry-cli-linux
 
 # Update value usage function
 create_or_update_options() {
-    local file_path=$1
+    local file_path="${1}"
     local op_data_key="operational-data-only:"
 
     local strings_to_remove=(
@@ -31,51 +31,51 @@ create_or_update_options() {
     # tile that set these properties is from the 1.x
     # line and didn't allow users to choose operational_data
     # without ceip_data.
-    if ! grep -q "data-collection-multi-select-options:" "$file_path"; then
+    if ! grep -q "data-collection-multi-select-options:" "${file_path}"; then
         return
     fi
 
-    local multiselect_value=$(grep "data-collection-multi-select-options:" "$file_path" | awk '{$1=""; print $0}' | tr -d ' ')
+    local multiselect_value=$(grep "data-collection-multi-select-options:" "${file_path}" | awk '{$1=""; print $0}' | tr -d ' ')
 
     # If only ceip is selected, remove the usage service variables
-    if [ "$multiselect_value" == '["ceip_data"]' ]; then
+    if [ "${multiselect_value}" == '["ceip_data"]' ]; then
         for string in "${strings_to_remove[@]}"; do
-            sed -i.bak "/$string/d" "$file_path"
+            sed -i.bak "/${string}/d" "${file_path}"
         done
     fi
 
     # If tas-installed-selector == 'Disabled', remove the usage service variables
-    local tas_installed_value=$(grep "tas-installed-selector:" "$file_path" | awk '{$1=""; print $0}' | tr -d ' ')
+    local tas_installed_value=$(grep "tas-installed-selector:" "${file_path}" | awk '{$1=""; print $0}' | tr -d ' ')
 
-    if [ "$tas_installed_value" == 'Disabled' ]; then
+    if [ "${tas_installed_value}" == 'Disabled' ]; then
         for string in "${strings_to_remove[@]}"; do
-            sed -i.bak "/$string/d" "$file_path"
+            sed -i.bak "/${string}/d" "${file_path}"
         done
     fi
 
     # Append `https://app-usage.` to usage-service-url if it
     # has a value and doesn't already start with `http`.
-    local usage_service_value=$(grep "usage-service-url:" "$file_path" | awk -F': ' '{print $2}' | tr -d ' ')
-    if [[ -n "$usage_service_value" && ! "$usage_service_value" =~ ^http ]]; then
-        local updated_value="https://app-usage.$usage_service_value"
+    local usage_service_value=$(grep "usage-service-url:" "${file_path}" | awk -F': ' '{print $2}' | tr -d ' ')
+    if [[ -n "${usage_service_value}" && ! "${usage_service_value}" =~ ^http ]]; then
+        local updated_value="https://app-usage.${usage_service_value}"
 
-        sed -i.bak "s~usage-service-url: $usage_service_value~usage-service-url: $updated_value~" "$file_path"
+        sed -i.bak "s~usage-service-url: ${usage_service_value}~usage-service-url: ${updated_value}~" "${file_path}"
     fi
 
 
     # Set correct value for operational-data-only (either true or false).
     # Create this property if it doesn't already exist.
-    if ! grep -q "$op_data_key" "$file_path"; then
-        if [ "$multiselect_value" == '["operational_data"]' ]; then
-          echo "${op_data_key} true" >> "$file_path"
+    if ! grep -q "${op_data_key}" "${file_path}"; then
+        if [ "${multiselect_value}" == '["operational_data"]' ]; then
+          echo "${op_data_key} true" >> "${file_path}"
         else
-          echo "${op_data_key} false" >> "$file_path"
+          echo "${op_data_key} false" >> "${file_path}"
         fi
     else
-        if [ "$multiselect_value" == '["operational_data"]' ]; then
-            sed -i.bak "/$op_data_key/{s/false/true/;}" "$file_path"
+        if [ "${multiselect_value}" == '["operational_data"]' ]; then
+            sed -i.bak "/${op_data_key}/{s/false/true/;}" "${file_path}"
         else
-            sed -i.bak "/$op_data_key/{s/true/false/;}" "$file_path"
+            sed -i.bak "/${op_data_key}/{s/true/false/;}" "${file_path}"
         fi
     fi
     
@@ -85,26 +85,27 @@ create_or_update_options() {
 
 # Set SPNEGO enabled flag based on whether all three credentials are provided
 set_spnego_enabled_flag() {
-    local file_path=$1
+    local file_path="${1}"
     local spnego_key="spnego-enabled:"
     
     # Get SPNEGO credentials from BOSH properties
-    local proxy_username="<%= p('telemetry.proxy_settings.proxy_username') %>"
-    local proxy_password="<%= p('telemetry.proxy_settings.proxy_password') %>"
-    local proxy_domain="<%= p('telemetry.proxy_settings.proxy_domain') %>"
+    # Use single quotes to prevent Bash variable expansion in passwords containing special characters ($, !, etc.)
+    local proxy_username='<%= p('telemetry.proxy_settings.proxy_username') %>'
+    local proxy_password='<%= p('telemetry.proxy_settings.proxy_password') %>'
+    local proxy_domain='<%= p('telemetry.proxy_settings.proxy_domain') %>'
     
     # Determine if SPNEGO is enabled
     # All three credentials must be non-empty
     local spnego_enabled="false"
-    if [[ -n "$proxy_username" && -n "$proxy_password" && -n "$proxy_domain" ]]; then
+    if [[ -n "${proxy_username}" && -n "${proxy_password}" && -n "${proxy_domain}" ]]; then
         spnego_enabled="true"
     fi
     
     # Remove existing spnego-enabled line if present (for idempotency)
-    sed -i.bak "/$spnego_key/d" "$file_path"
+    sed -i.bak "/${spnego_key}/d" "${file_path}"
     
     # Append the spnego-enabled flag
-    echo "${spnego_key} ${spnego_enabled}" >> "$file_path"
+    echo "${spnego_key} ${spnego_enabled}" >> "${file_path}"
     
     # Clean up backup files
     rm -f "${file_path}.bak"
@@ -115,56 +116,57 @@ pre_start_config="/var/vcap/jobs/telemetry-collector/config/pre-start-collect.ym
 config="/var/vcap/jobs/telemetry-collector/config/collect.yml"
 
 # Check and update pre-start-collect.yml
-create_or_update_options "$pre_start_config"
-set_spnego_enabled_flag "$pre_start_config"
+create_or_update_options "${pre_start_config}"
+set_spnego_enabled_flag "${pre_start_config}"
 
 # Check and update collect.yml
-create_or_update_options "$config"
-set_spnego_enabled_flag "$config"
+create_or_update_options "${config}"
+set_spnego_enabled_flag "${config}"
 
 # Always collect data (must succeed)
-$COLLECTOR_BIN collect --config "$1"
-collect_exit_code=$?
+"${COLLECTOR_BIN}" collect --config "${1}"
+collect_exit_code="${?}"
 
-if [ $collect_exit_code -ne 0 ]; then
-  echo "ERROR: Telemetry data collection failed with exit code $collect_exit_code" >&2
-  exit $collect_exit_code
+if [ "${collect_exit_code}" -ne 0 ]; then
+  echo "ERROR: Telemetry data collection failed with exit code ${collect_exit_code}" >&2
+  exit "${collect_exit_code}"
 fi
 
 TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar" -type f 2>/dev/null | head -n 1 || true)
 
 # Verify tarball exists after successful collection
-if [ -z "$TAR_FILE" ]; then
+if [ -z "${TAR_FILE}" ]; then
   echo "ERROR: No tarball found after collection" >&2
   exit 1
 fi
 
-if [ ! -f "$TAR_FILE" ]; then
-  echo "ERROR: Tarball does not exist: $TAR_FILE" >&2
+if [ ! -f "${TAR_FILE}" ]; then
+  echo "ERROR: Tarball does not exist: ${TAR_FILE}" >&2
   exit 1
 fi
 
 # Only attempt to send if not in audit mode
-audit_mode="<%= p("audit_mode") %>"
-echo "DEBUG: Found tarball: $TAR_FILE" >&2
-echo "DEBUG: Audit mode: $audit_mode" >&2
+audit_mode='<%= p('audit_mode') %>'
+echo "DEBUG: Found tarball: ${TAR_FILE}" >&2
+echo "DEBUG: Audit mode: ${audit_mode}" >&2
 if [ "${audit_mode}" != "true" ]; then
-  export no_proxy=<%= p("telemetry.proxy_settings.no_proxy") %>
-  export http_proxy=<%= p("telemetry.proxy_settings.http_proxy") %>
-  export https_proxy=<%= p("telemetry.proxy_settings.https_proxy") %>
+  export no_proxy='<%= p('telemetry.proxy_settings.no_proxy') %>'
+  export http_proxy='<%= p('telemetry.proxy_settings.http_proxy') %>'
+  export https_proxy='<%= p('telemetry.proxy_settings.https_proxy') %>'
   
   # Get SPNEGO credentials from BOSH properties
-  SPNEGO_USERNAME="<%= p("telemetry.proxy_settings.proxy_username") %>"
-  SPNEGO_PASSWORD="<%= p("telemetry.proxy_settings.proxy_password") %>"
-  SPNEGO_DOMAIN="<%= p("telemetry.proxy_settings.proxy_domain") %>"
+  # Use single quotes to prevent Bash variable expansion in passwords containing special characters ($, !, etc.)
+  SPNEGO_USERNAME='<%= p('telemetry.proxy_settings.proxy_username') %>'
+  SPNEGO_PASSWORD='<%= p('telemetry.proxy_settings.proxy_password') %>'
+  SPNEGO_DOMAIN='<%= p('telemetry.proxy_settings.proxy_domain') %>'
   
   # Export SPNEGO credentials as environment variables if all three are provided
-  if [[ -n "$SPNEGO_USERNAME" && -n "$SPNEGO_PASSWORD" && -n "$SPNEGO_DOMAIN" ]]; then
+  if [[ -n "${SPNEGO_USERNAME}" && -n "${SPNEGO_PASSWORD}" && -n "${SPNEGO_DOMAIN}" ]]; then
     # Set unique credential cache to prevent race conditions (F001 fix)
     export KRB5CCNAME="/tmp/krb5cc_collector_$$_$(date +%s%N)"
-    export PROXY_USERNAME="$SPNEGO_USERNAME"
-    export PROXY_PASSWORD="$SPNEGO_PASSWORD"
-    export PROXY_DOMAIN="$SPNEGO_DOMAIN"
+    export PROXY_USERNAME="${SPNEGO_USERNAME}"
+    export PROXY_PASSWORD="${SPNEGO_PASSWORD}"
+    export PROXY_DOMAIN="${SPNEGO_DOMAIN}"
     echo "INFO: SPNEGO proxy authentication enabled for user ${SPNEGO_USERNAME}@${SPNEGO_DOMAIN}" >&2
     
     # Validate SPNEGO system requirements (kinit, curl with GSS-API)
@@ -183,32 +185,32 @@ if [ "${audit_mode}" != "true" ]; then
   
   # Attempt send but don't fail if it errors
   set +e
-  send_output=$($COLLECTOR_BIN send --path "$TAR_FILE" --api-key <%= p('telemetry.api_key') %> <% if_p("telemetry.endpoint_override") do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
-  send_exit_code=$?
+  send_output=$("${COLLECTOR_BIN}" send --path "${TAR_FILE}" --api-key <%= p('telemetry.api_key') %> <% if_p('telemetry.endpoint_override') do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
+  send_exit_code="${?}"
   set -e
   
   # Clean up SPNEGO credentials from environment
   unset PROXY_USERNAME PROXY_PASSWORD PROXY_DOMAIN SPNEGO_USERNAME SPNEGO_PASSWORD SPNEGO_DOMAIN
   
-  if [ $send_exit_code -ne 0 ]; then
+  if [ "${send_exit_code}" -ne 0 ]; then
     # Log structured error for monitoring
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     log_file="/var/vcap/sys/log/telemetry-collector/send-failures.log"
     
     # Ensure log directory exists
-    mkdir -p "$(dirname "$log_file")"
+    mkdir -p "$(dirname "${log_file}")"
     
     # Classify error type based on output
-    if echo "$send_output" | grep -qi "unauthorized\|not authorized\|401"; then
+    if echo "${send_output}" | grep -qi "unauthorized\|not authorized\|401"; then
       error_type="CUSTOMER_CONFIG_ERROR"
       error_msg="API key is invalid or expired"
-    elif echo "$send_output" | grep -qi "kinit.*not found\|curl.*not found\|gss-api"; then
+    elif echo "${send_output}" | grep -qi "kinit.*not found\|curl.*not found\|gss-api"; then
       error_type="SYSTEM_REQUIREMENTS_ERROR"
       error_msg="SPNEGO system requirements not met - kinit or curl with GSS-API missing"
-    elif echo "$send_output" | grep -qi "connection refused\|timeout\|503\|502\|504"; then
+    elif echo "${send_output}" | grep -qi "connection refused\|timeout\|503\|502\|504"; then
       error_type="MIDDLEWARE_PIPELINE_ERROR"
       error_msg="Telemetry infrastructure is temporarily unavailable"
-    elif echo "$send_output" | grep -qi "proxy.*authentication\|407\|spnego\|kerberos"; then
+    elif echo "${send_output}" | grep -qi "proxy.*authentication\|407\|spnego\|kerberos"; then
       error_type="PROXY_AUTH_ERROR"
       error_msg="Proxy authentication failed - check proxy credentials"
     else
@@ -217,12 +219,12 @@ if [ "${audit_mode}" != "true" ]; then
     fi
     
     # Log structured error
-    echo "{\"timestamp\":\"$timestamp\",\"error_type\":\"$error_type\",\"message\":\"$error_msg\",\"exit_code\":$send_exit_code,\"output\":\"$send_output\"}" >> "$log_file"
+    echo "{\"timestamp\":\"${timestamp}\",\"error_type\":\"${error_type}\",\"message\":\"${error_msg}\",\"exit_code\":${send_exit_code},\"output\":\"${send_output}\"}" >> "${log_file}"
     
     # Also log human-readable warning
     echo "WARNING: Telemetry send failed during startup - data collected successfully and will be retried by cron job" >&2
-    echo "  Error type: $error_type" >&2
-    echo "  Details: $error_msg" >&2
+    echo "  Error type: ${error_type}" >&2
+    echo "  Details: ${error_msg}" >&2
     
     # Return success to allow installation to continue
     exit 0
@@ -232,9 +234,9 @@ if [ "${audit_mode}" != "true" ]; then
     log_file="/var/vcap/sys/log/telemetry-collector/send-success.log"
     
     # Ensure log directory exists
-    mkdir -p "$(dirname "$log_file")"
+    mkdir -p "$(dirname "${log_file}")"
     
-    echo "{\"timestamp\":\"$timestamp\",\"status\":\"success\",\"message\":\"Telemetry sent successfully during startup\"}" >> "$log_file"
+    echo "{\"timestamp\":\"${timestamp}\",\"status\":\"success\",\"message\":\"Telemetry sent successfully during startup\"}" >> "${log_file}"
   fi
 else
   echo "INFO: Audit mode enabled - data collected but not sent"

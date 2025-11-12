@@ -17,7 +17,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
       compiled = compile_erb_template(collect_send_template, properties)
       
       expect(compiled).to include('if [ -d /var/vcap/packages/krb5/bin ]')
-      expect(compiled).to include('export PATH=/var/vcap/packages/krb5/bin:$PATH')
+      expect(compiled).to include('export PATH="/var/vcap/packages/krb5/bin:${PATH}"')
       expect(compiled).to include('fi')
     end
 
@@ -34,7 +34,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
       
       # Should NOT have an unconditional export before the conditional check
       lines = compiled.lines
-      krb5_export_line = lines.find_index { |line| line.include?('export PATH=/var/vcap/packages/krb5/bin:$PATH') }
+      krb5_export_line = lines.find_index { |line| line.include?('export PATH="/var/vcap/packages/krb5/bin:${PATH}"') }
       
       expect(krb5_export_line).not_to be_nil
       
@@ -93,7 +93,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
       compiled = compile_erb_template(collect_send_template, properties)
       
       # Should check that all three are non-empty
-      expect(compiled).to include('[[ -n "$SPNEGO_USERNAME" && -n "$SPNEGO_PASSWORD" && -n "$SPNEGO_DOMAIN" ]]')
+      expect(compiled).to include('[[ -n "${SPNEGO_USERNAME}" && -n "${SPNEGO_PASSWORD}" && -n "${SPNEGO_DOMAIN}" ]]')
     end
 
     it 'does not enable SPNEGO with only username' do
@@ -115,7 +115,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
       compiled = compile_erb_template(collect_send_template, properties)
       
       # The logic requires all three to be non-empty
-      expect(compiled).to include('[[ -n "$SPNEGO_USERNAME" && -n "$SPNEGO_PASSWORD" && -n "$SPNEGO_DOMAIN" ]]')
+      expect(compiled).to include('[[ -n "${SPNEGO_USERNAME}" && -n "${SPNEGO_PASSWORD}" && -n "${SPNEGO_DOMAIN}" ]]')
     end
 
     it 'sets unique KRB5CCNAME to avoid race conditions' do
@@ -131,9 +131,9 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
       
-      expect(compiled).to include('export PROXY_USERNAME="$SPNEGO_USERNAME"')
-      expect(compiled).to include('export PROXY_PASSWORD="$SPNEGO_PASSWORD"')
-      expect(compiled).to include('export PROXY_DOMAIN="$SPNEGO_DOMAIN"')
+      expect(compiled).to include('export PROXY_USERNAME="${SPNEGO_USERNAME}"')
+      expect(compiled).to include('export PROXY_PASSWORD="${SPNEGO_PASSWORD}"')
+      expect(compiled).to include('export PROXY_DOMAIN="${SPNEGO_DOMAIN}"')
     end
 
     it 'cleans up credentials after send attempt' do
