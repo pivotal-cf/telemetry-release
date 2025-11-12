@@ -6,8 +6,8 @@
 set -euxo pipefail
 
 TASK_DIR="$PWD"
-BOSH_CLI=("$TASK_DIR"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
-chmod 755 "$BOSH_CLI"
+BOSH_CLI=("${TASK_DIR}"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
+chmod 755 "${BOSH_CLI[0]}"
 
 export BOSH_ENVIRONMENT=10.0.0.5
 
@@ -25,10 +25,10 @@ blobstore:
   options:
     credentials_source: static
     json_key: |
-      $(echo $GCS_SERVICE_ACCOUNT_KEY)
+      $(echo "$GCS_SERVICE_ACCOUNT_KEY")
 EOM
 
-"$BOSH_CLI" vendor-package ruby-3.4 "$TASK_DIR/ruby-release"
+"${BOSH_CLI[0]}" vendor-package ruby-3.4 "${TASK_DIR}/ruby-release"
 
 if [ -z "$(git status --porcelain)" ]; then
 	echo "No new version of ruby-release"

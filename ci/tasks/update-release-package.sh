@@ -24,7 +24,7 @@ blobstore:
   options:
     credentials_source: static
     json_key: |
-      $(echo $GCS_SERVICE_ACCOUNT_KEY)
+      $(echo "$GCS_SERVICE_ACCOUNT_KEY")
 EOM
 
 # Check if new version already exists

@@ -11,14 +11,14 @@ function retry {
 
 	until "$@"; do
 		exit=$?
-		count=$(($count + 1))
-		if [ $count -lt $retries ]; then
-			echo "Attempt $count/$retries ended with exit $exit"
+		count=$((count + 1))
+		if [ "${count}" -lt "${retries}" ]; then
+			echo "Attempt ${count}/${retries} ended with exit ${exit}"
 			# Need a short pause between smith CLI executions or it fails unexpectedly.
 			sleep 30
 		else
-			echo "Attempted $count/$retries times and failed."
-			return $exit
+			echo "Attempted ${count}/${retries} times and failed."
+			return "${exit}"
 		fi
 	done
 	return 0
@@ -31,8 +31,7 @@ echo -n | openssl s_client -showcerts -connect telemetry-acceptance-loader.apps.
 cp telemetry-acceptance-loader.crt /usr/local/share/ca-certificates/telemetry-acceptance-loader.crt
 update-ca-certificates
 
-TASK_DIR="$PWD"
-VERSION=$(cat version/version)
+TASK_DIR="${PWD}"
 
 export BOSH_ENVIRONMENT=10.0.0.5
 
@@ -71,15 +70,18 @@ smith bosh -l testbed-lease/metadata >temp_env.sh
 
 # Sourcing Temp File
 echo "Source tempfile"
+# shellcheck source=/dev/null
 source temp_env.sh
 
-eval $(smith bosh -l testbed-lease/metadata)
+eval "$(smith bosh -l testbed-lease/metadata)"
 
-echo "BOSH_ENVIRONMENT: $BOSH_ENVIRONMENT"
-eval $(smith om -l testbed-lease/metadata)
+echo "BOSH_ENVIRONMENT: ${BOSH_ENVIRONMENT}"
+eval "$(smith om -l testbed-lease/metadata)"
 
-export NETWORK=$(smith read --lockfile=testbed-lease/metadata | jq -r .ert_subnet)
-export AZ=$(smith read --lockfile=testbed-lease/metadata | jq -r '.azs[0]')
+NETWORK=$(smith read --lockfile=testbed-lease/metadata | jq -r .ert_subnet)
+export NETWORK
+AZ=$(smith read --lockfile=testbed-lease/metadata | jq -r '.azs[0]')
+export AZ
 
 echo "Uploading stemcell..."
 

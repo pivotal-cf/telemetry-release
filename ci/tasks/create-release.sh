@@ -3,8 +3,8 @@
 set -euxo pipefail
 
 TASK_DIR="$PWD"
-BOSH_CLI=("$PWD"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
-chmod 755 "$BOSH_CLI"
+BOSH_CLI=("${TASK_DIR}"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
+chmod 755 "${BOSH_CLI[0]}"
 
 export BOSH_ENVIRONMENT=10.0.0.5
 
@@ -17,4 +17,4 @@ VERSION=$(cat version/version)
 apt-get update
 apt-get -y install git
 pushd telemetry-release
-"$BOSH_CLI" create-release --force --version "$VERSION" --tarball "$TASK_DIR/release-tarball/release.tgz"
+"${BOSH_CLI[0]}" create-release --force --version "${VERSION}" --tarball "${TASK_DIR}/release-tarball/release.tgz"
