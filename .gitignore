@@ -18,3 +18,4 @@ releases/**/*.tgz
 service_account.json
 test-data/
 .cursor/
+telemetry-*
