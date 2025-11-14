@@ -589,20 +589,13 @@ func findFreePort() (string, error) {
 			continue // Port is in use, try next one
 		}
 
-		listener.Close()
+		if closeErr := listener.Close(); closeErr != nil {
+			return "0", fmt.Errorf("failed to close listener: %w", closeErr)
+		}
 		return portStr, nil
 	}
 
 	return "0", fmt.Errorf("could not find a free port in range 50000-65535")
-}
-
-func isPortFree(port string) bool {
-	conn, err := net.Dial("tcp", "127.0.0.1:"+port)
-	if err != nil {
-		return true // Port is free
-	}
-	conn.Close()
-	return false // Port is in use
 }
 
 func dialLoader(port string) bool {
