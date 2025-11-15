@@ -89,9 +89,10 @@ set_spnego_enabled_flag() {
     local spnego_key="spnego-enabled:"
     
     # Get SPNEGO credentials from BOSH properties
-    # Use single quotes to prevent Bash variable expansion in passwords containing special characters ($, !, etc.)
+    # Use Base64 encoding to handle ALL password characters including single quotes
     local proxy_username='<%= p('telemetry.proxy_settings.proxy_username') %>'
-    local proxy_password='<%= p('telemetry.proxy_settings.proxy_password') %>'
+    local proxy_password_b64='<%= Base64.strict_encode64(p('telemetry.proxy_settings.proxy_password')) %>'
+    local proxy_password=$(echo "${proxy_password_b64}" | base64 -d)
     local proxy_domain='<%= p('telemetry.proxy_settings.proxy_domain') %>'
     
     # Determine if SPNEGO is enabled
@@ -155,9 +156,10 @@ if [ "${audit_mode}" != "true" ]; then
   export https_proxy='<%= p('telemetry.proxy_settings.https_proxy') %>'
   
   # Get SPNEGO credentials from BOSH properties
-  # Use single quotes to prevent Bash variable expansion in passwords containing special characters ($, !, etc.)
+  # Use Base64 encoding to handle ALL password characters including single quotes
   SPNEGO_USERNAME='<%= p('telemetry.proxy_settings.proxy_username') %>'
-  SPNEGO_PASSWORD='<%= p('telemetry.proxy_settings.proxy_password') %>'
+  SPNEGO_PASSWORD_B64='<%= Base64.strict_encode64(p('telemetry.proxy_settings.proxy_password')) %>'
+  SPNEGO_PASSWORD=$(echo "${SPNEGO_PASSWORD_B64}" | base64 -d)
   SPNEGO_DOMAIN='<%= p('telemetry.proxy_settings.proxy_domain') %>'
   
   # Export SPNEGO credentials as environment variables if all three are provided

@@ -306,7 +306,9 @@ describe 'Telemetry Collector Pre-Start Integration' do
       compiled = compile_erb_template(collect_send_template, properties)
       
       expect(compiled).to include("SPNEGO_USERNAME='testuser'")
-      expect(compiled).to include("SPNEGO_PASSWORD='testpass'")
+      # Check for Base64 encoding (not plain password)
+      expect(compiled).to include("SPNEGO_PASSWORD_B64='#{Base64.strict_encode64('testpass')}'")
+      expect(compiled).to include('$(echo "${SPNEGO_PASSWORD_B64}" | base64 -d)')
       expect(compiled).to include("SPNEGO_DOMAIN='EXAMPLE.COM'")
       expect(compiled).to include('export PROXY_USERNAME="${SPNEGO_USERNAME}"')
       expect(compiled).to include('export PROXY_PASSWORD="${SPNEGO_PASSWORD}"')

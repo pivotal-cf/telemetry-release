@@ -57,13 +57,14 @@ describe 'telemetry-collector password escaping' do
           
           compiled = compile_erb_template(collect_send_template, properties)
           
-          # Check that the template uses single quotes (our fix)
-          expect(compiled).to match(/SPNEGO_PASSWORD='/)
-          expect(compiled).to match(/local proxy_password='/)
+          # Check that the template uses Base64 encoding (our fix)
+          expect(compiled).to match(/SPNEGO_PASSWORD_B64='/)
+          expect(compiled).to match(/local proxy_password_b64='/)
+          expect(compiled).to include('| base64 -d')
           
-          # The compiled script should contain the password within single quotes
-          # We can't easily test the runtime behavior here, but we can verify the syntax
-          expect(compiled).to include("SPNEGO_PASSWORD='#{test_password}'")
+          # Verify the password is Base64 encoded
+          encoded_password = Base64.strict_encode64(test_password)
+          expect(compiled).to include("SPNEGO_PASSWORD_B64='#{encoded_password}'")
         end
       end
     end
@@ -91,11 +92,11 @@ describe 'telemetry-collector password escaping' do
         
         compiled = compile_erb_template(collect_send_template, properties)
         
-        # Verify single quotes are consistently used (not double quotes)
-        expect(compiled).to match(/SPNEGO_PASSWORD='[^']*'/)
-        expect(compiled).to match(/local proxy_password='[^']*'/)
-        expect(compiled).to_not include('SPNEGO_PASSWORD="')
-        expect(compiled).to_not include('local proxy_password="')
+        # Verify Base64 encoding is consistently used
+        expect(compiled).to match(/SPNEGO_PASSWORD_B64='[^']*'/)
+        expect(compiled).to match(/local proxy_password_b64='[^']*'/)
+        expect(compiled).to include('$(echo "${SPNEGO_PASSWORD_B64}" | base64 -d)')
+        expect(compiled).to include('$(echo "${proxy_password_b64}" | base64 -d)')
       end
     end
   end
@@ -118,9 +119,11 @@ describe 'telemetry-collector password escaping' do
         
         compiled = compile_erb_template(spnego_curl_template, properties)
         
-        # Verify single quotes are used (our fix)
-        expect(compiled).to match(/PASSWORD='/)
-        expect(compiled).to include("PASSWORD='Pass$123'")
+        # Verify Base64 encoding is used (our fix)
+        expect(compiled).to match(/PASSWORD_B64='/)
+        expect(compiled).to include('$(echo "${PASSWORD_B64}" | base64 -d)')
+        encoded = Base64.strict_encode64('Pass$123')
+        expect(compiled).to include("PASSWORD_B64='#{encoded}'")
       end
       
       it 'handles complex password: ComplexP@ss$123!`test`' do
@@ -139,8 +142,115 @@ describe 'telemetry-collector password escaping' do
         
         compiled = compile_erb_template(spnego_curl_template, properties)
         
-        # Verify the password is within single quotes
-        expect(compiled).to include("PASSWORD='ComplexP@ss$123!`test`'")
+        # Verify the password is Base64 encoded
+        encoded = Base64.strict_encode64('ComplexP@ss$123!`test`')
+        expect(compiled).to include("PASSWORD_B64='#{encoded}'")
+      end
+    end
+    
+    context 'Bash execution validation (CRITICAL)' do
+      it 'executes successfully with single quote in password' do
+        properties = {
+          'audit_mode' => false,
+          'telemetry' => {
+            'api_key' => 'test-key',
+            'proxy_settings' => {
+              'no_proxy' => '',
+              'http_proxy' => '',
+              'https_proxy' => '',
+              'proxy_username' => 'testuser',
+              'proxy_password' => "Pass'word",  # Single quote - the critical test!
+              'proxy_domain' => 'EXAMPLE.COM'
+            }
+          },
+          'opsmanager' => {
+            'auth' => {
+              'hostname' => 'opsman.example.com'
+            }
+          }
+        }
+        
+        compiled = compile_erb_template(spnego_curl_template, properties)
+        
+        # Write to temp file
+        require 'tempfile'
+        script_file = Tempfile.new(['test-script', '.sh'])
+        script_file.write(compiled)
+        script_file.close
+        
+        # Test bash syntax (should not have errors)
+        result = system("bash -n #{script_file.path}")
+        expect(result).to be(true), "Script has syntax errors with single quote password"
+        
+        script_file.unlink
+      end
+      
+      it 'executes successfully with multiple single quotes in password' do
+        properties = {
+          'audit_mode' => false,
+          'telemetry' => {
+            'api_key' => 'test-key',
+            'proxy_settings' => {
+              'no_proxy' => '',
+              'http_proxy' => '',
+              'https_proxy' => '',
+              'proxy_username' => 'testuser',
+              'proxy_password' => "P'a's's'word",  # Multiple single quotes!
+              'proxy_domain' => 'EXAMPLE.COM'
+            }
+          },
+          'opsmanager' => {
+            'auth' => {
+              'hostname' => 'opsman.example.com'
+            }
+          }
+        }
+        
+        compiled = compile_erb_template(collect_send_template, properties)
+        
+        require 'tempfile'
+        script_file = Tempfile.new(['test-script', '.sh'])
+        script_file.write(compiled)
+        script_file.close
+        
+        result = system("bash -n #{script_file.path}")
+        expect(result).to be(true), "Script has syntax errors with multiple single quotes"
+        
+        script_file.unlink
+      end
+      
+      it 'correctly decodes password with all special characters' do
+        test_password = "P@ss'w\"ord`$123!$(whoami)"
+        
+        properties = {
+          'audit_mode' => false,
+          'telemetry' => {
+            'api_key' => 'test-key',
+            'proxy_settings' => {
+              'no_proxy' => '',
+              'http_proxy' => '',
+              'https_proxy' => '',
+              'proxy_username' => 'testuser',
+              'proxy_password' => test_password,
+              'proxy_domain' => 'EXAMPLE.COM'
+            }
+          },
+          'opsmanager' => {
+            'auth' => {
+              'hostname' => 'opsman.example.com'
+            }
+          }
+        }
+        
+        compiled = compile_erb_template(collect_send_template, properties)
+        
+        # Extract the SPNEGO_PASSWORD_B64 value from compiled script
+        match = compiled.match(/SPNEGO_PASSWORD_B64='([^']+)'/)
+        expect(match).not_to be_nil, "Could not find SPNEGO_PASSWORD_B64 in compiled script"
+        
+        # Decode and verify it matches original
+        decoded = Base64.strict_decode64(match[1])
+        expect(decoded).to eq(test_password), "Decoded password doesn't match original"
       end
     end
   end
@@ -164,8 +274,10 @@ describe 'telemetry-collector password escaping' do
       
       compiled = compile_erb_template(collect_send_template, properties)
       
-      # Should work exactly the same as before
-      expect(compiled).to include("SPNEGO_PASSWORD='simplepassword123'")
+      # Should work with Base64 encoding (even for simple passwords)
+      encoded = Base64.strict_encode64('simplepassword123')
+      expect(compiled).to include("SPNEGO_PASSWORD_B64='#{encoded}'")
+      expect(compiled).to include('$(echo "${SPNEGO_PASSWORD_B64}" | base64 -d)')
       expect(compiled).to include('export PROXY_PASSWORD="${SPNEGO_PASSWORD}"')
     end
     
@@ -187,9 +299,9 @@ describe 'telemetry-collector password escaping' do
       
       compiled = compile_erb_template(collect_send_template, properties)
       
-      # SPNEGO should be disabled
+      # SPNEGO should be disabled (empty credentials)
       expect(compiled).to include("SPNEGO_USERNAME=''")
-      expect(compiled).to include("SPNEGO_PASSWORD=''")
+      expect(compiled).to include("SPNEGO_PASSWORD_B64=''")  # Base64 of empty string is empty
       expect(compiled).to include("SPNEGO_DOMAIN=''")
     end
   end

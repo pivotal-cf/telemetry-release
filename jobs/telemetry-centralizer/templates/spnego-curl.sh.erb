@@ -23,9 +23,10 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # Read credentials from BOSH properties
-# Use single quotes to prevent Bash variable expansion in passwords containing special characters ($, !, etc.)
+# Use Base64 encoding to handle ALL password characters including single quotes
 USERNAME='<%= p('telemetry.proxy_settings.proxy_username') %>'
-PASSWORD='<%= p('telemetry.proxy_settings.proxy_password') %>'
+PASSWORD_B64='<%= Base64.strict_encode64(p('telemetry.proxy_settings.proxy_password')) %>'
+PASSWORD=$(echo "${PASSWORD_B64}" | base64 -d)
 DOMAIN='<%= p('telemetry.proxy_settings.proxy_domain') %>'
 
 # Check if all credentials are provided

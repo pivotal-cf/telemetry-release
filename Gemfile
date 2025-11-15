@@ -7,4 +7,5 @@ group :test do
   gem 'erb', '~> 4.0'
   gem 'json', '~> 2.6'
   gem 'fileutils', '~> 1.6'
+  gem 'base64', '~> 0.3'
 end

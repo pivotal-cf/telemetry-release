@@ -2,6 +2,7 @@ require 'rspec'
 require 'erb'
 require 'time'
 require 'ostruct'
+require 'base64'
 
 # Helper methods for testing ERB templates
 module ERBTestHelper
@@ -64,6 +65,15 @@ module ERBTestHelper
     
     # Compile and evaluate the ERB template
     erb = ERB.new(template_content)
+    # Make Base64 and other constants available in the binding
+    binding_context.instance_variable_set(:@__base64__, ::Base64)
+    binding_context.define_singleton_method(:const_missing) do |name|
+      if name == :Base64
+        @__base64__
+      else
+        super(name)
+      end
+    end
     erb.result(binding_context.instance_eval { binding })
   end
   
