@@ -124,8 +124,19 @@ set_spnego_enabled_flag "${pre_start_config}"
 create_or_update_options "${config}"
 set_spnego_enabled_flag "${config}"
 
+# Calculate SPNEGO enabled flag for CLI
+proxy_username='<%= p('telemetry.proxy_settings.proxy_username') %>'
+proxy_password_b64='<%= Base64.strict_encode64(p('telemetry.proxy_settings.proxy_password')) %>'
+proxy_password=$(echo "${proxy_password_b64}" | base64 -d)
+proxy_domain='<%= p('telemetry.proxy_settings.proxy_domain') %>'
+
+SPNEGO_ENABLED="false"
+if [[ -n "${proxy_username}" && -n "${proxy_password}" && -n "${proxy_domain}" ]]; then
+    SPNEGO_ENABLED="true"
+fi
+
 # Always collect data (must succeed)
-"${COLLECTOR_BIN}" collect --config "${1}"
+"${COLLECTOR_BIN}" collect --config "${1}" --tile-spnego-enabled="${SPNEGO_ENABLED}"
 collect_exit_code="${?}"
 
 if [ "${collect_exit_code}" -ne 0 ]; then

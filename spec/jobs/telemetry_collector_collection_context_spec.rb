@@ -229,3 +229,87 @@ describe 'telemetry-collector collection context' do
   end
 end
 
+describe 'telemetry-collector collect-send script' do
+  let(:template_content) do
+    File.read(File.join(__dir__, '../../jobs/telemetry-collector/templates/telemetry-collect-send.erb'))
+  end
+  
+  describe 'with SPNEGO credentials provided' do
+    let(:properties) do
+      {
+        'telemetry' => {
+          'env_type' => 'production',
+          'tile_name' => 'pivotal-telemetry-om',
+          'tile_version' => '2.3.1',
+          'release_version' => '2.3.0',
+          'proxy_settings' => {
+            'proxy_username' => 'proxy-user',
+            'proxy_password' => 'proxy-pass',
+            'proxy_domain' => 'DOMAIN',
+            'no_proxy' => '',
+            'http_proxy' => '',
+            'https_proxy' => ''
+          }
+        },
+        'audit_mode' => false,
+        'opsmanager' => {
+          'auth' => {
+            'hostname' => 'opsman.example.com',
+            'username' => 'admin',
+            'password' => 'password'
+          }
+        }
+      }
+    end
+    
+    it 'compiles successfully' do
+      expect { compile_erb_template(template_content, properties) }.not_to raise_error
+    end
+    
+    it 'passes --tile-spnego-enabled=true when all credentials are provided' do
+      output = compile_erb_template(template_content, properties)
+      expect(output).to include('--tile-spnego-enabled="${SPNEGO_ENABLED}"')
+      expect(output).to include('SPNEGO_ENABLED="true"')
+    end
+  end
+  
+  describe 'without SPNEGO credentials' do
+    let(:properties) do
+      {
+        'telemetry' => {
+          'env_type' => 'production',
+          'tile_name' => 'pivotal-telemetry-om',
+          'tile_version' => '2.3.1',
+          'release_version' => '2.3.0',
+          'proxy_settings' => {
+            'proxy_username' => '',
+            'proxy_password' => '',
+            'proxy_domain' => '',
+            'no_proxy' => '',
+            'http_proxy' => '',
+            'https_proxy' => ''
+          }
+        },
+        'audit_mode' => false,
+        'opsmanager' => {
+          'auth' => {
+            'hostname' => 'opsman.example.com',
+            'username' => 'admin',
+            'password' => 'password'
+          }
+        }
+      }
+    end
+    
+    it 'compiles successfully' do
+      expect { compile_erb_template(template_content, properties) }.not_to raise_error
+    end
+    
+    it 'passes --tile-spnego-enabled=false when credentials are not provided' do
+      output = compile_erb_template(template_content, properties)
+      expect(output).to include('--tile-spnego-enabled="${SPNEGO_ENABLED}"')
+      expect(output).to include('SPNEGO_ENABLED="false"')
+    end
+  end
+end
+
