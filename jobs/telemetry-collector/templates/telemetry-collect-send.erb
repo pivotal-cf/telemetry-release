@@ -144,23 +144,38 @@ if [ "${collect_exit_code}" -ne 0 ]; then
   exit "${collect_exit_code}"
 fi
 
-TAR_FILE=$(find /var/vcap/data/telemetry-collector -name "*.tar" -type f 2>/dev/null | head -n 1 || true)
+# Find all TAR files created by collection
+# When --split-tar-by-data-type is enabled, there will be multiple TAR files
+# (e.g., FoundationDetails_<timestamp>_operational.tar and FoundationDetails_<timestamp>_ceip.tar)
+#
+# Use null-terminated output (-print0) to safely handle filenames with special characters
+TAR_FILES=()
+while IFS= read -r -d '' file; do
+  TAR_FILES+=("$file")
+done < <(find /var/vcap/data/telemetry-collector -name "*.tar" -type f -print0 2>/dev/null)
+TAR_COUNT="${#TAR_FILES[@]}"
 
-# Verify tarball exists after successful collection
-if [ -z "${TAR_FILE}" ]; then
-  echo "ERROR: No tarball found after collection" >&2
+# Verify at least one tarball exists after successful collection
+if [ "${TAR_COUNT}" -eq 0 ]; then
+  printf "ERROR: No tarball found after collection\n" >&2
   exit 1
 fi
 
-if [ ! -f "${TAR_FILE}" ]; then
-  echo "ERROR: Tarball does not exist: ${TAR_FILE}" >&2
-  exit 1
-fi
+# Verify all tarballs exist
+for TAR_FILE in "${TAR_FILES[@]}"; do
+  if [ ! -f "${TAR_FILE}" ]; then
+    printf "ERROR: Tarball does not exist: %s\n" "${TAR_FILE}" >&2
+    exit 1
+  fi
+done
 
 # Only attempt to send if not in audit mode
 audit_mode='<%= p('audit_mode') %>'
-echo "DEBUG: Found tarball: ${TAR_FILE}" >&2
-echo "DEBUG: Audit mode: ${audit_mode}" >&2
+printf "DEBUG: Found %d tarball(s)\n" "${TAR_COUNT}" >&2
+for TAR_FILE in "${TAR_FILES[@]}"; do
+  printf "DEBUG:   - %s\n" "${TAR_FILE}" >&2
+done
+printf "DEBUG: Audit mode: %s\n" "${audit_mode}" >&2
 if [ "${audit_mode}" != "true" ]; then
   export no_proxy='<%= p('telemetry.proxy_settings.no_proxy') %>'
   export http_proxy='<%= p('telemetry.proxy_settings.http_proxy') %>'
@@ -175,84 +190,124 @@ if [ "${audit_mode}" != "true" ]; then
   
   # Export SPNEGO credentials as environment variables if all three are provided
   if [[ -n "${SPNEGO_USERNAME}" && -n "${SPNEGO_PASSWORD}" && -n "${SPNEGO_DOMAIN}" ]]; then
-    # Set unique credential cache to prevent race conditions (F001 fix)
-    export KRB5CCNAME="/tmp/krb5cc_collector_$$_$(date +%s%N)"
+    # Set unique credential cache to prevent race conditions between concurrent runs
+    # PID ($$) guarantees uniqueness; timestamp aids debugging
+    export KRB5CCNAME="/tmp/krb5cc_collector_$$_$(date +%s)"
     export PROXY_USERNAME="${SPNEGO_USERNAME}"
     export PROXY_PASSWORD="${SPNEGO_PASSWORD}"
     export PROXY_DOMAIN="${SPNEGO_DOMAIN}"
-    echo "INFO: SPNEGO proxy authentication enabled for user ${SPNEGO_USERNAME}@${SPNEGO_DOMAIN}" >&2
+    printf "INFO: SPNEGO proxy authentication enabled for user %s@%s\n" "${SPNEGO_USERNAME}" "${SPNEGO_DOMAIN}" >&2
     
     # Validate SPNEGO system requirements (kinit, curl with GSS-API)
     if ! command -v kinit >/dev/null 2>&1; then
-      echo "ERROR: SPNEGO configured but kinit not found in PATH" >&2
-      echo "ERROR: This is unusual for Ubuntu stemcells and indicates a potential issue" >&2
+      printf "ERROR: SPNEGO configured but kinit not found in PATH\n" >&2
+      printf "ERROR: This is unusual for Ubuntu stemcells and indicates a potential issue\n" >&2
       # Don't fail deployment - log and continue
     elif ! curl -V 2>&1 | grep -qi "gss\|kerberos"; then
-      echo "ERROR: SPNEGO configured but curl lacks GSS-API support" >&2
-      echo "ERROR: This is unusual for Ubuntu stemcells and indicates a potential issue" >&2
+      printf "ERROR: SPNEGO configured but curl lacks GSS-API support\n" >&2
+      printf "ERROR: This is unusual for Ubuntu stemcells and indicates a potential issue\n" >&2
       # Don't fail deployment - log and continue
     else
-      echo "INFO: SPNEGO system requirements validated" >&2
+      printf "INFO: SPNEGO system requirements validated\n" >&2
     fi
   fi
   
-  # Attempt send but don't fail if it errors
-  set +e
-  send_output=$("${COLLECTOR_BIN}" send --path "${TAR_FILE}" --api-key <%= p('telemetry.api_key') %> <% if_p('telemetry.endpoint_override') do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
-  send_exit_code="${?}"
-  set -e
+  # Track send results for all TAR files
+  send_failures=0
+  send_successes=0
+  
+  # Loop through and send each TAR file
+  for TAR_FILE in "${TAR_FILES[@]}"; do
+    printf "DEBUG: Sending tarball: %s\n" "${TAR_FILE}" >&2
+    
+    # Attempt send but don't fail if it errors
+    set +e
+    send_output=$("${COLLECTOR_BIN}" send --path "${TAR_FILE}" --api-key <%= p('telemetry.api_key') %> <% if_p('telemetry.endpoint_override') do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
+    send_exit_code="${?}"
+    set -e
+    
+    if [ "${send_exit_code}" -ne 0 ]; then
+      send_failures=$((send_failures + 1))
+      
+      # Log structured error for monitoring
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      log_file="/var/vcap/sys/log/telemetry-collector/send-failures.log"
+      
+      # Ensure log directory exists
+      mkdir -p "$(dirname "${log_file}")"
+      
+      # Classify error type based on output
+      if printf '%s' "${send_output}" | grep -qi "unauthorized\|not authorized\|401"; then
+        error_type="CUSTOMER_CONFIG_ERROR"
+        error_msg="API key is invalid or expired"
+      elif printf '%s' "${send_output}" | grep -qi "kinit.*not found\|curl.*not found\|gss-api"; then
+        error_type="SYSTEM_REQUIREMENTS_ERROR"
+        error_msg="SPNEGO system requirements not met - kinit or curl with GSS-API missing"
+      elif printf '%s' "${send_output}" | grep -qi "connection refused\|timeout\|503\|502\|504"; then
+        error_type="MIDDLEWARE_PIPELINE_ERROR"
+        error_msg="Telemetry infrastructure is temporarily unavailable"
+      elif printf '%s' "${send_output}" | grep -qi "proxy.*authentication\|407\|spnego\|kerberos"; then
+        error_type="PROXY_AUTH_ERROR"
+        error_msg="Proxy authentication failed - check proxy credentials"
+      else
+        error_type="UNKNOWN_ERROR"
+        error_msg="Telemetry send failed"
+      fi
+      
+      # Log structured error - escape special characters in output for valid JSON
+      # Using jq if available, otherwise basic escaping
+      if command -v jq >/dev/null 2>&1; then
+        escaped_output=$(printf '%s' "${send_output}" | jq -Rs '.')
+        escaped_tar_file=$(printf '%s' "${TAR_FILE}" | jq -Rs '.')
+        printf '{"timestamp":"%s","error_type":"%s","message":"%s","exit_code":%d,"tar_file":%s,"output":%s}\n' \
+          "${timestamp}" "${error_type}" "${error_msg}" "${send_exit_code}" "${escaped_tar_file}" "${escaped_output}" >> "${log_file}"
+      else
+        # Basic escaping: replace backslashes, quotes, and control characters
+        escaped_output=$(printf '%s' "${send_output}" | sed 's/\\/\\\\/g; s/"/\\"/g; s/	/\\t/g' | tr '\n' ' ')
+        escaped_tar_file=$(printf '%s' "${TAR_FILE}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+        printf '{"timestamp":"%s","error_type":"%s","message":"%s","exit_code":%d,"tar_file":"%s","output":"%s"}\n' \
+          "${timestamp}" "${error_type}" "${error_msg}" "${send_exit_code}" "${escaped_tar_file}" "${escaped_output}" >> "${log_file}"
+      fi
+      
+      # Also log human-readable warning
+      printf "WARNING: Telemetry send failed for %s - data collected successfully and will be retried by cron job\n" "${TAR_FILE}" >&2
+      printf "  Error type: %s\n" "${error_type}" >&2
+      printf "  Details: %s\n" "${error_msg}" >&2
+    else
+      send_successes=$((send_successes + 1))
+      
+      # Log successful send
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      log_file="/var/vcap/sys/log/telemetry-collector/send-success.log"
+      
+      # Ensure log directory exists
+      mkdir -p "$(dirname "${log_file}")"
+      
+      # Escape tar_file for JSON
+      if command -v jq >/dev/null 2>&1; then
+        escaped_tar_file=$(printf '%s' "${TAR_FILE}" | jq -Rs '.')
+        printf '{"timestamp":"%s","status":"success","message":"Telemetry sent successfully during startup","tar_file":%s}\n' \
+          "${timestamp}" "${escaped_tar_file}" >> "${log_file}"
+      else
+        escaped_tar_file=$(printf '%s' "${TAR_FILE}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+        printf '{"timestamp":"%s","status":"success","message":"Telemetry sent successfully during startup","tar_file":"%s"}\n' \
+          "${timestamp}" "${escaped_tar_file}" >> "${log_file}"
+      fi
+    fi
+  done
   
   # Clean up SPNEGO credentials from environment
   unset PROXY_USERNAME PROXY_PASSWORD PROXY_DOMAIN SPNEGO_USERNAME SPNEGO_PASSWORD SPNEGO_DOMAIN
   
-  if [ "${send_exit_code}" -ne 0 ]; then
-    # Log structured error for monitoring
-    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    log_file="/var/vcap/sys/log/telemetry-collector/send-failures.log"
-    
-    # Ensure log directory exists
-    mkdir -p "$(dirname "${log_file}")"
-    
-    # Classify error type based on output
-    if echo "${send_output}" | grep -qi "unauthorized\|not authorized\|401"; then
-      error_type="CUSTOMER_CONFIG_ERROR"
-      error_msg="API key is invalid or expired"
-    elif echo "${send_output}" | grep -qi "kinit.*not found\|curl.*not found\|gss-api"; then
-      error_type="SYSTEM_REQUIREMENTS_ERROR"
-      error_msg="SPNEGO system requirements not met - kinit or curl with GSS-API missing"
-    elif echo "${send_output}" | grep -qi "connection refused\|timeout\|503\|502\|504"; then
-      error_type="MIDDLEWARE_PIPELINE_ERROR"
-      error_msg="Telemetry infrastructure is temporarily unavailable"
-    elif echo "${send_output}" | grep -qi "proxy.*authentication\|407\|spnego\|kerberos"; then
-      error_type="PROXY_AUTH_ERROR"
-      error_msg="Proxy authentication failed - check proxy credentials"
-    else
-      error_type="UNKNOWN_ERROR"
-      error_msg="Telemetry send failed"
+  # Log summary if multiple TAR files were processed
+  if [ "${TAR_COUNT}" -gt 1 ]; then
+    printf "INFO: Sent %d of %d TAR file(s) successfully\n" "${send_successes}" "${TAR_COUNT}" >&2
+    if [ "${send_failures}" -gt 0 ]; then
+      printf "WARNING: %d of %d TAR file(s) failed to send\n" "${send_failures}" "${TAR_COUNT}" >&2
     fi
-    
-    # Log structured error
-    echo "{\"timestamp\":\"${timestamp}\",\"error_type\":\"${error_type}\",\"message\":\"${error_msg}\",\"exit_code\":${send_exit_code},\"output\":\"${send_output}\"}" >> "${log_file}"
-    
-    # Also log human-readable warning
-    echo "WARNING: Telemetry send failed during startup - data collected successfully and will be retried by cron job" >&2
-    echo "  Error type: ${error_type}" >&2
-    echo "  Details: ${error_msg}" >&2
-    
-    # Return success to allow installation to continue
-    exit 0
-  else
-    # Log successful send
-    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    log_file="/var/vcap/sys/log/telemetry-collector/send-success.log"
-    
-    # Ensure log directory exists
-    mkdir -p "$(dirname "${log_file}")"
-    
-    echo "{\"timestamp\":\"${timestamp}\",\"status\":\"success\",\"message\":\"Telemetry sent successfully during startup\"}" >> "${log_file}"
   fi
 else
-  echo "INFO: Audit mode enabled - data collected but not sent"
+  printf "INFO: Audit mode enabled - data collected but not sent\n" >&2
 fi
 
 # Always exit successfully if we reach here
