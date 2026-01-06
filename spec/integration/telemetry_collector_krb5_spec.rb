@@ -122,9 +122,10 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
       
-      # Should include PID and timestamp in cache name
+      # PID ($$) guarantees uniqueness; timestamp (%s) aids debugging
+      # Using %s (not %s%N) for macOS compatibility during local development
       expect(compiled).to include('export KRB5CCNAME="/tmp/krb5cc_collector_$$')
-      expect(compiled).to match(/krb5cc_collector_\$\$_\$\(date \+%s%N\)/)
+      expect(compiled).to match(/krb5cc_collector_\$\$_\$\(date \+%s\)"/)
     end
 
     it 'exports SPNEGO credentials as environment variables' do

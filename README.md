@@ -19,6 +19,37 @@ Configuration:
 
 See SPNEGO_OPERATIONS_GUIDE.md in tpi-p-telemetry for detailed documentation.
 
+## Split TAR Output
+
+The telemetry-collector job supports splitting collected data into separate TAR files for different data types.
+
+### Configuration
+
+Set the `telemetry.split_tar_by_data_type` property to `true` to enable this feature:
+
+```yaml
+properties:
+  telemetry:
+    split_tar_by_data_type: true
+```
+
+### Behavior
+
+When enabled, the collector creates two TAR files instead of one:
+
+| TAR File | Suffix | Contents |
+|----------|--------|----------|
+| Operational Data | `_operational` | `usage_service`, `core_consumption`, `serial_numbers` |
+| CEIP Data | `_ceip` | `opsmanager` |
+
+Both TAR files share the same `CollectionId` for downstream correlation.
+
+### Backward Compatibility
+
+- Default: `false` (single TAR file, existing behavior)
+- When enabled, the send script automatically handles multiple TAR files
+- Each TAR file is sent independently; failures are logged but don't block other sends
+
 ## Jobs
 ### telemetry-agent:
 - Responsible for collecting and emitting telemetry from components/jobs it is collocated with.
