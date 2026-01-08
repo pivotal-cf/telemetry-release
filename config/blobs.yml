@@ -1,11 +1,12 @@
-fluent-bit/fluent-bit-4.2.0.tar.gz:
-  size: 38635664
-  object_id: 69c32c80-19d7-418d-66b2-69eb691f8dc5
-  sha: sha256:44fe0f52e89a63b213695748f99691d0a6247a4bd05065f1b517c798d9f89bcc
+fluent-bit/fluent-bit-4.2.2.tar.gz:
+  size: 38790530
+  object_id: bf228ad6-1130-4abb-404b-32f6ebc8fb37
+  sha: sha256:5d8e642be576985ad8123609c32d5ac44a9d3dad9eafcdc14208622444b5a4f0
 krb5/krb5-1.22.1.tar.gz:
   size: 8801023
   object_id: 8b77d35c-c02b-4c7b-7ccc-997f0277df99
   sha: sha256:49d6203da145df1c02e5c5681b405b1110a8fe1c1f2b8cb1c894acf58ddd7ae6
-telemetry-cli/telemetry-cli-linux-2.4.0-dev.build.23:
-  size: 17149354
-  sha: sha256:96cd4c5e56ca4dd2eda0d2c1cf4ea6994c24ec5caea6becff20abf04a43c77b4
+telemetry-cli/telemetry-cli-linux-2.4.0:
+  size: 17184719
+  object_id: c8a577f7-dd10-4b73-751c-a44ad71175c8
+  sha: sha256:c4d252111dd025d29315915f11e35bcc69071b4cad00f1323c60b5f4b277dfee
