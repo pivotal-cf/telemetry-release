@@ -8,5 +8,5 @@ krb5/krb5-1.22.1.tar.gz:
   sha: sha256:49d6203da145df1c02e5c5681b405b1110a8fe1c1f2b8cb1c894acf58ddd7ae6
 telemetry-cli/telemetry-cli-linux-2.4.0:
   size: 17184719
-  object_id: c8a577f7-dd10-4b73-751c-a44ad71175c8
-  sha: sha256:c4d252111dd025d29315915f11e35bcc69071b4cad00f1323c60b5f4b277dfee
+  object_id: 50461b8d-da7e-48c2-4deb-c4466e6ba12a
+  sha: sha256:6d6d7182db0d71538d3654e47e87524a5730fd5b49d8e63106bfe8760ce122c3
