@@ -18,4 +18,5 @@ releases/**/*.tgz
 service_account.json
 test-data/
 .cursor/
-telemetry-*
+# Ignore dev build tarballs at repo root (but NOT release manifests in releases/telemetry/)
+/telemetry-*.tgz
