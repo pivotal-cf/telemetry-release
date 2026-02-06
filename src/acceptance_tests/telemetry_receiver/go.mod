@@ -2,7 +2,7 @@ module telemetry_receiver
 
 go 1.24.9
 
-toolchain go1.25.5
+toolchain go1.25.7
 
 require (
 	github.com/onsi/ginkgo/v2 v2.23.4
