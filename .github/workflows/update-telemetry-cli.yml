@@ -1,0 +1,107 @@
+# This workflow:
+#   1. Checks the latest telemetry-cli release on github.gwd.broadcom.net
+#   2. Compares against the current blob version in config/blobs.yml
+#   3. If a newer version exists, downloads the binary, updates the BOSH blob,
+#      uploads to GCS, commits, and pushes
+#   4. Notifies Google Chat on failure
+#
+# Triggers:
+#   - Daily at 07:00 UTC (midnight PT)
+#   - Manual via workflow_dispatch
+
+name: Update Telemetry CLI Blob
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # Daily at 07:00 UTC (midnight PT)
+  workflow_dispatch:       # Manual trigger
+
+env:
+  GH_HOST: github.gwd.broadcom.net
+
+jobs:
+  update-cli:
+    name: Update telemetry-cli blob
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install BOSH CLI
+      run: |
+        echo "Installing BOSH CLI..."
+        BOSH_VERSION=$(curl -sL "https://api.github.com/repos/cloudfoundry/bosh-cli/releases/latest" \
+          | grep '"tag_name"' | head -1 | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+        BOSH_VERSION_NUM="${BOSH_VERSION#v}"
+        curl -sL "https://github.com/cloudfoundry/bosh-cli/releases/download/${BOSH_VERSION}/bosh-cli-${BOSH_VERSION_NUM}-linux-amd64" \
+          -o /usr/local/bin/bosh
+        chmod +x /usr/local/bin/bosh
+        bosh --version
+
+    - name: Configure gh CLI for GitHub Enterprise
+      env:
+        GHE_TOKEN: ${{ secrets.GHE_TOKEN }}
+      run: |
+        echo "${GHE_TOKEN}" | gh auth login --hostname "${GH_HOST}" --with-token
+        gh auth status --hostname "${GH_HOST}"
+
+    - name: Run update-telemetry-cli script
+      id: update
+      env:
+        GCS_SERVICE_ACCOUNT_KEY: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}
+      run: |
+        chmod +x scripts/update-telemetry-cli.sh
+        OUTPUT=$(./scripts/update-telemetry-cli.sh 2>&1) || EXIT_CODE=$?
+        echo "${OUTPUT}"
+
+        # Detect if no update was needed
+        if echo "${OUTPUT}" | grep -q "NO_UPDATE=true"; then
+          echo "updated=false" >> $GITHUB_OUTPUT
+          echo "No update needed."
+        elif [[ "${EXIT_CODE:-0}" -ne 0 ]]; then
+          echo "updated=false" >> $GITHUB_OUTPUT
+          exit "${EXIT_CODE}"
+        else
+          echo "updated=true" >> $GITHUB_OUTPUT
+          # Extract the new version from the output
+          NEW_VERSION=$(echo "${OUTPUT}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+ -> [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $3}')
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Commit and push
+      if: steps.update.outputs.updated == 'true'
+      run: |
+        VERSION="${{ steps.update.outputs.version }}"
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+        git add -A
+        if git diff --cached --quiet; then
+          echo "No changes to commit (unexpected)."
+        else
+          git commit -m "chore: update telemetry-cli blob to ${VERSION}"
+          git push
+          echo "Committed and pushed telemetry-cli blob update to ${VERSION}."
+        fi
+
+    - name: Notify Google Chat on failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const webhook = '${{ secrets.GOOGLE_CHAT_WEBHOOK }}';
+          if (!webhook) {
+            console.log('GOOGLE_CHAT_WEBHOOK not configured, skipping notification.');
+            return;
+          }
+          const message = {
+            text: `❌ *telemetry-release*: update-telemetry-cli workflow failed.\n<${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}|View run>`
+          };
+          await fetch(webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(message)
+          });
