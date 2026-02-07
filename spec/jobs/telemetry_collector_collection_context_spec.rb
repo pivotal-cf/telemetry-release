@@ -12,8 +12,7 @@ describe 'telemetry-collector collection context' do
         'telemetry' => {
           'env_type' => 'production',
           'tile_name' => '',
-          'tile_version' => '',
-          'release_version' => ''
+          'tile_version' => ''
         },
         'audit_mode' => false,
         'opsmanager' => {
@@ -44,8 +43,9 @@ describe 'telemetry-collector collection context' do
       expect(output).to include('tile-version:')
     end
     
-    it 'includes bosh-release-version even when empty (if_p includes all defined properties)' do
+    it 'includes bosh-release-version from spec.release.version' do
       output = compile_erb_template(template_content, properties)
+      # bosh-release-version is always present via spec.release.version
       expect(output).to include('bosh-release-version:')
     end
     
@@ -66,8 +66,7 @@ describe 'telemetry-collector collection context' do
         'telemetry' => {
           'env_type' => 'production',
           'tile_name' => 'pivotal-telemetry-om',
-          'tile_version' => '2.3.1',
-          'release_version' => '2.3.0'
+          'tile_version' => '2.3.1'
         },
         'audit_mode' => true,
         'opsmanager' => {
@@ -77,38 +76,39 @@ describe 'telemetry-collector collection context' do
         }
       }
     end
+    let(:spec_data) { { release: OpenStruct.new(version: '2.3.0') } }
     
     it 'compiles successfully' do
-      expect { compile_erb_template(template_content, properties) }.not_to raise_error
+      expect { compile_erb_template(template_content, properties, spec_data) }.not_to raise_error
     end
     
     it 'includes collection-source: tile when tile_name is provided' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('collection-source: tile')
     end
     
     it 'includes tile-name with correct value' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('tile-name: pivotal-telemetry-om')
     end
     
     it 'includes tile-version with correct value' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('tile-version: 2.3.1')
     end
     
-    it 'includes bosh-release-version with correct value' do
-      output = compile_erb_template(template_content, properties)
+    it 'includes bosh-release-version from spec.release.version' do
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('bosh-release-version: 2.3.0')
     end
     
     it 'includes tile-audit-mode with correct boolean value' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('tile-audit-mode: true')
     end
     
     it 'produces valid YAML' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       parsed = YAML.safe_load(output)
       expect(parsed['collection-source']).to eq('tile')
       expect(parsed['tile-name']).to eq('pivotal-telemetry-om')
@@ -124,8 +124,7 @@ describe 'telemetry-collector collection context' do
         'telemetry' => {
           'env_type' => 'production',
           'tile_name' => '   ',  # Spaces only
-          'tile_version' => '2.3.1',
-          'release_version' => '2.3.0'
+          'tile_version' => '2.3.1'
         },
         'audit_mode' => false,
         'opsmanager' => {
@@ -154,8 +153,7 @@ describe 'telemetry-collector collection context' do
         'telemetry' => {
           'env_type' => 'production',
           'tile_name' => 'pivotal-telemetry-om',
-          'tile_version' => '',  # Empty
-          'release_version' => '2.3.0'
+          'tile_version' => ''  # Empty
         },
         'audit_mode' => false,
         'opsmanager' => {
@@ -165,29 +163,30 @@ describe 'telemetry-collector collection context' do
         }
       }
     end
+    let(:spec_data) { { release: OpenStruct.new(version: '2.3.0') } }
     
     it 'compiles successfully' do
-      expect { compile_erb_template(template_content, properties) }.not_to raise_error
+      expect { compile_erb_template(template_content, properties, spec_data) }.not_to raise_error
     end
     
     it 'includes collection-source when tile_name is provided' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('collection-source: tile')
     end
     
     it 'includes tile-name' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('tile-name: pivotal-telemetry-om')
     end
     
     it 'includes tile-version even when empty' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       # Current ERB: if_p always includes the line if property exists
       expect(output).to include('tile-version:')
     end
     
-    it 'includes bosh-release-version' do
-      output = compile_erb_template(template_content, properties)
+    it 'includes bosh-release-version from spec.release.version' do
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('bosh-release-version: 2.3.0')
     end
   end
@@ -198,8 +197,7 @@ describe 'telemetry-collector collection context' do
         'telemetry' => {
           'env_type' => 'production',
           'tile_name' => 'pivotal-telemetry-om',
-          'tile_version' => '2.3.0-build.1+sha.abc123',
-          'release_version' => '2.3.0-rc.1'
+          'tile_version' => '2.3.0-build.1+sha.abc123'
         },
         'audit_mode' => false,
         'opsmanager' => {
@@ -209,19 +207,20 @@ describe 'telemetry-collector collection context' do
         }
       }
     end
+    let(:spec_data) { { release: OpenStruct.new(version: '2.3.0-rc.1') } }
     
     it 'compiles successfully' do
-      expect { compile_erb_template(template_content, properties) }.not_to raise_error
+      expect { compile_erb_template(template_content, properties, spec_data) }.not_to raise_error
     end
     
     it 'includes version with special characters correctly' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       expect(output).to include('tile-version: 2.3.0-build.1+sha.abc123')
       expect(output).to include('bosh-release-version: 2.3.0-rc.1')
     end
     
     it 'produces valid YAML with special character versions' do
-      output = compile_erb_template(template_content, properties)
+      output = compile_erb_template(template_content, properties, spec_data)
       parsed = YAML.safe_load(output)
       expect(parsed['tile-version']).to eq('2.3.0-build.1+sha.abc123')
       expect(parsed['bosh-release-version']).to eq('2.3.0-rc.1')
@@ -241,7 +240,6 @@ describe 'telemetry-collector collect-send script' do
           'env_type' => 'production',
           'tile_name' => 'pivotal-telemetry-om',
           'tile_version' => '2.3.1',
-          'release_version' => '2.3.0',
           'proxy_settings' => {
             'proxy_username' => 'proxy-user',
             'proxy_password' => 'proxy-pass',
@@ -280,7 +278,6 @@ describe 'telemetry-collector collect-send script' do
           'env_type' => 'production',
           'tile_name' => 'pivotal-telemetry-om',
           'tile_version' => '2.3.1',
-          'release_version' => '2.3.0',
           'proxy_settings' => {
             'proxy_username' => '',
             'proxy_password' => '',

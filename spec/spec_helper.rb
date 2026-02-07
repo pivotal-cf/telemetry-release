@@ -31,11 +31,13 @@ module ERBTestHelper
       end
     end
     
-    # Add spec method
+    # Add spec method -- supports nested access like spec.release.version
     binding_context.define_singleton_method(:spec) do
-      spec_obj = OpenStruct.new(spec_data)
-      # Ensure deployment is available
-      spec_obj.deployment ||= spec_data[:deployment] || 'test-deployment'
+      spec_defaults = {
+        deployment: 'test-deployment',
+        release: OpenStruct.new(version: spec_data.dig(:release, :version) || '0.0.0')
+      }
+      spec_obj = OpenStruct.new(spec_defaults.merge(spec_data))
       spec_obj
     end
     

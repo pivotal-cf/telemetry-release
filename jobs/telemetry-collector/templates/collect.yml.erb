@@ -31,9 +31,7 @@ tile-name: <%= tile_name %>
 <% if_p('telemetry.tile_version') do |tile_version| %>
 tile-version: <%= tile_version %>
 <% end %>
-<% if_p('telemetry.release_version') do |release_version| %>
-bosh-release-version: <%= release_version %>
-<% end %>
+bosh-release-version: <%= spec.release.version %>
 <% if_p('audit_mode') do |audit_mode| %>
 tile-audit-mode: <%= audit_mode %>
 <% end %>
