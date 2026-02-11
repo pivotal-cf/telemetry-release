@@ -1,29 +1,41 @@
 #!/usr/bin/env bash
 #
 # This script:
-#   1. Determines the latest telemetry-cli version from the GitHub Enterprise release
+#   1. Determines the latest telemetry-cli version available
 #   2. Compares against the current blob version in config/blobs.yml
 #   3. If a newer version exists:
-#      a) Downloads the Linux amd64 binary from the GitHub Release
+#      a) Downloads the Linux amd64 binary
 #      b) Removes the old blob via `bosh remove-blob`
 #      c) Adds the new blob via `bosh add-blob`
 #      d) Uploads to GCS via `bosh upload-blobs`
 #   4. If already up to date, exits cleanly with a message
 #
+# Download sources:
+#   The CLI binary can be obtained from two sources:
+#     - GCS bucket (CLI_SOURCE=gcs) — for github.com-hosted CI runners that
+#       cannot reach internal GHE. Requires GCS_CLI_BUCKET and gcloud auth.
+#     - GitHub Enterprise (CLI_SOURCE=ghe) — for local use or GHE-hosted CI.
+#       Requires gh CLI authenticated to github.gwd.broadcom.net.
+#
+# IMPORTANT: The telemetry-release repo is hosted on github.com (pivotal-cf org),
+# NOT on github.gwd.broadcom.net. GitHub Actions runners on github.com cannot
+# reach the internal GHE instance. When running in CI, set CLI_SOURCE=gcs.
+#
 # Usage:
 #   ./scripts/update-telemetry-cli.sh
 #
-# Environment variables (optional, for CI):
+# Environment variables:
+#   CLI_SOURCE               - "gcs" or "ghe" (default: auto-detect)
+#   GCS_CLI_BUCKET           - GCS bucket name containing CLI builds (required for gcs mode)
 #   GCS_SERVICE_ACCOUNT_KEY  - JSON string of GCP service account (CI only)
-#   GH_TOKEN                 - GitHub token for API access (CI only; locally uses gh auth)
-#   GH_HOST                  - GitHub host (defaults to github.gwd.broadcom.net)
+#   GH_HOST                  - GitHub Enterprise host (default: github.gwd.broadcom.net)
 #   SKIP_UPLOAD              - Set to "true" to skip bosh upload-blobs (for dry-run)
 #
 # Prerequisites:
 #   - bosh CLI installed
-#   - gh CLI installed and authenticated to github.gwd.broadcom.net
+#   - For GCS mode: gcloud CLI installed and authenticated, GCS_CLI_BUCKET set
+#   - For GHE mode: gh CLI installed and authenticated to github.gwd.broadcom.net
 #   - service_account.json in repo root (local) OR GCS_SERVICE_ACCOUNT_KEY env var (CI)
-#   - curl
 
 set -euo pipefail
 
@@ -37,6 +49,15 @@ cd "${REPO_ROOT}"
 GH_HOST="${GH_HOST:-github.gwd.broadcom.net}"
 CLI_REPO="TNZ/tpi-telemetry-cli"
 BLOB_PREFIX="telemetry-cli"
+
+# Auto-detect CLI source: use GCS if GCS_CLI_BUCKET is set, otherwise GHE
+if [[ -z "${CLI_SOURCE:-}" ]]; then
+    if [[ -n "${GCS_CLI_BUCKET:-}" ]]; then
+        CLI_SOURCE="gcs"
+    else
+        CLI_SOURCE="ghe"
+    fi
+fi
 
 # ============================================================================
 # Colors and helpers
@@ -65,20 +86,37 @@ if ! command -v bosh &> /dev/null; then
 fi
 print_info "bosh CLI: $(bosh --version 2>&1 | head -1)"
 
-if ! command -v gh &> /dev/null; then
-    print_error "gh CLI is not installed."
-    print_info "Install from: https://cli.github.com/"
-    exit 1
-fi
-print_info "gh CLI: $(gh --version | head -1)"
+print_info "CLI source: ${CLI_SOURCE}"
 
-# Verify gh is authenticated to our GitHub Enterprise instance
-if ! GH_HOST="${GH_HOST}" gh auth status --hostname "${GH_HOST}" &> /dev/null; then
-    print_error "gh CLI is not authenticated to ${GH_HOST}"
-    print_info "Run: gh auth login --hostname ${GH_HOST}"
-    exit 1
+if [[ "${CLI_SOURCE}" == "gcs" ]]; then
+    # GCS mode prerequisites
+    if [[ -z "${GCS_CLI_BUCKET:-}" ]]; then
+        print_error "GCS_CLI_BUCKET is not set. Required when CLI_SOURCE=gcs."
+        print_info "Set GCS_CLI_BUCKET to the GCS bucket name containing CLI builds."
+        exit 1
+    fi
+    if ! command -v gsutil &> /dev/null && ! command -v gcloud &> /dev/null; then
+        print_error "gsutil/gcloud CLI is not installed. Required for GCS mode."
+        exit 1
+    fi
+    print_success "GCS mode: bucket=${GCS_CLI_BUCKET}"
+else
+    # GHE mode prerequisites
+    if ! command -v gh &> /dev/null; then
+        print_error "gh CLI is not installed."
+        print_info "Install from: https://cli.github.com/"
+        exit 1
+    fi
+    print_info "gh CLI: $(gh --version | head -1)"
+
+    # Verify gh is authenticated to our GitHub Enterprise instance
+    if ! GH_HOST="${GH_HOST}" gh auth status --hostname "${GH_HOST}" &> /dev/null; then
+        print_error "gh CLI is not authenticated to ${GH_HOST}"
+        print_info "Run: gh auth login --hostname ${GH_HOST}"
+        exit 1
+    fi
+    print_success "gh CLI authenticated to ${GH_HOST}"
 fi
-print_success "gh CLI authenticated to ${GH_HOST}"
 
 # ============================================================================
 # Set up GCS credentials for bosh upload-blobs
@@ -135,27 +173,54 @@ else
 fi
 
 # ============================================================================
-# Determine latest version from GitHub Release
+# Determine latest version
 # ============================================================================
 print_step "Checking latest telemetry-cli release"
 
-LATEST_TAG=$(GH_HOST="${GH_HOST}" gh release list \
-    --repo "${CLI_REPO}" \
-    --limit 1 \
-    --json tagName \
-    --jq '.[0].tagName' 2>/dev/null || echo "")
+if [[ "${CLI_SOURCE}" == "gcs" ]]; then
+    # GCS mode: list tarballs in the bucket and find the latest version
+    print_info "Listing CLI tarballs in gs://${GCS_CLI_BUCKET}/..."
+    TARBALL_LIST=$(gsutil ls "gs://${GCS_CLI_BUCKET}/telemetry-cli-*.tgz" 2>/dev/null || echo "")
 
-if [[ -z "${LATEST_TAG}" ]]; then
-    print_error "Could not determine latest release from ${GH_HOST}/${CLI_REPO}"
-    print_info "Check your gh auth status and that releases exist."
-    exit 1
+    if [[ -z "${TARBALL_LIST}" ]]; then
+        print_error "No telemetry-cli tarballs found in gs://${GCS_CLI_BUCKET}/"
+        exit 1
+    fi
+
+    # Extract versions and find the highest one
+    LATEST_VERSION=$(echo "${TARBALL_LIST}" \
+        | grep -oE 'telemetry-cli-[0-9]+\.[0-9]+\.[0-9]+\.tgz' \
+        | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
+        | sort -t. -k1,1n -k2,2n -k3,3n \
+        | tail -1)
+
+    if [[ -z "${LATEST_VERSION}" ]]; then
+        print_error "Could not determine latest version from GCS bucket."
+        exit 1
+    fi
+
+    LATEST_TAG="${LATEST_VERSION}"
+    print_info "Latest version in GCS: ${LATEST_VERSION}"
+else
+    # GHE mode: query GitHub Enterprise releases
+    LATEST_TAG=$(GH_HOST="${GH_HOST}" gh release list \
+        --repo "${CLI_REPO}" \
+        --limit 1 \
+        --json tagName \
+        --jq '.[0].tagName' 2>/dev/null || echo "")
+
+    if [[ -z "${LATEST_TAG}" ]]; then
+        print_error "Could not determine latest release from ${GH_HOST}/${CLI_REPO}"
+        print_info "Check your gh auth status and that releases exist."
+        exit 1
+    fi
+
+    # The tag may or may not have a 'v' prefix; strip it for comparison
+    LATEST_VERSION="${LATEST_TAG#v}"
+
+    print_info "Latest release tag: ${LATEST_TAG}"
+    print_info "Latest version: ${LATEST_VERSION}"
 fi
-
-# The tag may or may not have a 'v' prefix; strip it for comparison
-LATEST_VERSION="${LATEST_TAG#v}"
-
-print_info "Latest release tag: ${LATEST_TAG}"
-print_info "Latest version: ${LATEST_VERSION}"
 
 # ============================================================================
 # Compare versions
@@ -188,7 +253,7 @@ fi
 print_info "Update available: ${CURRENT_VERSION} -> ${LATEST_VERSION}"
 
 # ============================================================================
-# Download the Linux amd64 binary from the GitHub Release
+# Download the Linux amd64 binary
 # ============================================================================
 print_step "Downloading telemetry-cli ${LATEST_VERSION}"
 
@@ -197,52 +262,88 @@ trap 'rm -rf "${TEMP_DIR}"' EXIT
 
 BINARY_PATH="${TEMP_DIR}/telemetry-cli-linux-amd64"
 
-# The release should have a linux binary asset. Try to download it.
-print_info "Downloading linux-amd64 binary from GitHub Release ${LATEST_TAG}..."
+if [[ "${CLI_SOURCE}" == "gcs" ]]; then
+    # GCS mode: download the standalone Linux binary from the bucket
+    print_info "Downloading linux-amd64 binary from gs://${GCS_CLI_BUCKET}/..."
 
-if ! GH_HOST="${GH_HOST}" gh release download "${LATEST_TAG}" \
-    --repo "${CLI_REPO}" \
-    --pattern "telemetry-cli-linux-amd64" \
-    --output "${BINARY_PATH}" 2>/dev/null; then
-    
-    # Fallback: try the .tgz release tarball and extract the linux binary
-    print_warning "Direct binary download failed. Trying release tarball..."
-    
-    TARBALL_NAME="telemetry-cli-${LATEST_VERSION}.tgz"
-    TARBALL_PATH="${TEMP_DIR}/${TARBALL_NAME}"
-    
+    # First try the standalone binary
+    if gsutil cp "gs://${GCS_CLI_BUCKET}/telemetry-cli-linux-amd64" "${BINARY_PATH}" 2>/dev/null; then
+        print_success "Downloaded standalone binary from GCS."
+    else
+        # Fallback: download the tarball and extract
+        TARBALL_NAME="telemetry-cli-${LATEST_VERSION}.tgz"
+        TARBALL_PATH="${TEMP_DIR}/${TARBALL_NAME}"
+        print_warning "Standalone binary not found. Trying tarball ${TARBALL_NAME}..."
+
+        if ! gsutil cp "gs://${GCS_CLI_BUCKET}/${TARBALL_NAME}" "${TARBALL_PATH}" 2>/dev/null; then
+            print_error "Could not download CLI from GCS bucket."
+            print_info "Available files:"
+            gsutil ls "gs://${GCS_CLI_BUCKET}/" 2>/dev/null | head -20 || true
+            exit 1
+        fi
+
+        # Extract the linux binary from the tarball
+        print_info "Extracting linux binary from tarball..."
+        tar xzf "${TARBALL_PATH}" -C "${TEMP_DIR}" 2>/dev/null
+
+        EXTRACTED_BINARY=$(find "${TEMP_DIR}" -name "telemetry-cli-linux-amd64" -type f | head -1)
+        if [[ -z "${EXTRACTED_BINARY}" ]]; then
+            EXTRACTED_BINARY=$(find "${TEMP_DIR}" -name "*linux*amd64*" -type f ! -name "*.tgz" | head -1)
+        fi
+
+        if [[ -z "${EXTRACTED_BINARY}" ]]; then
+            print_error "Could not find linux-amd64 binary in tarball."
+            exit 1
+        fi
+
+        mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
+    fi
+else
+    # GHE mode: download from GitHub Enterprise release
+    print_info "Downloading linux-amd64 binary from GitHub Release ${LATEST_TAG}..."
+
     if ! GH_HOST="${GH_HOST}" gh release download "${LATEST_TAG}" \
         --repo "${CLI_REPO}" \
-        --pattern "${TARBALL_NAME}" \
-        --output "${TARBALL_PATH}" 2>/dev/null; then
-        
-        print_error "Could not download telemetry-cli binary from release ${LATEST_TAG}"
-        print_info "Available assets:"
-        GH_HOST="${GH_HOST}" gh release view "${LATEST_TAG}" --repo "${CLI_REPO}" --json assets --jq '.assets[].name' || true
-        exit 1
+        --pattern "telemetry-cli-linux-amd64" \
+        --output "${BINARY_PATH}" 2>/dev/null; then
+
+        # Fallback: try the .tgz release tarball and extract the linux binary
+        print_warning "Direct binary download failed. Trying release tarball..."
+
+        TARBALL_NAME="telemetry-cli-${LATEST_VERSION}.tgz"
+        TARBALL_PATH="${TEMP_DIR}/${TARBALL_NAME}"
+
+        if ! GH_HOST="${GH_HOST}" gh release download "${LATEST_TAG}" \
+            --repo "${CLI_REPO}" \
+            --pattern "${TARBALL_NAME}" \
+            --output "${TARBALL_PATH}" 2>/dev/null; then
+
+            print_error "Could not download telemetry-cli binary from release ${LATEST_TAG}"
+            print_info "Available assets:"
+            GH_HOST="${GH_HOST}" gh release view "${LATEST_TAG}" --repo "${CLI_REPO}" --json assets --jq '.assets[].name' || true
+            exit 1
+        fi
+
+        # Extract the linux binary from the tarball
+        print_info "Extracting linux binary from tarball..."
+        tar xzf "${TARBALL_PATH}" -C "${TEMP_DIR}" --include='*telemetry-cli-linux-amd64' 2>/dev/null \
+            || tar xzf "${TARBALL_PATH}" -C "${TEMP_DIR}" 2>/dev/null
+
+        # Find the binary (it might be in a subdirectory)
+        EXTRACTED_BINARY=$(find "${TEMP_DIR}" -name "telemetry-cli-linux-amd64" -type f | head -1)
+        if [[ -z "${EXTRACTED_BINARY}" ]]; then
+            EXTRACTED_BINARY=$(find "${TEMP_DIR}" -name "*linux*amd64*" -type f ! -name "*.tgz" | head -1)
+        fi
+
+        if [[ -z "${EXTRACTED_BINARY}" ]]; then
+            print_error "Could not find linux-amd64 binary in release tarball."
+            print_info "Tarball contents:"
+            tar tzf "${TARBALL_PATH}" | head -20
+            exit 1
+        fi
+
+        mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
     fi
-
-    # Extract the linux binary from the tarball
-    print_info "Extracting linux binary from tarball..."
-    tar xzf "${TARBALL_PATH}" -C "${TEMP_DIR}" --include='*telemetry-cli-linux-amd64' 2>/dev/null \
-        || tar xzf "${TARBALL_PATH}" -C "${TEMP_DIR}" 2>/dev/null
-
-    # Find the binary (it might be in a subdirectory)
-    EXTRACTED_BINARY=$(find "${TEMP_DIR}" -name "telemetry-cli-linux-amd64" -type f | head -1)
-    if [[ -z "${EXTRACTED_BINARY}" ]]; then
-        # Also try looking for just the linux binary with any naming convention
-        EXTRACTED_BINARY=$(find "${TEMP_DIR}" -name "*linux*amd64*" -type f ! -name "*.tgz" | head -1)
-    fi
-
-    if [[ -z "${EXTRACTED_BINARY}" ]]; then
-        print_error "Could not find linux-amd64 binary in release tarball."
-        print_info "Tarball contents:"
-        tar tzf "${TARBALL_PATH}" | head -20
-        exit 1
-    fi
-
-    # Move it to the expected location
-    mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
 fi
 
 chmod +x "${BINARY_PATH}"

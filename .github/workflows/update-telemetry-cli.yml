@@ -1,13 +1,25 @@
 # This workflow:
-#   1. Checks the latest telemetry-cli release on github.gwd.broadcom.net
+#   1. Checks the latest telemetry-cli version available in the GCS production bucket
 #   2. Compares against the current blob version in config/blobs.yml
-#   3. If a newer version exists, downloads the binary, updates the BOSH blob,
-#      uploads to GCS, commits, and pushes
+#   3. If a newer version exists, downloads the binary from GCS, updates the BOSH
+#      blob, uploads to the blobstore, commits, and pushes
 #   4. Notifies Google Chat on failure
+#
+# IMPORTANT: This repo (telemetry-release) is hosted on github.com (pivotal-cf org),
+# NOT on github.gwd.broadcom.net. The GitHub Actions runners on github.com cannot
+# reach the internal GHE instance. Therefore, we download CLI binaries from the GCS
+# production bucket (which the CLI release workflow uploads to) instead of from GHE
+# releases. The GCS bucket is accessible from the public internet with credentials.
 #
 # Triggers:
 #   - Daily at 07:00 UTC (midnight PT)
 #   - Manual via workflow_dispatch
+#
+# Required secrets:
+#   - GCS_SERVICE_ACCOUNT_KEY: GCP service account JSON for blobstore access
+#   - GCS_CLI_BUCKET: Name of the GCS bucket containing CLI production builds
+#     (stored in Vault at: concourse/tanzu-portfolio-insights/tpi-telemetry-cli-repo
+#      key: cli-production-builds-bucket)
 
 name: Update Telemetry CLI Blob
 
@@ -15,9 +27,6 @@ on:
   schedule:
     - cron: '0 7 * * *'  # Daily at 07:00 UTC (midnight PT)
   workflow_dispatch:       # Manual trigger
-
-env:
-  GH_HOST: github.gwd.broadcom.net
 
 jobs:
   update-cli:
@@ -41,17 +50,18 @@ jobs:
         chmod +x /usr/local/bin/bosh
         bosh --version
 
-    - name: Configure gh CLI for GitHub Enterprise
-      env:
-        GHE_TOKEN: ${{ secrets.GHE_TOKEN }}
+    - name: Authenticate to GCP
       run: |
-        echo "${GHE_TOKEN}" | gh auth login --hostname "${GH_HOST}" --with-token
-        gh auth status --hostname "${GH_HOST}"
+        echo '${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}' > /tmp/gcs-key.json
+        gcloud auth activate-service-account --key-file=/tmp/gcs-key.json
+        echo "GCS authentication configured."
 
     - name: Run update-telemetry-cli script
       id: update
       env:
         GCS_SERVICE_ACCOUNT_KEY: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}
+        GCS_CLI_BUCKET: ${{ secrets.GCS_CLI_BUCKET }}
+        CLI_SOURCE: gcs
       run: |
         chmod +x scripts/update-telemetry-cli.sh
         OUTPUT=$(./scripts/update-telemetry-cli.sh 2>&1) || EXIT_CODE=$?
@@ -86,6 +96,10 @@ jobs:
           git push
           echo "Committed and pushed telemetry-cli blob update to ${VERSION}."
         fi
+
+    - name: Clean up credentials
+      if: always()
+      run: rm -f /tmp/gcs-key.json
 
     - name: Notify Google Chat on failure
       if: failure()
