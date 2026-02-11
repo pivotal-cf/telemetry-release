@@ -27,7 +27,7 @@ GEM
       fiber-annotation
       fiber-local (~> 1.1)
       json
-    cool.io (1.9.1)
+    cool.io (1.9.3)
     csv (3.3.5)
     diff-lcs (1.6.2)
     drb (2.2.3)
