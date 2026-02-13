@@ -52,7 +52,34 @@ jobs:
 
     - name: Authenticate to GCP
       run: |
+        # Write the service account key to a temp file for gcloud auth.
+        # This secret expires every ~3 months and must be rotated manually.
         echo '${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}' > /tmp/gcs-key.json
+
+        # --- Validate the key before attempting auth ---
+        if ! python3 -c "import json, sys; json.load(open(sys.argv[1]))" /tmp/gcs-key.json 2>/dev/null; then
+          echo ""
+          echo "============================================================"
+          echo "ERROR: GCS_SERVICE_ACCOUNT_KEY is missing or invalid."
+          echo "============================================================"
+          echo ""
+          echo "The GCP service account key has likely EXPIRED (rotates every ~3 months)"
+          echo "or was never set."
+          echo ""
+          echo "This repo is on github.com (pivotal-cf org), NOT on Broadcom GHE,"
+          echo "so we CANNOT use actions-brcm/vault-action to pull secrets automatically."
+          echo "The key must be updated manually."
+          echo ""
+          echo "To fix:"
+          echo "  1. Read the key from Vault:"
+          echo "       vault read concourse/tanzu-portfolio-insights/tpi-telemetry-cli-repo"
+          echo "  2. Copy the GCP service account JSON value"
+          echo "  3. Update the GitHub secret on github.com:"
+          echo "       gh secret set GCS_SERVICE_ACCOUNT_KEY -R pivotal-cf/telemetry-release"
+          echo "============================================================"
+          exit 1
+        fi
+
         gcloud auth activate-service-account --key-file=/tmp/gcs-key.json
         echo "GCS authentication configured."
 
@@ -111,8 +138,15 @@ jobs:
             console.log('GOOGLE_CHAT_WEBHOOK not configured, skipping notification.');
             return;
           }
+          const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
           const message = {
-            text: `❌ *telemetry-release*: update-telemetry-cli workflow failed.\n<${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}|View run>`
+            text: [
+              `❌ *telemetry-release*: update-telemetry-cli workflow failed.`,
+              `If the failure is in "Authenticate to GCP", the GCS_SERVICE_ACCOUNT_KEY secret has likely expired (rotates every ~3 months). ` +
+              `Read the new key from Vault (concourse/tanzu-portfolio-insights/tpi-telemetry-cli-repo) and update the secret on github.com. ` +
+              `This can't be automated because this repo is on github.com, not Broadcom GHE.`,
+              `<${runUrl}|View run>`,
+            ].join('\n'),
           };
           await fetch(webhook, {
             method: 'POST',
