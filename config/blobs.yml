@@ -1,7 +1,7 @@
-fluent-bit/fluent-bit-4.2.2.tar.gz:
-  size: 38790530
-  object_id: bf228ad6-1130-4abb-404b-32f6ebc8fb37
-  sha: sha256:5d8e642be576985ad8123609c32d5ac44a9d3dad9eafcdc14208622444b5a4f0
+fluent-bit/fluent-bit-4.2.3.tar.gz:
+  size: 38798743
+  object_id: b0587233-f501-4c66-6612-f5e07aa32e71
+  sha: sha256:b2dae50fb7a00bbab5eb6d47f3bfc4d56c698d72d485d748cb326bfeaa7249fa
 krb5/krb5-1.22.2.tar.gz:
   size: 8747729
   object_id: ac56b023-5dce-41cc-4981-a48bfa4e7493
