@@ -118,6 +118,53 @@ describe 'telemetry-collector collection context' do
     end
   end
   
+  describe 'with hub_org_id provided' do
+    let(:properties) do
+      {
+        'telemetry' => {
+          'env_type' => 'production',
+          'hub_org_id' => 'org-12345'
+        },
+        'opsmanager' => {
+          'auth' => {
+            'hostname' => 'opsman.example.com'
+          }
+        }
+      }
+    end
+
+    it 'includes hub-org-id in the output' do
+      output = compile_erb_template(template_content, properties)
+      expect(output).to include('hub-org-id: org-12345')
+    end
+
+    it 'produces valid YAML with hub-org-id' do
+      output = compile_erb_template(template_content, properties)
+      parsed = YAML.safe_load(output)
+      expect(parsed['hub-org-id']).to eq('org-12345')
+    end
+  end
+
+  describe 'without hub_org_id' do
+    let(:properties) do
+      {
+        'telemetry' => {
+          'env_type' => 'production'
+        },
+        'opsmanager' => {
+          'auth' => {
+            'hostname' => 'opsman.example.com'
+          }
+        }
+      }
+    end
+
+    it 'does not include hub-org-id in the output' do
+      output = compile_erb_template(template_content, properties)
+      expect(output).not_to include('hub-org-id')
+    end
+  end
+
   describe 'with whitespace-only tile_name' do
     let(:properties) do
       {

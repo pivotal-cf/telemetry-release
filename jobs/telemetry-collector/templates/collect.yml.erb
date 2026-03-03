@@ -6,6 +6,7 @@ url: https://<%= p('opsmanager.auth.hostname') %>
 <% if_p('opsmanager.auth.uaa_client_secret') do |p| %>client-secret: <%= p %> <% end %>
 env-type: <%= p('telemetry.env_type') %>
 <% if_p('telemetry.foundation_nickname') do |p| %>foundation-nickname: <%= p %> <% end %>
+<% if_p('telemetry.hub_org_id') do |p| %>hub-org-id: <%= p %> <% end %>
 <% if_p('telemetry.data_collection_multi_select_options') do |p| %>data-collection-multi-select-options: <%= p %> <% end %>
 <% if_p('telemetry.operational_data_only') do |p| %>operational-data-only: <%= p %> <% end %>
 <% if_p('telemetry.split_tar_by_data_type') do |p| %>split-tar-by-data-type: <%= p %> <% end %>

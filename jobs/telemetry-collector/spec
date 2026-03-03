@@ -29,6 +29,8 @@ properties:
     description: The environment type of the foundation
   telemetry.foundation_nickname:
     description: The nickname of the foundation used in reporting by VMware
+  telemetry.hub_org_id:
+    description: Hub organization ID for tagging collected telemetry data
   telemetry.endpoint_override:
     description: Override HTTP(s) endpoint to send telemetry data to
   telemetry.proxy_settings.no_proxy:
