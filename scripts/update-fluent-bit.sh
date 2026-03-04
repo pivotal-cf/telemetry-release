@@ -67,10 +67,10 @@ fi
 
 VERSION="$1"
 
-# Validate version format (e.g., 4.2.0 or 4.2)
-if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+# Validate version format (e.g., 4.2.0, 4.2, or 4.2.3.1)
+if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)*$ ]]; then
   print_error "Invalid version format: $VERSION"
-  print_info "Expected format: X.Y.Z or X.Y (e.g., 4.2.0 or 4.2)"
+  print_info "Expected format: X.Y, X.Y.Z, or X.Y.Z.P (e.g., 4.2, 4.2.0, 4.2.3.1)"
   exit 1
 fi
 

@@ -201,9 +201,9 @@ fi
 # Determine release notes
 # ============================================================================
 # Extract component versions from blobs.yml for the release notes
-CLI_VERSION=$(grep "^telemetry-cli/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
-FLUENT_BIT_VERSION=$(grep "^fluent-bit/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
-KRB5_VERSION=$(grep "^krb5/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+CLI_VERSION=$(grep "^telemetry-cli/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
+FLUENT_BIT_VERSION=$(grep "^fluent-bit/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
+KRB5_VERSION=$(grep "^krb5/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
 
 RELEASE_NOTES=$(cat <<EOF
 ## Telemetry BOSH Release ${VERSION}
