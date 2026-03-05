@@ -426,6 +426,32 @@ fi
 rm -rf /tmp/data
 
 # ============================================================================
+# TEST: ERB template handles .partial files correctly (TNZ-82789)
+# ============================================================================
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ERB_FILE="$SCRIPT_DIR/telemetry-collect-send.erb"
+
+run_test "ERB discovery uses find -name *.tar (excludes .partial)"
+
+if grep -q 'find.*-name "\*\.tar".*-type f' "$ERB_FILE"; then
+	assert_pass "ERB uses find -name \"*.tar\" for tar discovery" \
+		"Pattern excludes .tar.partial by design"
+else
+	assert_fail "ERB tar discovery pattern missing or changed" \
+		"Expected find ... -name \"*.tar\" -type f in $ERB_FILE"
+fi
+
+run_test "ERB pre-start cleans up stale .partial files"
+
+if grep -q 'rm -f.*\*\.tar\.partial' "$ERB_FILE"; then
+	assert_pass "ERB removes leftover .partial files on pre-start" \
+		"Found rm -f ... *.tar.partial in template"
+else
+	assert_fail "ERB .partial cleanup missing or changed" \
+		"Expected rm -f ... *.tar.partial in $ERB_FILE"
+fi
+
+# ============================================================================
 # TEST 10: Weak Cron Randomization (Issue #11)
 # ============================================================================
 run_test "Cron schedule should be distributed across VMs"

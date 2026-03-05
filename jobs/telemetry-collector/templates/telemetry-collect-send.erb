@@ -8,6 +8,7 @@ if [ -d /var/vcap/packages/krb5/bin ]; then
 fi
 
 rm -f /var/vcap/data/telemetry-collector/*.tar
+rm -f /var/vcap/data/telemetry-collector/*.tar.partial
 chown -R vcap:vcap /var/vcap/jobs/telemetry-collector/config/
 COLLECTOR_BIN=/var/vcap/packages/telemetry-cli/telemetry-cli-linux
 
