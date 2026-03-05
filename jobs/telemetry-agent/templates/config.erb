@@ -83,9 +83,11 @@
     Match *
     Port <%= port %>
     Host <%= centralizer_address %>
-    tls           on
-    tls.verify    on
-    tls.ca_file  /var/vcap/jobs/telemetry-agent/config/ca_cert.pem
-    tls.crt_file /var/vcap/jobs/telemetry-agent/config/cert.pem
-    tls.key_file /var/vcap/jobs/telemetry-agent/config/private_key.pem
+    tls              on
+    tls.verify       on
+    tls.min_version  TLSv1.2
+    tls.ciphers      ECDHE+AESGCM
+    tls.ca_file      /var/vcap/jobs/telemetry-agent/config/ca_cert.pem
+    tls.crt_file     /var/vcap/jobs/telemetry-agent/config/cert.pem
+    tls.key_file     /var/vcap/jobs/telemetry-agent/config/private_key.pem
 <% end %>
