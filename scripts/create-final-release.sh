@@ -177,8 +177,6 @@ echo ""
 print_step "Committing changes"
 
 git add .
-git config --local user.email "action@github.com"
-git config --local user.name "GitHub Action"
 git commit -m "Create final release ${VERSION}"
 
 print_success "Committed: Create final release ${VERSION}"
