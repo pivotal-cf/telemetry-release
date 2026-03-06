@@ -6,6 +6,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Color codes
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -38,7 +40,7 @@ echo ""
 
 if ! docker ps --format "{{.Names}}" | grep -q "apache-proxy"; then
     log_error "SPNEGO proxy not running. Start with:"
-    log_error "  cd /Users/driddle/workspace/broadcom/tile/tpi-telemetry-cli/test-integration"
+    log_error "  cd \$SCRIPT_DIR/../tpi-telemetry-cli/test-integration"
     log_error "  docker-compose up -d"
     exit 1
 fi
@@ -184,7 +186,7 @@ echo -e "${BOLD}═════════════════════�
 echo ""
 
 # Set up Kerberos
-CLI_TEST_DIR="/Users/driddle/workspace/broadcom/tile/tpi-telemetry-cli/test-integration"
+CLI_TEST_DIR="$(cd "${SCRIPT_DIR}/../tpi-telemetry-cli/test-integration" && pwd)"
 export KRB5CCNAME="/tmp/krb5cc_spnego_proof_$$"
 export KRB5_CONFIG="$CLI_TEST_DIR/krb5-host.conf"
 

@@ -35,10 +35,7 @@ log_step "▶ Step 1: Checking Prerequisites"
 echo ""
 
 # Check for Docker containers (KDC and proxy)
-CLI_TEST_DIR="$SCRIPT_DIR/../tpi-telemetry-cli/test-integration"
-if [ ! -d "$CLI_TEST_DIR" ]; then
-    CLI_TEST_DIR="/Users/driddle/workspace/broadcom/tile/tpi-telemetry-cli/test-integration"
-fi
+CLI_TEST_DIR="$(cd "$SCRIPT_DIR/../tpi-telemetry-cli/test-integration" && pwd)"
 
 if ! docker ps --format "{{.Names}}" | grep -q "kerberos-kdc"; then
     log_error "Kerberos KDC not running. Start with:"
