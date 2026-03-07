@@ -104,7 +104,7 @@ jobs:
         else
           echo "updated=true" >> $GITHUB_OUTPUT
           # Extract the new version from the output
-          NEW_VERSION=$(echo "${OUTPUT}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+ -> [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $3}')
+          NEW_VERSION=$(echo "${OUTPUT}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+ -> [0-9]+\.[0-9]+\.[0-9]+' | tail -1 | awk '{print $3}')
           echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
         fi
 
