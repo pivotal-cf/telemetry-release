@@ -132,7 +132,7 @@ blobstore:
   options:
     credentials_source: static
     json_key: |
-      ${GCS_SERVICE_ACCOUNT_KEY}
+$(echo "${GCS_SERVICE_ACCOUNT_KEY}" | sed 's/^/      /')
 EOM
 elif [[ -f "${REPO_ROOT}/service_account.json" ]]; then
     # Local mode: create config/private.yml from service_account.json
