@@ -5,6 +5,7 @@
 
   <transport tls>
     min_version TLS1_2
+    max_version TLS1_3
     ciphers ECDHE+AESGCM:!aNULL:!eNULL:!SSLv2
     cert_path /var/vcap/jobs/telemetry-centralizer/config/cert.pem
     private_key_path /var/vcap/jobs/telemetry-centralizer/config/private_key.pem

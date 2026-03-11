@@ -8,4 +8,5 @@ group :test do
   gem 'json', '~> 2.6'
   gem 'fileutils', '~> 1.6'
   gem 'base64', '~> 0.3'
+  gem 'fluentd', '~> 1.19'
 end

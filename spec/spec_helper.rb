@@ -4,6 +4,13 @@ require 'time'
 require 'ostruct'
 require 'base64'
 
+def fluentd_available?
+  require 'fluent/tls'
+  true
+rescue LoadError
+  false
+end
+
 # Helper methods for testing ERB templates
 module ERBTestHelper
   def compile_erb_template(template_content, properties = {}, spec_data = {})
@@ -12,7 +19,6 @@ module ERBTestHelper
     
     # Add properties method
     binding_context.define_singleton_method(:p) do |key|
-      # Handle nested properties like 'telemetry.proxy_settings.proxy_username'
       if key.include?('.')
         parts = key.split('.')
         value = properties
@@ -22,12 +28,18 @@ module ERBTestHelper
           elsif value.is_a?(Hash) && value.key?(part.to_sym)
             value = value[part.to_sym]
           else
-            return ''  # Return empty string for missing properties (BOSH default)
+            return ''
           end
         end
         value
       else
-        properties[key] || properties[key.to_sym] || ''
+        if properties.key?(key)
+          properties[key]
+        elsif properties.key?(key.to_sym)
+          properties[key.to_sym]
+        else
+          ''
+        end
       end
     end
     
