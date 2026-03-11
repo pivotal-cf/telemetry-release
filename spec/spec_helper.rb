@@ -11,13 +11,22 @@ rescue LoadError
   false
 end
 
+# Chainable return value for if_p().else {} -- mirrors BOSH ERB behavior
+class IfPResult
+  def initialize(matched)
+    @matched = matched
+  end
+
+  def else(&block)
+    block.call unless @matched
+  end
+end
+
 # Helper methods for testing ERB templates
 module ERBTestHelper
-  def compile_erb_template(template_content, properties = {}, spec_data = {})
-    # Create a binding with the properties and spec data
+  def compile_erb_template(template_content, properties = {}, spec_data = {}, links = {})
     binding_context = Object.new
-    
-    # Add properties method
+
     binding_context.define_singleton_method(:p) do |key|
       if key.include?('.')
         parts = key.split('.')
@@ -42,44 +51,70 @@ module ERBTestHelper
         end
       end
     end
-    
-    # Add spec method -- supports nested access like spec.release.version
+
     binding_context.define_singleton_method(:spec) do
       spec_defaults = {
         deployment: 'test-deployment',
         release: OpenStruct.new(version: spec_data.dig(:release, :version) || '0.0.0')
       }
-      spec_obj = OpenStruct.new(spec_defaults.merge(spec_data))
-      spec_obj
+      OpenStruct.new(spec_defaults.merge(spec_data))
     end
-    
-    # Add if_p method for ERB templates
+
     binding_context.define_singleton_method(:if_p) do |key, &block|
-      # Handle nested properties like 'telemetry.endpoint_override'
+      value = nil
+      found = false
+
       if key.include?('.')
         parts = key.split('.')
-        value = properties
+        v = properties
         parts.each do |part|
-          if value.is_a?(Hash) && value.key?(part)
-            value = value[part]
+          if v.is_a?(Hash) && v.key?(part)
+            v = v[part]
           else
-            value = nil
+            v = nil
             break
           end
         end
-        if !value.nil?
-          block.call(value)
+        if !v.nil?
+          found = true
+          value = v
         end
       else
         if properties.key?(key) && !properties[key].nil?
-          block.call(properties[key])
+          found = true
+          value = properties[key]
         end
       end
+
+      block.call(value) if found
+      IfPResult.new(found)
     end
-    
-    # Compile and evaluate the ERB template
+
+    binding_context.define_singleton_method(:link) do |name|
+      link_data = links[name]
+      raise "Link '#{name}' not provided in test data" unless link_data
+
+      link_obj = Object.new
+      link_props = link_data[:properties] || {}
+
+      link_obj.define_singleton_method(:address) do
+        link_data[:address] || raise("Link '#{name}' has no address defined")
+      end
+
+      link_obj.define_singleton_method(:p) do |prop_key|
+        if link_props.key?(prop_key)
+          link_props[prop_key]
+        elsif link_props.key?(prop_key.to_sym)
+          link_props[prop_key.to_sym]
+        else
+          raise "Link '#{name}' has no property '#{prop_key}'"
+        end
+      end
+
+      link_obj
+    end
+
     erb = ERB.new(template_content)
-    # Make Base64 and other constants available in the binding
     binding_context.instance_variable_set(:@__base64__, ::Base64)
     binding_context.define_singleton_method(:const_missing) do |name|
       if name == :Base64
