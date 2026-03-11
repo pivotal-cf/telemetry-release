@@ -1,6 +1,6 @@
 module telemetry_receiver
 
-go 1.25.8
+go 1.26.1
 
 require (
 	github.com/onsi/ginkgo/v2 v2.23.4

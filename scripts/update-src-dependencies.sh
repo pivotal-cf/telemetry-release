@@ -22,7 +22,7 @@
 # Prerequisites:
 #   - Ruby 3.4.x installed (matching .ruby-version)
 #   - Bundler 2.6.8 (ships with Ruby 3.4.8)
-#   - Go 1.25.x installed (via goenv or system)
+#   - Go 1.26.x installed (via goenv or system)
 #   - rspec gem installed (for running tests)
 
 set -euo pipefail
@@ -82,7 +82,7 @@ if ! command -v go &> /dev/null; then
     # Try goenv
     if command -v goenv &> /dev/null; then
         eval "$(goenv init -)"
-        GO_VERSION_FILE=$(cat "${REPO_ROOT}/.go-version" 2>/dev/null | tr -d '[:space:]' || echo "1.25")
+        GO_VERSION_FILE=$(cat "${REPO_ROOT}/.go-version" 2>/dev/null | tr -d '[:space:]' || echo "1.26")
         goenv shell "${GO_VERSION_FILE}" 2>/dev/null || true
     fi
 fi
