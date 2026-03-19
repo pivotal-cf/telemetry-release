@@ -32,21 +32,21 @@
 </filter>
 
 # BUILD PROXY STRINGS
-<% @env_no_proxy = "no_proxy=" + p('telemetry.proxy_settings.no_proxy') %>
-<% @env_http_proxy = "http_proxy=" + p('telemetry.proxy_settings.http_proxy') %>
-<% @env_https_proxy = "https_proxy=" + p('telemetry.proxy_settings.https_proxy') %>
+<% @env_no_proxy = "no_proxy=#{p('telemetry.proxy_settings.no_proxy')}" %>
+<% @env_http_proxy = "http_proxy=#{p('telemetry.proxy_settings.http_proxy')}" %>
+<% @env_https_proxy = "https_proxy=#{p('telemetry.proxy_settings.https_proxy')}" %>
 
 # Determine command based on SPNEGO configuration
 <%
-spnego_enabled = p('telemetry.proxy_settings.proxy_username') != "" && 
-                 p('telemetry.proxy_settings.proxy_password') != "" && 
-                 p('telemetry.proxy_settings.proxy_domain') != ""
+spnego_enabled = p('telemetry.proxy_settings.proxy_username') != '' && 
+                 p('telemetry.proxy_settings.proxy_password') != '' && 
+                 p('telemetry.proxy_settings.proxy_domain') != ''
 
-if spnego_enabled
-  command_str = "/var/vcap/jobs/telemetry-centralizer/bin/spnego-curl.sh <"
-else
-  command_str = "#{@env_no_proxy} #{@env_http_proxy} #{@env_https_proxy} curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <"
-end
+command_str = if spnego_enabled
+  '/var/vcap/jobs/telemetry-centralizer/bin/spnego-curl.sh <'
+              else
+  "#{@env_no_proxy} #{@env_http_proxy} #{@env_https_proxy} curl -s -K /var/vcap/jobs/telemetry-centralizer/config/curl_config <"
+              end
 %>
 
 ## match all and dump to console
@@ -59,10 +59,10 @@ end
 
   <store>
     @type exec
-    <% if p('telemetry.data_collection_multi_select_options') == ["operational_data"] %>
-    <%= "command tee /dev/null <" %>
+    <% if p('telemetry.data_collection_multi_select_options') == ['operational_data'] %>
+    <%= 'command tee /dev/null <' %>
     <% elsif p('audit_mode') %>
-    <%= "command tee -a -p /var/vcap/sys/log/telemetry-centralizer/audit.log <" %>
+    <%= 'command tee -a -p /var/vcap/sys/log/telemetry-centralizer/audit.log <' %>
     <% else %>
     <%= "command #{command_str}" %>
     <% end %>

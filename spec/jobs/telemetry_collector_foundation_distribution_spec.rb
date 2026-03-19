@@ -3,7 +3,8 @@ require 'digest'
 
 describe 'telemetry-collector-cron foundation distribution' do
   let(:template_content) do
-    File.read(File.join(File.dirname(__FILE__), '../../jobs/telemetry-collector/templates/telemetry-collector-cron.erb'))
+    File.read(File.join(File.dirname(__FILE__),
+                        '../../jobs/telemetry-collector/templates/telemetry-collector-cron.erb'))
   end
 
   describe 'foundation-specific scheduling' do
@@ -24,7 +25,7 @@ describe 'telemetry-collector-cron foundation distribution' do
 
     it 'produces different schedules for different foundations' do
       properties = { 'schedule' => 'random' }
-      
+
       # Test with different deployment names
       foundation1_spec = { deployment: 'prod-pcf-01', index: 0 }
       foundation2_spec = { deployment: 'prod-pcf-02', index: 0 }
@@ -52,23 +53,21 @@ describe 'telemetry-collector-cron foundation distribution' do
 
       # Parse all schedules
       parsed_schedules = schedules.map { |s| parse_cron_schedule(s) }
-      
+
       # Convert to minutes since midnight
       times_in_minutes = parsed_schedules.map { |s| time_in_minutes(s[:hour], s[:minute]) }
-      
+
       # Find min and max times
       min_time = times_in_minutes.min
       max_time = times_in_minutes.max
-      
+
       # Calculate span
       span = max_time - min_time
-      
+
       # Should be within 60 minutes (accounting for day rollover)
       # If span > 12 hours, it means we rolled over midnight
-      if span > 12 * 60
-        span = (24 * 60) - span
-      end
-      
+      span = (24 * 60) - span if span > 12 * 60
+
       expect(span).to be <= 60, "Foundation spans #{span} minutes, should be ≤ 60"
     end
 
@@ -83,7 +82,7 @@ describe 'telemetry-collector-cron foundation distribution' do
       end
 
       parsed_schedules = schedules.map { |s| parse_cron_schedule(s) }
-      
+
       # All schedules should be valid
       parsed_schedules.each do |schedule|
         expect(schedule[:hour]).to be_between(0, 23)
@@ -99,7 +98,7 @@ describe 'telemetry-collector-cron foundation distribution' do
 
       schedule = compile_erb_template(template_content, properties, spec_data)
       parsed = parse_cron_schedule(schedule)
-      
+
       expect(parsed[:hour]).to be_between(0, 23)
       expect(parsed[:minute]).to be_between(0, 59)
     end
@@ -110,7 +109,7 @@ describe 'telemetry-collector-cron foundation distribution' do
 
       schedule = compile_erb_template(template_content, properties, spec_data)
       parsed = parse_cron_schedule(schedule)
-      
+
       expect(parsed[:hour]).to be_between(0, 23)
       expect(parsed[:minute]).to be_between(0, 59)
     end
@@ -129,7 +128,7 @@ describe 'telemetry-collector-cron foundation distribution' do
         spec_data = { deployment: deployment_name, index: 0 }
         schedule = compile_erb_template(template_content, properties, spec_data)
         parsed = parse_cron_schedule(schedule)
-        
+
         expect(parsed[:hour]).to be_between(0, 23)
         expect(parsed[:minute]).to be_between(0, 59)
       end
@@ -137,18 +136,18 @@ describe 'telemetry-collector-cron foundation distribution' do
 
     it 'handles unicode characters in deployment name' do
       properties = { 'schedule' => 'random' }
-      unicode_deployments = [
-        'foundation-测试',
-        'deployment-日本語',
-        'foundation-тест',
-        'deployment-العربية'
+      unicode_deployments = %w[
+        foundation-测试
+        deployment-日本語
+        foundation-тест
+        deployment-العربية
       ]
 
       unicode_deployments.each do |deployment_name|
         spec_data = { deployment: deployment_name, index: 0 }
         schedule = compile_erb_template(template_content, properties, spec_data)
         parsed = parse_cron_schedule(schedule)
-        
+
         expect(parsed[:hour]).to be_between(0, 23)
         expect(parsed[:minute]).to be_between(0, 59)
       end
@@ -156,33 +155,33 @@ describe 'telemetry-collector-cron foundation distribution' do
 
     it 'handles very long deployment names' do
       properties = { 'schedule' => 'random' }
-      long_name = 'a' * 1000  # 1000 character deployment name
+      long_name = 'a' * 1000 # 1000 character deployment name
       spec_data = { deployment: long_name, index: 0 }
 
       schedule = compile_erb_template(template_content, properties, spec_data)
       parsed = parse_cron_schedule(schedule)
-      
+
       expect(parsed[:hour]).to be_between(0, 23)
       expect(parsed[:minute]).to be_between(0, 59)
     end
 
     it 'handles numeric deployment names' do
       properties = { 'schedule' => 'random' }
-      spec_data = { deployment: 12345, index: 0 }
+      spec_data = { deployment: 12_345, index: 0 }
 
       schedule = compile_erb_template(template_content, properties, spec_data)
       parsed = parse_cron_schedule(schedule)
-      
+
       expect(parsed[:hour]).to be_between(0, 23)
       expect(parsed[:minute]).to be_between(0, 59)
     end
 
     it 'preserves non-random schedules' do
-      properties = { 'schedule' => '0 12 * * *' }  # Fixed schedule
+      properties = { 'schedule' => '0 12 * * *' } # Fixed schedule
       spec_data = { deployment: 'any-deployment', index: 0 }
 
       schedule = compile_erb_template(template_content, properties, spec_data).strip
-      
+
       expect(schedule).to eq('0 12 * * * vcap /var/vcap/jobs/telemetry-collector/bin/telemetry-collect-send /var/vcap/jobs/telemetry-collector/config/collect.yml >> /var/vcap/sys/log/telemetry-collector/telemetry-collect-send.log 2>> /var/vcap/sys/log/telemetry-collector/telemetry-collect-send.log')
     end
   end
@@ -190,20 +189,20 @@ describe 'telemetry-collector-cron foundation distribution' do
   describe 'statistical distribution' do
     it 'distributes foundations across all 24 hours' do
       properties = { 'schedule' => 'random' }
-      
+
       # Generate 1000 different foundations
       foundations = (1..1000).map { |i| "foundation-#{i}" }
-      
+
       base_hours = foundations.map do |foundation|
         spec_data = { deployment: foundation, index: 0 }
         schedule = compile_erb_template(template_content, properties, spec_data)
         parsed = parse_cron_schedule(schedule)
         parsed[:hour]
       end
-      
+
       # Count foundations per hour
-      hour_counts = base_hours.group_by(&:itself).transform_values(&:count)
-      
+      hour_counts = base_hours.tally
+
       # Verify each hour has foundations (within 2 sigma for uniform distribution)
       # Expected: ~42 foundations per hour (1000/24)
       # Allow variance: ≥20 per hour (conservative threshold)
@@ -211,43 +210,43 @@ describe 'telemetry-collector-cron foundation distribution' do
         count = hour_counts[hour] || 0
         expect(count).to be >= 20, "Hour #{hour} only has #{count} foundations (expected ~42 ± 22)"
       end
-      
+
       # Verify no hour is completely empty
-      expect(hour_counts.keys.length).to eq(24), "Not all 24 hours have foundations"
+      expect(hour_counts.keys.length).to eq(24), 'Not all 24 hours have foundations'
     end
 
     it 'produces uniform distribution across hours' do
       properties = { 'schedule' => 'random' }
-      
+
       # Generate 2400 foundations for better statistical significance
       foundations = (1..2400).map { |i| "foundation-#{i}" }
-      
+
       base_hours = foundations.map do |foundation|
         spec_data = { deployment: foundation, index: 0 }
         schedule = compile_erb_template(template_content, properties, spec_data)
         parsed = parse_cron_schedule(schedule)
         parsed[:hour]
       end
-      
+
       # Count foundations per hour
-      hour_counts = base_hours.group_by(&:itself).transform_values(&:count)
-      
+      hour_counts = base_hours.tally
+
       # Calculate statistics
-      expected_per_hour = 2400.0 / 24  # 100 per hour
+      expected_per_hour = 2400.0 / 24 # 100 per hour
       actual_counts = (0..23).map { |h| hour_counts[h] || 0 }
-      
+
       # Calculate standard deviation
-      variance = actual_counts.map { |count| (count - expected_per_hour) ** 2 }.sum / 24
+      variance = actual_counts.map { |count| (count - expected_per_hour)**2 }.sum / 24
       std_dev = Math.sqrt(variance)
-      
+
       # Verify distribution is reasonably uniform
       # Allow 3 standard deviations from expected (more lenient for random distribution)
       max_deviation = 3 * std_dev
-      
+
       actual_counts.each_with_index do |count, hour|
         deviation = (count - expected_per_hour).abs
-        expect(deviation).to be <= max_deviation, 
-          "Hour #{hour} has #{count} foundations, expected ~#{expected_per_hour.round(1)} ± #{max_deviation.round(1)}"
+        expect(deviation).to be <= max_deviation,
+                             "Hour #{hour} has #{count} foundations, expected ~#{expected_per_hour.round(1)} ± #{max_deviation.round(1)}"
       end
     end
   end
@@ -256,27 +255,27 @@ describe 'telemetry-collector-cron foundation distribution' do
     it 'produces same result for same input' do
       properties = { 'schedule' => 'random' }
       spec_data = { deployment: 'test-foundation', index: 5 }
-      
+
       # Compile multiple times
       results = 10.times.map do
         compile_erb_template(template_content, properties, spec_data)
       end
-      
+
       # All results should be identical
-      expect(results.uniq.length).to eq(1), "Non-deterministic behavior detected"
+      expect(results.uniq.length).to eq(1), 'Non-deterministic behavior detected'
     end
 
     it 'produces different results for different inputs' do
       properties = { 'schedule' => 'random' }
-      
+
       # Test different deployments
       results = (1..10).map do |i|
         spec_data = { deployment: "foundation-#{i}", index: 0 }
         compile_erb_template(template_content, properties, spec_data)
       end
-      
+
       # All results should be different
-      expect(results.uniq.length).to eq(10), "Different inputs produced same output"
+      expect(results.uniq.length).to eq(10), 'Different inputs produced same output'
     end
   end
 end

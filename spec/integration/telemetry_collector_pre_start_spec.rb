@@ -14,10 +14,10 @@ describe 'Telemetry Collector Pre-Start Integration' do
   describe 'ERB template compilation' do
     it 'compiles pre-start template successfully' do
       properties = { 'enabled' => true }
-      
-      expect {
+
+      expect do
         compile_erb_template(pre_start_template, properties)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'compiles collect-send template successfully' do
@@ -32,10 +32,10 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
-      expect {
+
+      expect do
         compile_erb_template(collect_send_template, properties)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'handles audit mode in collect-send template' do
@@ -50,7 +50,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
+
       result = compile_erb_template(collect_send_template, properties)
       expect(result).to include("audit_mode='true'")
     end
@@ -68,7 +68,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
+
       result = compile_erb_template(collect_send_template, properties)
       expect(result).to include('--override-telemetry-endpoint https://custom-endpoint.com')
     end
@@ -85,7 +85,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
         send_exit_code: 0,
         audit_mode: false
       )
-      
+
       expect(result[:pre_start_exit_code]).to eq(0)
       expect(result[:log_files_created]).to include('send-success.log')
       expect(result[:log_files_created]).not_to include('send-failures.log')
@@ -95,14 +95,14 @@ describe 'Telemetry Collector Pre-Start Integration' do
       result = simulate_pre_start_execution(
         collect_exit_code: 0,
         send_exit_code: 1,
-        send_output: "Error: user is not authorized to perform this action",
+        send_output: 'Error: user is not authorized to perform this action',
         audit_mode: false
       )
-      
-      expect(result[:pre_start_exit_code]).to eq(0)  # Should not fail
+
+      expect(result[:pre_start_exit_code]).to eq(0) # Should not fail
       expect(result[:log_files_created]).to include('send-failures.log')
       expect(result[:log_files_created]).not_to include('send-success.log')
-      
+
       # Verify log content
       failure_log = result[:log_contents]['send-failures.log']
       expect(failure_log.length).to eq(1)
@@ -113,13 +113,13 @@ describe 'Telemetry Collector Pre-Start Integration' do
       result = simulate_pre_start_execution(
         collect_exit_code: 0,
         send_exit_code: 1,
-        send_output: "503 Service Unavailable",
+        send_output: '503 Service Unavailable',
         audit_mode: false
       )
-      
-      expect(result[:pre_start_exit_code]).to eq(0)  # Should not fail
+
+      expect(result[:pre_start_exit_code]).to eq(0) # Should not fail
       expect(result[:log_files_created]).to include('send-failures.log')
-      
+
       # Verify log content
       failure_log = result[:log_contents]['send-failures.log']
       expect(failure_log.first['error_type']).to eq('MIDDLEWARE_PIPELINE_ERROR')
@@ -130,8 +130,8 @@ describe 'Telemetry Collector Pre-Start Integration' do
         collect_exit_code: 1,
         audit_mode: false
       )
-      
-      expect(result[:pre_start_exit_code]).to eq(1)  # Should fail
+
+      expect(result[:pre_start_exit_code]).to eq(1) # Should fail
       expect(result[:log_files_created]).to be_empty
     end
 
@@ -140,7 +140,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
         collect_exit_code: 0,
         audit_mode: true
       )
-      
+
       expect(result[:pre_start_exit_code]).to eq(0)
       expect(result[:log_files_created]).to be_empty
     end
@@ -155,20 +155,20 @@ describe 'Telemetry Collector Pre-Start Integration' do
       result = simulate_pre_start_execution(
         collect_exit_code: 0,
         send_exit_code: 1,
-        send_output: "Error: user is not authorized to perform this action",
+        send_output: 'Error: user is not authorized to perform this action',
         audit_mode: false
       )
-      
+
       failure_log = result[:log_contents]['send-failures.log']
       expect(failure_log.length).to eq(1)
-      
+
       log_entry = failure_log.first
       expect(log_entry).to have_key('timestamp')
       expect(log_entry).to have_key('error_type')
       expect(log_entry).to have_key('message')
       expect(log_entry).to have_key('exit_code')
       expect(log_entry).to have_key('output')
-      
+
       # Verify timestamp format
       expect(log_entry['timestamp']).to match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/)
     end
@@ -179,41 +179,41 @@ describe 'Telemetry Collector Pre-Start Integration' do
         send_exit_code: 0,
         audit_mode: false
       )
-      
+
       success_log = result[:log_contents]['send-success.log']
       expect(success_log.length).to eq(1)
-      
+
       log_entry = success_log.first
       expect(log_entry).to have_key('timestamp')
       expect(log_entry).to have_key('status')
       expect(log_entry).to have_key('message')
-      
+
       expect(log_entry['status']).to eq('success')
     end
 
     it 'handles multiple log entries correctly' do
       # Simulate multiple runs with accumulated logs
       log_contents = {}
-      
+
       # First run
       result1 = simulate_pre_start_execution_with_accumulation(
         collect_exit_code: 0,
         send_exit_code: 1,
-        send_output: "Error: user is not authorized",
+        send_output: 'Error: user is not authorized',
         audit_mode: false,
         existing_logs: log_contents
       )
       log_contents = result1[:log_contents]
-      
+
       # Second run
       result2 = simulate_pre_start_execution_with_accumulation(
         collect_exit_code: 0,
         send_exit_code: 1,
-        send_output: "503 Service Unavailable",
+        send_output: '503 Service Unavailable',
         audit_mode: false,
         existing_logs: log_contents
       )
-      
+
       # Both should be logged
       failure_log = result2[:log_contents]['send-failures.log']
       expect(failure_log.length).to eq(2)
@@ -226,35 +226,35 @@ describe 'Telemetry Collector Pre-Start Integration' do
     it 'correctly classifies real telemetry-cli error messages' do
       test_cases = [
         {
-          output: "Error: Failed to send data: user is not authorized to perform this action",
-          expected_type: "CUSTOMER_CONFIG_ERROR"
+          output: 'Error: Failed to send data: user is not authorized to perform this action',
+          expected_type: 'CUSTOMER_CONFIG_ERROR'
         },
         {
-          output: "Error: Post https://telemetry.example.com/api/v1/data: 401 Unauthorized",
-          expected_type: "CUSTOMER_CONFIG_ERROR"
+          output: 'Error: Post https://telemetry.example.com/api/v1/data: 401 Unauthorized',
+          expected_type: 'CUSTOMER_CONFIG_ERROR'
         },
         {
-          output: "Error: Post https://telemetry.example.com/api/v1/data: dial tcp: connection refused",
-          expected_type: "MIDDLEWARE_PIPELINE_ERROR"
+          output: 'Error: Post https://telemetry.example.com/api/v1/data: dial tcp: connection refused',
+          expected_type: 'MIDDLEWARE_PIPELINE_ERROR'
         },
         {
-          output: "Error: Post https://telemetry.example.com/api/v1/data: context deadline exceeded",
-          expected_type: "MIDDLEWARE_PIPELINE_ERROR"
+          output: 'Error: Post https://telemetry.example.com/api/v1/data: context deadline exceeded',
+          expected_type: 'MIDDLEWARE_PIPELINE_ERROR'
         },
         {
-          output: "Error: Post https://telemetry.example.com/api/v1/data: 503 Service Unavailable",
-          expected_type: "MIDDLEWARE_PIPELINE_ERROR"
+          output: 'Error: Post https://telemetry.example.com/api/v1/data: 503 Service Unavailable',
+          expected_type: 'MIDDLEWARE_PIPELINE_ERROR'
         },
         {
-          output: "Error: Post https://telemetry.example.com/api/v1/data: 500 Internal Server Error",
-          expected_type: "UNKNOWN_ERROR"
+          output: 'Error: Post https://telemetry.example.com/api/v1/data: 500 Internal Server Error',
+          expected_type: 'UNKNOWN_ERROR'
         },
         {
-          output: "Error: some unexpected error occurred",
-          expected_type: "UNKNOWN_ERROR"
+          output: 'Error: some unexpected error occurred',
+          expected_type: 'UNKNOWN_ERROR'
         }
       ]
-      
+
       test_cases.each do |test_case|
         result = simulate_pre_start_execution(
           collect_exit_code: 0,
@@ -262,10 +262,10 @@ describe 'Telemetry Collector Pre-Start Integration' do
           send_output: test_case[:output],
           audit_mode: false
         )
-        
+
         failure_log = result[:log_contents]['send-failures.log']
         expect(failure_log.first['error_type']).to eq(test_case[:expected_type]),
-          "Expected #{test_case[:expected_type]} for output: #{test_case[:output]}"
+                                                   "Expected #{test_case[:expected_type]} for output: #{test_case[:output]}"
       end
     end
   end
@@ -274,13 +274,14 @@ describe 'Telemetry Collector Pre-Start Integration' do
     it 'verifies that cron job will retry failed sends' do
       # This test verifies that the cron job template is correctly set up
       # to retry sending data that may have failed during pre-start
-      
-      cron_template = File.read(File.join(__dir__, '../../jobs/telemetry-collector/templates/telemetry-collector-cron.erb'))
-      
+
+      cron_template = File.read(File.join(__dir__,
+                                          '../../jobs/telemetry-collector/templates/telemetry-collector-cron.erb'))
+
       # The cron job should call the same telemetry-collect-send script
       expect(cron_template).to include('telemetry-collect-send')
       expect(cron_template).to include('collect.yml')
-      
+
       # This ensures that any data collected during pre-start (even if send failed)
       # will be retried by the cron job
     end
@@ -302,9 +303,9 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
+
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include("SPNEGO_USERNAME='testuser'")
       # Check for Base64 encoding (not plain password)
       expect(compiled).to include("SPNEGO_PASSWORD_B64='#{Base64.strict_encode64('testpass')}'")
@@ -330,10 +331,10 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
-      expect {
+
+      expect do
         compile_erb_template(collect_send_template, properties)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'compiles without SPNEGO properties defined (backward compatibility)' do
@@ -348,10 +349,10 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
-      expect {
+
+      expect do
         compile_erb_template(collect_send_template, properties)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'includes SPNEGO validation when credentials are provided' do
@@ -369,9 +370,9 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
+
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('INFO: SPNEGO proxy authentication enabled')
       expect(compiled).to include('if ! command -v kinit')
       expect(compiled).to include('ERROR: SPNEGO configured but kinit not found in PATH')
@@ -392,9 +393,9 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
+
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('export KRB5CCNAME="/tmp/krb5cc_collector_$$')
     end
 
@@ -413,9 +414,9 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
+
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('unset PROXY_USERNAME PROXY_PASSWORD PROXY_DOMAIN')
     end
 
@@ -431,9 +432,9 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
+
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('407')
       expect(compiled).to include('PROXY_AUTH_ERROR')
       expect(compiled).to include('Proxy authentication failed - check proxy credentials')
@@ -444,7 +445,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
     it 'includes conditional check for krb5 directory' do
       properties = minimal_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('if [ -d /var/vcap/packages/krb5/bin ]')
       expect(compiled).to include('export PATH="/var/vcap/packages/krb5/bin:${PATH}"')
       expect(compiled).to include('Add krb5 binaries to PATH for SPNEGO support (if available)')
@@ -462,10 +463,10 @@ describe 'Telemetry Collector Pre-Start Integration' do
           }
         }
       }
-      
-      expect {
+
+      expect do
         compile_erb_template(collect_send_template, properties)
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 
@@ -488,10 +489,11 @@ describe 'Telemetry Collector Pre-Start Integration' do
     }
   end
 
-  def simulate_pre_start_execution_with_accumulation(collect_exit_code:, send_exit_code: 0, send_output: "", audit_mode: false, existing_logs: {})
+  def simulate_pre_start_execution_with_accumulation(collect_exit_code:, send_exit_code: 0, send_output: '',
+                                                     audit_mode: false, existing_logs: {})
     log_contents = existing_logs.dup
     log_files_created = []
-    
+
     # Simulate the collect-send script execution
     if collect_exit_code != 0
       return {
@@ -500,7 +502,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
         log_contents: log_contents
       }
     end
-    
+
     if audit_mode
       return {
         pre_start_exit_code: 0,
@@ -508,46 +510,17 @@ describe 'Telemetry Collector Pre-Start Integration' do
         log_contents: log_contents
       }
     end
-    
+
     # Simulate send attempt
-    if send_exit_code != 0
-      # Create failure log
-      timestamp = generate_timestamp
-      error_type = classify_error_type(send_output)
-      
-      case error_type
-      when 'CUSTOMER_CONFIG_ERROR'
-        error_msg = "API key is invalid or expired"
-      when 'MIDDLEWARE_PIPELINE_ERROR'
-        error_msg = "Telemetry infrastructure is temporarily unavailable"
-      else
-        error_msg = "Telemetry send failed"
-      end
-      
-      log_entry = {
-        'timestamp' => timestamp,
-        'error_type' => error_type,
-        'message' => error_msg,
-        'exit_code' => send_exit_code,
-        'output' => send_output
-      }
-      
-      # Accumulate logs
-      if log_contents['send-failures.log']
-        log_contents['send-failures.log'] << log_entry
-      else
-        log_contents['send-failures.log'] = [log_entry]
-      end
-      log_files_created << 'send-failures.log'
-    else
+    timestamp = generate_timestamp
+    if send_exit_code == 0
       # Create success log
-      timestamp = generate_timestamp
       log_entry = {
         'timestamp' => timestamp,
         'status' => 'success',
         'message' => 'Telemetry sent successfully during startup'
       }
-      
+
       # Accumulate logs
       if log_contents['send-success.log']
         log_contents['send-success.log'] << log_entry
@@ -555,8 +528,36 @@ describe 'Telemetry Collector Pre-Start Integration' do
         log_contents['send-success.log'] = [log_entry]
       end
       log_files_created << 'send-success.log'
+    else
+      # Create failure log
+      error_type = classify_error_type(send_output)
+
+      error_msg = case error_type
+                  when 'CUSTOMER_CONFIG_ERROR'
+                    'API key is invalid or expired'
+                  when 'MIDDLEWARE_PIPELINE_ERROR'
+                    'Telemetry infrastructure is temporarily unavailable'
+                  else
+                    'Telemetry send failed'
+                  end
+
+      log_entry = {
+        'timestamp' => timestamp,
+        'error_type' => error_type,
+        'message' => error_msg,
+        'exit_code' => send_exit_code,
+        'output' => send_output
+      }
+
+      # Accumulate logs
+      if log_contents['send-failures.log']
+        log_contents['send-failures.log'] << log_entry
+      else
+        log_contents['send-failures.log'] = [log_entry]
+      end
+      log_files_created << 'send-failures.log'
     end
-    
+
     {
       pre_start_exit_code: 0,
       log_files_created: log_files_created,
@@ -564,10 +565,10 @@ describe 'Telemetry Collector Pre-Start Integration' do
     }
   end
 
-  def simulate_pre_start_execution(collect_exit_code:, send_exit_code: 0, send_output: "", audit_mode: false)
+  def simulate_pre_start_execution(collect_exit_code:, send_exit_code: 0, send_output: '', audit_mode: false)
     log_contents = {}
     log_files_created = []
-    
+
     # Simulate the collect-send script execution
     if collect_exit_code != 0
       return {
@@ -576,7 +577,7 @@ describe 'Telemetry Collector Pre-Start Integration' do
         log_contents: log_contents
       }
     end
-    
+
     if audit_mode
       return {
         pre_start_exit_code: 0,
@@ -584,22 +585,32 @@ describe 'Telemetry Collector Pre-Start Integration' do
         log_contents: log_contents
       }
     end
-    
+
     # Simulate send attempt
-    if send_exit_code != 0
+    timestamp = generate_timestamp
+    if send_exit_code == 0
+      # Create success log
+      log_entry = {
+        'timestamp' => timestamp,
+        'status' => 'success',
+        'message' => 'Telemetry sent successfully during startup'
+      }
+
+      log_contents['send-success.log'] = [log_entry]
+      log_files_created << 'send-success.log'
+    else
       # Create failure log
-      timestamp = generate_timestamp
       error_type = classify_error_type(send_output)
-      
-      case error_type
-      when 'CUSTOMER_CONFIG_ERROR'
-        error_msg = "API key is invalid or expired"
-      when 'MIDDLEWARE_PIPELINE_ERROR'
-        error_msg = "Telemetry infrastructure is temporarily unavailable"
-      else
-        error_msg = "Telemetry send failed"
-      end
-      
+
+      error_msg = case error_type
+                  when 'CUSTOMER_CONFIG_ERROR'
+                    'API key is invalid or expired'
+                  when 'MIDDLEWARE_PIPELINE_ERROR'
+                    'Telemetry infrastructure is temporarily unavailable'
+                  else
+                    'Telemetry send failed'
+                  end
+
       log_entry = {
         'timestamp' => timestamp,
         'error_type' => error_type,
@@ -607,22 +618,11 @@ describe 'Telemetry Collector Pre-Start Integration' do
         'exit_code' => send_exit_code,
         'output' => send_output
       }
-      
+
       log_contents['send-failures.log'] = [log_entry]
       log_files_created << 'send-failures.log'
-    else
-      # Create success log
-      timestamp = generate_timestamp
-      log_entry = {
-        'timestamp' => timestamp,
-        'status' => 'success',
-        'message' => 'Telemetry sent successfully during startup'
-      }
-      
-      log_contents['send-success.log'] = [log_entry]
-      log_files_created << 'send-success.log'
     end
-    
+
     {
       pre_start_exit_code: 0,
       log_files_created: log_files_created,
@@ -641,6 +641,6 @@ describe 'Telemetry Collector Pre-Start Integration' do
   end
 
   def generate_timestamp
-    Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+    Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
   end
 end

@@ -7,7 +7,7 @@ describe 'telemetry-centralizer config.erb' do
 
   let(:default_properties) do
     {
-      'port' => 24224,
+      'port' => 24_224,
       'flush_interval' => 3600,
       'audit_mode' => false,
       'telemetry' => {
@@ -104,8 +104,8 @@ describe 'telemetry-centralizer config.erb' do
     let(:rendered_config) { compile_erb_template(template_content, default_properties) }
 
     let(:transport_block) do
-      match = rendered_config.match(/<transport tls>(.+?)<\/transport>/m)
-      expect(match).not_to be_nil, "No <transport tls> block found in rendered config"
+      match = rendered_config.match(%r{<transport tls>(.+?)</transport>}m)
+      expect(match).not_to be_nil, 'No <transport tls> block found in rendered config'
       match[1]
     end
 
@@ -128,8 +128,8 @@ describe 'telemetry-centralizer config.erb' do
       has_min = transport_block.match?(/min_version\s+\S+/)
       has_max = transport_block.match?(/max_version\s+\S+/)
       expect(has_min).to eq(has_max),
-        "min_version and max_version must both be present or both absent in " \
-        "<transport tls>. Fluentd >= 1.19 raises ConfigError if only one is set."
+                         'min_version and max_version must both be present or both absent in ' \
+                         '<transport tls>. Fluentd >= 1.19 raises ConfigError if only one is set.'
     end
 
     it 'sets max_version >= min_version' do
@@ -143,7 +143,7 @@ describe 'telemetry-centralizer config.erb' do
       expect(min_idx).not_to be_nil, "Unknown min_version '#{min_str}'"
       expect(max_idx).not_to be_nil, "Unknown max_version '#{max_str}'"
       expect(max_idx).to be >= min_idx,
-        "max_version (#{max_str}) must be >= min_version (#{min_str})"
+                         "max_version (#{max_str}) must be >= min_version (#{min_str})"
     end
 
     it 'restricts ciphers to ECDHE+AESGCM' do
@@ -167,29 +167,29 @@ describe 'telemetry-centralizer config.erb' do
       min_str = rendered[/min_version\s+(\S+)/, 1]
       max_str = rendered[/max_version\s+(\S+)/, 1]
 
-      expect(min_str).not_to be_nil, "min_version not found in rendered config"
-      expect(max_str).not_to be_nil, "max_version not found in rendered config — " \
-        "Fluentd >= 1.19 requires max_version when min_version is set"
+      expect(min_str).not_to be_nil, 'min_version not found in rendered config'
+      expect(max_str).not_to be_nil, 'max_version not found in rendered config — ' \
+                                     'Fluentd >= 1.19 requires max_version when min_version is set'
 
       min_sym = min_str.to_sym
       max_sym = max_str.to_sym
 
       expect(Fluent::TLS::SUPPORTED_VERSIONS).to include(min_sym),
-        "min_version '#{min_str}' is not a valid Fluentd TLS version"
+                                                 "min_version '#{min_str}' is not a valid Fluentd TLS version"
       expect(Fluent::TLS::SUPPORTED_VERSIONS).to include(max_sym),
-        "max_version '#{max_str}' is not a valid Fluentd TLS version"
+                                                 "max_version '#{max_str}' is not a valid Fluentd TLS version"
 
       ctx = OpenSSL::SSL::SSLContext.new
-      expect {
+      expect do
         Fluent::TLS.set_version_to_context(ctx, nil, min_sym, max_sym)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'would reject min_version without max_version' do
       ctx = OpenSSL::SSL::SSLContext.new
-      expect {
+      expect do
         Fluent::TLS.set_version_to_context(ctx, nil, :TLSv1_2, nil)
-      }.to raise_error(Fluent::ConfigError, /must set max_version together/)
+      end.to raise_error(Fluent::ConfigError, /must set max_version together/)
     end
   end
 end

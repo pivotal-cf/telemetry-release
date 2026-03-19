@@ -41,14 +41,12 @@ module ERBTestHelper
           end
         end
         value
+      elsif properties.key?(key)
+        properties[key]
+      elsif properties.key?(key.to_sym)
+        properties[key.to_sym]
       else
-        if properties.key?(key)
-          properties[key]
-        elsif properties.key?(key.to_sym)
-          properties[key.to_sym]
-        else
-          ''
-        end
+        ''
       end
     end
 
@@ -75,15 +73,13 @@ module ERBTestHelper
             break
           end
         end
-        if !v.nil?
+        unless v.nil?
           found = true
           value = v
         end
-      else
-        if properties.key?(key) && !properties[key].nil?
-          found = true
-          value = properties[key]
-        end
+      elsif properties.key?(key) && !properties[key].nil?
+        found = true
+        value = properties[key]
       end
 
       block.call(value) if found
@@ -125,44 +121,44 @@ module ERBTestHelper
     end
     erb.result(binding_context.instance_eval { binding })
   end
-  
+
   def parse_cron_schedule(schedule_string)
     # Parse cron schedule and return hour and minute
-    parts = schedule_string.split(' ')
+    parts = schedule_string.split
     minute = parts[0].to_i
     hour = parts[1].to_i
     { minute: minute, hour: hour }
   end
-  
+
   def time_in_minutes(hour, minute)
-    hour * 60 + minute
+    (hour * 60) + minute
   end
-  
+
   def minutes_to_time(minutes)
     hour = (minutes / 60) % 24
     minute = minutes % 60
     { hour: hour, minute: minute }
   end
-  
+
   def parse_json_log_line(log_line)
     JSON.parse(log_line.strip)
   rescue JSON::ParserError
     nil
   end
-  
-  def mock_telemetry_cli_behavior(collect_exit_code: 0, send_exit_code: 0, send_output: "")
+
+  def mock_telemetry_cli_behavior(collect_exit_code: 0, send_exit_code: 0, send_output: '')
     # This would be used in integration tests to mock the telemetry-cli behavior
     # For now, we'll implement this in the actual test files
     { collect_exit_code: collect_exit_code, send_exit_code: send_exit_code, send_output: send_output }
   end
-  
+
   def create_temp_log_directory
     require 'tmpdir'
-    temp_dir = Dir.mktmpdir("telemetry_test_logs")
+    temp_dir = Dir.mktmpdir('telemetry_test_logs')
     FileUtils.mkdir_p("#{temp_dir}/telemetry-collector")
     temp_dir
   end
-  
+
   def cleanup_temp_directory(temp_dir)
     FileUtils.rm_rf(temp_dir) if temp_dir && Dir.exist?(temp_dir)
   end
@@ -170,11 +166,9 @@ end
 
 RSpec.configure do |config|
   config.include ERBTestHelper
-  
+
   # Cleanup temp directories after each test
   config.after(:each) do
-    if @temp_log_dir
-      cleanup_temp_directory(@temp_log_dir)
-    end
+    cleanup_temp_directory(@temp_log_dir) if @temp_log_dir
   end
 end

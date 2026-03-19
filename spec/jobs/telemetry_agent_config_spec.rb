@@ -9,7 +9,7 @@ describe 'telemetry-agent config.erb' do
     {
       address: '10.0.0.5',
       properties: {
-        'port' => 24224
+        'port' => 24_224
       }
     }
   end
@@ -28,9 +28,9 @@ describe 'telemetry-agent config.erb' do
 
   describe 'ERB rendering' do
     it 'compiles successfully with link-provided address and port' do
-      expect {
+      expect do
         compile_erb_template(template_content, default_properties, {}, default_links)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'compiles successfully with explicit address and port properties' do
@@ -38,9 +38,9 @@ describe 'telemetry-agent config.erb' do
         'centralizer_address' => '192.168.1.100',
         'centralizer_port' => 5514
       )
-      expect {
+      expect do
         compile_erb_template(template_content, props, {}, default_links)
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 
@@ -166,7 +166,7 @@ describe 'telemetry-agent config.erb' do
 
     let(:centralizer_properties) do
       {
-        'port' => 24224,
+        'port' => 24_224,
         'flush_interval' => 3600,
         'audit_mode' => false,
         'telemetry' => {
@@ -190,9 +190,9 @@ describe 'telemetry-agent config.erb' do
       centralizer_ciphers = centralizer_output[/ciphers\s+(\S+)/, 1]
 
       expect(agent_ciphers).to eq('ECDHE+AESGCM'),
-        "Agent ciphers should be ECDHE+AESGCM, got: #{agent_ciphers}"
+                               "Agent ciphers should be ECDHE+AESGCM, got: #{agent_ciphers}"
       expect(centralizer_ciphers).to eq(agent_ciphers),
-        "Centralizer ciphers (#{centralizer_ciphers}) must match agent ciphers (#{agent_ciphers})"
+                                     "Centralizer ciphers (#{centralizer_ciphers}) must match agent ciphers (#{agent_ciphers})"
     end
 
     it 'agent minimum TLS version is compatible with centralizer range' do
@@ -212,9 +212,9 @@ describe 'telemetry-agent config.erb' do
       expect(centralizer_max_level).not_to be_nil, "Unknown centralizer max TLS: #{centralizer_max}"
 
       expect(agent_level).to be >= centralizer_min_level,
-        "Agent min TLS (#{agent_min}) is below centralizer's minimum (#{centralizer_min})"
+                             "Agent min TLS (#{agent_min}) is below centralizer's minimum (#{centralizer_min})"
       expect(agent_level).to be <= centralizer_max_level,
-        "Agent min TLS (#{agent_min}) is above centralizer's maximum (#{centralizer_max})"
+                             "Agent min TLS (#{agent_min}) is above centralizer's maximum (#{centralizer_max})"
     end
   end
 end

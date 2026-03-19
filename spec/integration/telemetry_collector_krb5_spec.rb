@@ -15,7 +15,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'includes conditional check for krb5/bin directory' do
       properties = minimal_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('if [ -d /var/vcap/packages/krb5/bin ]')
       expect(compiled).to include('export PATH="/var/vcap/packages/krb5/bin:${PATH}"')
       expect(compiled).to include('fi')
@@ -24,32 +24,32 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'includes helpful comment explaining conditional check' do
       properties = minimal_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('Add krb5 binaries to PATH for SPNEGO support (if available)')
     end
 
     it 'does not unconditionally add krb5 to PATH' do
       properties = minimal_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       # Should NOT have an unconditional export before the conditional check
       lines = compiled.lines
       krb5_export_line = lines.find_index { |line| line.include?('export PATH="/var/vcap/packages/krb5/bin:${PATH}"') }
-      
+
       expect(krb5_export_line).not_to be_nil
-      
+
       # The line before it should be the if statement or within the if block
       preceding_lines = lines[0...krb5_export_line].reverse.take(5).map(&:strip)
-      expect(preceding_lines).to include(match(/if \[ -d \/var\/vcap\/packages\/krb5\/bin \]/))
+      expect(preceding_lines).to include(match(%r{if \[ -d /var/vcap/packages/krb5/bin \]}))
     end
 
     it 'places krb5 PATH addition early in script' do
       properties = minimal_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       lines = compiled.lines
       krb5_line = lines.find_index { |line| line.include?('if [ -d /var/vcap/packages/krb5/bin ]') }
-      
+
       # Should be in first 20 lines of script (after shebang and set -e)
       expect(krb5_line).to be < 20
     end
@@ -59,7 +59,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'includes conditional check for krb5/bin directory' do
       properties = {}
       compiled = compile_erb_template(spnego_curl_template, properties)
-      
+
       expect(compiled).to include('if [ -d /var/vcap/packages/krb5/bin ]')
       expect(compiled).to include('export PATH="/var/vcap/packages/krb5/bin:${PATH}"')
       expect(compiled).to include('fi')
@@ -68,7 +68,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'includes helpful comment explaining conditional check' do
       properties = {}
       compiled = compile_erb_template(spnego_curl_template, properties)
-      
+
       expect(compiled).to include('Add krb5 binaries to PATH for SPNEGO support (if available)')
     end
   end
@@ -89,9 +89,9 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
           }
         }
       }
-      
+
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       # Should check that all three are non-empty
       expect(compiled).to include('[[ -n "${SPNEGO_USERNAME}" && -n "${SPNEGO_PASSWORD}" && -n "${SPNEGO_DOMAIN}" ]]')
     end
@@ -111,9 +111,9 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
           }
         }
       }
-      
+
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       # The logic requires all three to be non-empty
       expect(compiled).to include('[[ -n "${SPNEGO_USERNAME}" && -n "${SPNEGO_PASSWORD}" && -n "${SPNEGO_DOMAIN}" ]]')
     end
@@ -121,7 +121,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'sets unique KRB5CCNAME to avoid race conditions' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       # PID ($$) guarantees uniqueness; timestamp (%s) aids debugging
       # Using %s (not %s%N) for macOS compatibility during local development
       expect(compiled).to include('export KRB5CCNAME="/tmp/krb5cc_collector_$$')
@@ -131,7 +131,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'exports SPNEGO credentials as environment variables' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('export PROXY_USERNAME="${SPNEGO_USERNAME}"')
       expect(compiled).to include('export PROXY_PASSWORD="${SPNEGO_PASSWORD}"')
       expect(compiled).to include('export PROXY_DOMAIN="${SPNEGO_DOMAIN}"')
@@ -140,7 +140,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'cleans up credentials after send attempt' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('unset PROXY_USERNAME PROXY_PASSWORD PROXY_DOMAIN')
     end
   end
@@ -149,7 +149,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'validates kinit is available when SPNEGO is configured' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('if ! command -v kinit >/dev/null 2>&1')
       expect(compiled).to include('ERROR: SPNEGO configured but kinit not found in PATH')
     end
@@ -157,7 +157,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'validates curl has GSS-API support when SPNEGO is configured' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('curl -V 2>&1 | grep -qi "gss\\|kerberos"')
       expect(compiled).to include('ERROR: SPNEGO configured but curl lacks GSS-API support')
     end
@@ -165,14 +165,14 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'logs validation results' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('INFO: SPNEGO system requirements validated')
     end
 
     it 'does not fail deployment on validation warnings' do
       properties = spnego_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       # Should log errors but not exit
       expect(compiled).to include("# Don't fail deployment - log and continue")
     end
@@ -182,7 +182,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'includes SYSTEM_REQUIREMENTS_ERROR classification' do
       properties = minimal_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('SYSTEM_REQUIREMENTS_ERROR')
       expect(compiled).to include('kinit.*not found\\|curl.*not found\\|gss-api')
     end
@@ -190,7 +190,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'includes PROXY_AUTH_ERROR classification' do
       properties = minimal_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       expect(compiled).to include('PROXY_AUTH_ERROR')
       expect(compiled).to include('proxy.*authentication\\|407\\|spnego\\|kerberos')
       expect(compiled).to include('Proxy authentication failed - check proxy credentials')
@@ -210,10 +210,10 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
           }
         }
       }
-      
-      expect {
+
+      expect do
         compile_erb_template(collect_send_template, properties)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'compiles successfully with empty SPNEGO properties' do
@@ -231,16 +231,16 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
           }
         }
       }
-      
-      expect {
+
+      expect do
         compile_erb_template(collect_send_template, properties)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'does not require krb5 package for basic functionality' do
       properties = minimal_properties
       compiled = compile_erb_template(collect_send_template, properties)
-      
+
       # The script should work even if krb5 is not present
       # The conditional check ensures this
       expect(compiled).to include('if [ -d /var/vcap/packages/krb5/bin ]')
@@ -251,14 +251,14 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'includes KRB5CCNAME for centralizer' do
       properties = {}
       compiled = compile_erb_template(spnego_curl_template, properties)
-      
+
       expect(compiled).to include('export KRB5CCNAME="/tmp/krb5cc_centralizer_$$"')
     end
 
     it 'includes cleanup function for credential cache' do
       properties = {}
       compiled = compile_erb_template(spnego_curl_template, properties)
-      
+
       expect(compiled).to include('cleanup()')
       expect(compiled).to include('rm -f "${KRB5CCNAME}"')
     end
@@ -266,7 +266,7 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     it 'sets up trap for cleanup on exit' do
       properties = {}
       compiled = compile_erb_template(spnego_curl_template, properties)
-      
+
       expect(compiled).to include('trap cleanup EXIT')
     end
   end
@@ -307,4 +307,3 @@ describe 'Telemetry Collector krb5/SPNEGO Integration' do
     }
   end
 end
-

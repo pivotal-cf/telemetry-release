@@ -38,7 +38,7 @@ describe 'telemetry-centralizer curl_config.erb' do
     end
 
     it 'sets the user-agent to TelemetryCentralizer with version' do
-      expect(output).to match(/user-agent\s*=\s*"TelemetryCentralizer\/\d+\.\d+\.\d+"/)
+      expect(output).to match(%r{user-agent\s*=\s*"TelemetryCentralizer/\d+\.\d+\.\d+"})
     end
 
     it 'uses POST method' do
@@ -59,7 +59,7 @@ describe 'telemetry-centralizer curl_config.erb' do
       output = compile_erb_template(template_content, default_properties)
       lines_with_key = output.lines.select { |l| l.include?('test-api-key-abc123') }
       expect(lines_with_key.length).to eq(1),
-        "API key should only appear once (in the Authorization header), found #{lines_with_key.length} times"
+                                       "API key should only appear once (in the Authorization header), found #{lines_with_key.length} times"
       expect(lines_with_key.first).to include('Authorization: Bearer')
     end
 

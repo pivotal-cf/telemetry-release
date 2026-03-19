@@ -200,7 +200,7 @@ module Fluent
       def initialize(string, start_pos: 0, forwards: true, object_level: 1)
         @original_string = string
         super(forwards ? string : string.reverse)
-        
+
         # StringScanner uses byte positions, but start_pos is a character position
         # Convert character position to byte position
         if forwards
@@ -212,7 +212,7 @@ module Fluent
           char_pos_in_reversed = @original_string.length - start_pos
           self.pos = self.string[0, char_pos_in_reversed].bytesize
         end
-        
+
         @object_level = object_level
         @forwards = forwards
 
@@ -241,35 +241,36 @@ module Fluent
             @object_level -= 1
             if @object_level.zero?
               # Convert byte position back to character position
-              if @forwards
-                # pos is a byte position in the original string
-                return self.string[0, pos].length
-              else
-                # pos is a byte position in the reversed string
-                # Convert to character position in reversed string, then to original string position
-                char_pos_in_reversed = self.string[0, pos].length
-                return @original_string.length - char_pos_in_reversed
-              end
+              return string[0, pos].length if @forwards
+
+              # pos is a byte position in the original string
+
+              # pos is a byte position in the reversed string
+              # Convert to character position in reversed string, then to original string position
+              char_pos_in_reversed = string[0, pos].length
+              return @original_string.length - char_pos_in_reversed
+
             end
           when '"'
             next if escaped && adjacent_n_chars(1) != '\\'
 
             loop do
               return unless (current_char = scan(/./))
+
               if current_char == '"'
                 # For normal JSON (escape_lookahead_size = 1), count consecutive backslashes
                 # to properly handle cases like C:\\Windows\\ where the final quote is not escaped
                 if escape_lookahead_size == 1
                   backslash_count = count_preceding_backslashes(escape_lookahead_size)
                   break if backslash_count.even?
-                else
+                elsif adjacent_n_chars(escape_lookahead_size) !~ /^\\{#{escape_lookahead_size}}$/
                   # For escaped JSON (escape_lookahead_size = 3), use simpler pattern matching
                   # Check if previous escape_lookahead_size characters are exactly that many backslashes
-                  break if adjacent_n_chars(escape_lookahead_size) !~ /^\\{#{escape_lookahead_size}}$/
+                  break
                 end
               end
             end
-          # else: For any other character, continue scanning (no action needed)
+            # else: For any other character, continue scanning (no action needed)
           end
         end
         nil
@@ -300,7 +301,7 @@ module Fluent
         # pos - 1 is the character we just scanned (the quote)
         # pos - 2 is the character before the quote
         check_pos = pos - 2
-        
+
         # First, count total consecutive backslashes
         total_backslashes = 0
         temp_pos = check_pos
@@ -308,18 +309,18 @@ module Fluent
           total_backslashes += 1
           temp_pos -= 1
         end
-        
+
         # For normal JSON (escape_lookahead_size = 1):
         #   Return the total count. Odd = escaped, even = not escaped.
         return total_backslashes if escape_lookahead_size == 1
-        
+
         # For escaped JSON (escape_lookahead_size = 3):
         #   1 backslash means the quote is a delimiter (return 0 = not escaped)
         #   3 backslashes means the quote is escaped (return 1 = escaped)
         #   Other counts are malformed, but we'll handle them conservatively
         case total_backslashes
         when 0 then 0   # No backslash before quote - quote is delimiter
-        when 1 then 0   # One backslash before quote - in escaped JSON, quote is delimiter  
+        when 1 then 0   # One backslash before quote - in escaped JSON, quote is delimiter
         when 2 then 2   # Two backslashes - conservative: treat as escaped
         else
           # 3 or more: count in groups of 3, plus any remainder

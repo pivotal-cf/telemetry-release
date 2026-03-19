@@ -9,7 +9,7 @@
     # but different foundations get different base times
     require 'digest'
     deployment_name = (spec.deployment || 'default').to_s
-    foundation_seed = Digest::MD5.hexdigest(deployment_name).to_i(16) % (2**31 - 1)
+    foundation_seed = Digest::MD5.hexdigest(deployment_name).to_i(16) % ((2**31) - 1)
     srand(foundation_seed)
     base_minute = rand(60)
     base_hour = rand(24)

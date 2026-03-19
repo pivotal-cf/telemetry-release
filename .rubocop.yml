@@ -1,0 +1,83 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.4
+
+plugins:
+  - rubocop-erb
+
+# RSpec describe/context blocks are inherently long -- not a useful metric for specs.
+# Non-spec methods (compile_erb_template, find_end_of_json_obj) are complex but correct.
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+# BOSH ERB mock objects define methods named `p` and `link` -- these are not accessor methods.
+Naming/AccessorMethodName:
+  Enabled: false
+
+# Heredoc delimiters like BASH, SCRIPT are descriptive for this domain.
+Naming/HeredocDelimiterNaming:
+  Enabled: false
+
+# Short variable names in tight loops of the ERB test helper are idiomatic.
+Naming/VariableName:
+  Enabled: false
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+# No value for a BOSH release -- Ruby code runs as ERB templates and specs, not long-running processes.
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# BOSH ERB if_p().else {} is idiomatic and cannot be changed.
+Style/MultilineBlockChain:
+  Enabled: false
+
+# Spec heredoc strings contain long bash script lines -- enforcing line length there is noise.
+Layout/LineLength:
+  Enabled: false
+
+# printf with %s tokens in benchmark output -- annotated tokens (%<foo>s) would be less readable.
+Style/FormatStringToken:
+  Enabled: false
+
+# OpenStruct used intentionally to simulate BOSH spec objects in test helpers.
+Style/OpenStructUse:
+  Enabled: false
+
+# IfPResult + ERBTestHelper in spec_helper is intentional test support code.
+Style/OneClassPerFile:
+  Enabled: false
+
+# Intentional duplicate branch in backslash counting case statement -- documented edge case handling.
+Lint/DuplicateBranch:
+  Enabled: false
+
+# Incompatible with RSpec matchers -- `be > 0` becomes `be.positive?` which breaks.
+Style/NumericPredicate:
+  Enabled: false
+
+# ENV['KEY'] is clearer than ENV.fetch('KEY', nil) -- especially inside backtick shell commands.
+Style/FetchEnvVar:
+  Enabled: false

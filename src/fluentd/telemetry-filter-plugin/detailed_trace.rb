@@ -11,57 +11,55 @@ iterations = 0
 escaped_mode = true
 in_string = false
 
-puts "Starting backward scan"
+puts 'Starting backward scan'
 
 loop do
   break if iterations > 150
-  
+
   char = scanner.scan(/./)
   break unless char
-  
+
   iterations += 1
-  
+
   if !in_string
     case char
     when '}'
       object_level += 1
-      puts "#{iterations}: pos #{scanner.pos-1}, level #{object_level}, scanned '#{char}'"
+      puts "#{iterations}: pos #{scanner.pos - 1}, level #{object_level}, scanned '#{char}'"
     when '{'
       object_level -= 1
-      puts "#{iterations}: pos #{scanner.pos-1}, level #{object_level}, scanned '#{char}'"
-      if object_level == 0
+      puts "#{iterations}: pos #{scanner.pos - 1}, level #{object_level}, scanned '#{char}'"
+      if object_level.zero?
         puts "\nFOUND END"
         break
       end
     when '"'
       adj = scanner.peek(1)
       if escaped_mode && adj != '\\'
-        puts "#{iterations}: pos #{scanner.pos-1}, skipping quote (adj=#{adj.inspect})"
+        puts "#{iterations}: pos #{scanner.pos - 1}, skipping quote (adj=#{adj.inspect})"
         next
       end
-      
-      puts "#{iterations}: pos #{scanner.pos-1}, entering string"
+
+      puts "#{iterations}: pos #{scanner.pos - 1}, entering string"
       in_string = true
     end
-  else
+  elsif char == '"'
     # In string
-    if char == '"'
-      count = 0
-      check_pos = scanner.pos - 2
-      while check_pos >= 0 && reversed.byteslice(check_pos, 1) == '\\'
-        count += 1
-        check_pos -= 1
-      end
-      
-      is_escaped = case count
-      when 0, 1 then false
-      else true
-      end
-      
-      if !is_escaped
-        puts "#{iterations}: pos #{scanner.pos-1}, exiting string (#{count} backslashes)"
-        in_string = false
-      end
+    count = 0
+    check_pos = scanner.pos - 2
+    while check_pos >= 0 && reversed.byteslice(check_pos, 1) == '\\'
+      count += 1
+      check_pos -= 1
+    end
+
+    is_escaped = case count
+                 when 0, 1 then false
+                 else true
+                 end
+
+    unless is_escaped
+      puts "#{iterations}: pos #{scanner.pos - 1}, exiting string (#{count} backslashes)"
+      in_string = false
     end
   end
 end
