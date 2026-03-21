@@ -100,7 +100,7 @@ describe 'Telemetry Filter - Robustness Tests' do
         # Current code has no size limits - this is expected behavior
         expect do
           filter({ 'log' => huge_log })
-        end.not_to raise_error(StandardError, /exceeds maximum size/)
+        end.not_to raise_error
       end
     end
 
@@ -137,7 +137,7 @@ describe 'Telemetry Filter - Robustness Tests' do
 
         expect do
           filter({ 'log' => log_line })
-        end.not_to raise_error(SystemStackError)
+        end.not_to raise_error
       end
 
       it 'FAILS: processes malformed JSON without timeout' do
@@ -313,7 +313,7 @@ describe 'Telemetry Filter - Robustness Tests' do
       # Current code has no size limits - this is expected behavior
       expect do
         filter({ 'log' => oversized_log })
-      end.not_to raise_error(StandardError, /exceeds maximum size/)
+      end.not_to raise_error
     end
 
     it 'should enforce maximum processing time' do
@@ -328,7 +328,7 @@ describe 'Telemetry Filter - Robustness Tests' do
         Timeout.timeout(5) do
           filter({ 'log' => complex_log })
         end
-      end.not_to raise_error(Timeout::Error)
+      end.not_to raise_error
     end
 
     it 'should reject deeply nested JSON beyond safe limit' do

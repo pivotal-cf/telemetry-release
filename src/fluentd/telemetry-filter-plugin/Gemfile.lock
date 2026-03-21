@@ -120,7 +120,7 @@ DEPENDENCIES
   test-unit (~> 3.7)
 
 RUBY VERSION
-   ruby 3.4.8p72
+   ruby 3.4.9p82
 
 BUNDLED WITH
-   2.6.8
+   2.6.9

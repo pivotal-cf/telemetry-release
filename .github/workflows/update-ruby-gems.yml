@@ -1,0 +1,100 @@
+# This workflow:
+#   1. Discovers Ruby/Bundler versions from the upstream BOSH ruby-3.4 package
+#   2. Runs `bundle update` across all 5 Gemfile locations in the repo
+#   3. Rebuilds the fluentd vendor/cache (BOSH compile-time gems)
+#   4. Runs a compile-time simulation (bundle install --local) for src/fluentd
+#   5. Validates lockfile invariants (PLATFORMS, BUNDLED WITH, RUBY VERSION)
+#   6. Runs root-level and filter-plugin rspec tests
+#   7. Commits and pushes if everything passes and there are changes
+#   8. Notifies Google Chat on failure
+#
+# Ruby version: Uses '3.4' which auto-resolves to the latest 3.4.x patch
+# available in ruby/setup-ruby. The script handles its own bundler version
+# based on what the BOSH ruby-3.4 package ships.
+#
+# Triggers:
+#   - Daily at 08:00 UTC (1am PT), offset from CLI update at 07:00
+#   - Manual via workflow_dispatch
+#
+# Required secrets:
+#   - GOOGLE_CHAT_WEBHOOK (optional): webhook URL for failure notifications
+
+name: Update Ruby Gems
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Daily at 08:00 UTC (1am PT)
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  update-gems:
+    name: Update Ruby gem dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4'
+
+    - name: Run update-ruby-gems script
+      id: update
+      run: |
+        set -o pipefail
+        chmod +x scripts/update-ruby-gems.sh
+        LOGFILE=$(mktemp)
+        ./scripts/update-ruby-gems.sh 2>&1 | tee "${LOGFILE}" || EXIT_CODE=$?
+
+        if [[ "${EXIT_CODE:-0}" -ne 0 ]]; then
+          echo "updated=false" >> $GITHUB_OUTPUT
+          rm -f "${LOGFILE}"
+          exit "${EXIT_CODE}"
+        elif grep -q "NO_UPDATE=true" "${LOGFILE}"; then
+          echo "updated=false" >> $GITHUB_OUTPUT
+          echo "No update needed."
+        else
+          echo "updated=true" >> $GITHUB_OUTPUT
+        fi
+        rm -f "${LOGFILE}"
+
+    - name: Commit and push
+      if: steps.update.outputs.updated == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+        git add -A
+        if git diff --cached --quiet; then
+          echo "No changes to commit (unexpected)."
+        else
+          git commit -m "chore: update Ruby gem dependencies"
+          git push
+          echo "Committed and pushed Ruby gem dependency update."
+        fi
+
+    - name: Notify Google Chat on failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const webhook = '${{ secrets.GOOGLE_CHAT_WEBHOOK }}';
+          if (!webhook) {
+            console.log('GOOGLE_CHAT_WEBHOOK not configured, skipping notification.');
+            return;
+          }
+          const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+          const message = {
+            text: [
+              `❌ *telemetry-release*: update-ruby-gems workflow failed.`,
+              `This could be a gem resolution failure, a test failure, or a lockfile invariant violation (PLATFORMS changed, Ruby major.minor changed, etc).`,
+              `<${runUrl}|View run>`,
+            ].join('\n'),
+          };
+          await fetch(webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(message)
+          });

@@ -7,10 +7,18 @@ dependencies:
 files:
 - fluentd/**/*
 
-# HOW TO UPDATE:
-# bundle
-# BUNDLE_WITHOUT=development:test bundle package --all --all-platforms --no-install --path ./vendor/cache
-# rm -rf ./vendor/cache/ruby
-# rm -rf ./vendor/cache/vendor
-# bundle config --delete NO_INSTALL
-# rm -rf .bundle/
+# HOW TO UPDATE (automated):
+#   ./scripts/update-ruby-gems.sh
+#
+# HOW TO UPDATE (manual, from src/fluentd/):
+#   bundle update
+#   bundle update --ruby
+#   bundle config set --local cache_all true
+#   bundle config set --local cache_path ./vendor/cache
+#   bundle config set --local no_install true
+#   BUNDLE_WITHOUT=development:test bundle package --all-platforms
+#   rm -rf ./vendor/cache/ruby ./vendor/cache/vendor
+#   bundle config unset --local cache_all
+#   bundle config unset --local cache_path
+#   bundle config unset --local no_install
+#   rm -rf .bundle/
