@@ -7,6 +7,7 @@ set -euo pipefail
 # Color codes
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+# shellcheck disable=SC2034
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 BOLD='\033[1m'
@@ -75,7 +76,7 @@ if [ -n "${STAGING_API_KEY:-}" ]; then
     API_KEY="$STAGING_API_KEY"
 else
     log_info "Enter your Broadcom Staging API key:"
-    read -s -p "API Key: " API_KEY
+    read -rs -p "API Key: " API_KEY
     echo ""
 fi
 
@@ -109,6 +110,7 @@ log_info "Using credential cache: $KRB5CCNAME"
 log_info "Using krb5.conf: $KRB5_CONFIG"
 
 # Cleanup function (same as centralizer)
+# shellcheck disable=SC2329
 cleanup() {
     local exit_code=$?
     if [[ -f "${PASSWD_FILE:-}" ]]; then

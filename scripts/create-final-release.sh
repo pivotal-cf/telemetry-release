@@ -38,11 +38,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-print_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
-print_success() { echo -e "${GREEN}[OK]${NC}   $1"; }
-print_warning() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-print_error()   { echo -e "${RED}[FAIL]${NC} $1"; }
-print_step()    { echo -e "\n${BLUE}=== $1 ===${NC}"; }
+print_info()    { echo -e "${BLUE}[INFO]${NC} $*"; }
+print_success() { echo -e "${GREEN}[OK]${NC}   $*"; }
+print_warning() { echo -e "${YELLOW}[WARN]${NC} $*"; }
+print_error()   { echo -e "${RED}[FAIL]${NC} $*"; }
+print_step()    { echo -e "\n${BLUE}=== $* ===${NC}"; }
 
 # ============================================================================
 # Read version
@@ -87,6 +87,7 @@ if [[ ! -f config/private.yml ]]; then
     if [[ -f service_account.json ]]; then
         print_warning "config/private.yml not found. Creating from service_account.json..."
         SERVICE_ACCOUNT_CONTENT=$(cat service_account.json)
+        # shellcheck disable=SC2001
         cat > config/private.yml <<EOM
 ---
 blobstore:

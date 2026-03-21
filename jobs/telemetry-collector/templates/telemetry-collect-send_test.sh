@@ -599,7 +599,7 @@ CCNAME2=$("$TEST_DIR/test_krb5_ccname.sh")
 
 if [[ "$CCNAME1" != "$CCNAME2" ]]; then
         assert_pass "KRB5CCNAME is unique per invocation" \
-                "CCNAME1: $(basename $CCNAME1), CCNAME2: $(basename $CCNAME2)"
+                "CCNAME1: $(basename "$CCNAME1"), CCNAME2: $(basename "$CCNAME2")"
 else
         assert_fail "KRB5CCNAME is not unique" \
                 "Both processes got same CCNAME: $CCNAME1"

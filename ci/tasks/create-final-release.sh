@@ -24,7 +24,7 @@ blobstore:
   options:
     credentials_source: static
     json_key: |
-      $(echo "$GCS_SERVICE_ACCOUNT_KEY")
+      $GCS_SERVICE_ACCOUNT_KEY
 EOM
 
 "${BOSH_CLI[0]}" create-release --final --version "${VERSION}"

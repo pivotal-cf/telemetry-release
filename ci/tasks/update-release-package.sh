@@ -6,7 +6,7 @@ export BOSH_ENVIRONMENT=10.0.0.5
 
 task_dir="$PWD"
 bosh_cli=("$task_dir"/bosh-cli-github-release/bosh-cli-*-linux-amd64)
-chmod 755 "$bosh_cli"
+chmod 755 "${bosh_cli[0]}"
 
 BBL_CLI=/usr/local/bin/bbl
 cp "$PWD"/bbl-cli-github-release/bbl-*_linux_amd64 "$BBL_CLI"
@@ -24,12 +24,12 @@ blobstore:
   options:
     credentials_source: static
     json_key: |
-      $(echo "$GCS_SERVICE_ACCOUNT_KEY")
+      $GCS_SERVICE_ACCOUNT_KEY
 EOM
 
 # Check if new version already exists
 set +e
-"$bosh_cli" blobs | grep -E "telemetry-(cli|collector)-linux-${version}"
+"${bosh_cli[0]}" blobs | grep -E "telemetry-(cli|collector)-linux-${version}"
 exit_code=$?
 set -e
 
@@ -38,13 +38,13 @@ if [[ "${exit_code}" == "0" ]]; then
 	exit 0
 fi
 
-old_blob=$("$bosh_cli" blobs | grep -E "telemetry-cli|telemetry-collector" | awk '{print $1}' | sed 's/:$//')
+old_blob=$("${bosh_cli[0]}" blobs | grep -E "telemetry-cli|telemetry-collector" | awk '{print $1}' | sed 's/:$//')
 new_blob_path="${task_dir}/binary/telemetry-cli-linux-amd64"
 new_blob="telemetry-cli/telemetry-cli-linux-${version}"
 
-"$bosh_cli" remove-blob "${old_blob}"
-"$bosh_cli" add-blob "${new_blob_path}" "${new_blob}"
-"$bosh_cli" upload-blobs
+"${bosh_cli[0]}" remove-blob "${old_blob}"
+"${bosh_cli[0]}" add-blob "${new_blob_path}" "${new_blob}"
+"${bosh_cli[0]}" upload-blobs
 
 git add .
 git config --global user.name "${GITHUB_NAME}"

@@ -51,7 +51,7 @@ if [ -n "${STAGING_API_KEY:-}" ]; then
     API_KEY="$STAGING_API_KEY"
 else
     log_info "Enter your Broadcom Staging API key:"
-    read -s -p "API Key: " API_KEY
+    read -rs -p "API Key: " API_KEY
     echo ""
 fi
 
@@ -190,7 +190,7 @@ CLI_TEST_DIR="$(cd "${SCRIPT_DIR}/../tpi-telemetry-cli/test-integration" && pwd)
 export KRB5CCNAME="/tmp/krb5cc_spnego_proof_$$"
 export KRB5_CONFIG="$CLI_TEST_DIR/krb5-host.conf"
 
-# Cleanup function
+# shellcheck disable=SC2329
 cleanup() {
     local exit_code=$?
     rm -f "$TEST_DATA" "$CURL_OUTPUT_2" 2>/dev/null || true

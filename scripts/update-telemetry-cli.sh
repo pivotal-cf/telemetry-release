@@ -68,11 +68,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-print_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
-print_success() { echo -e "${GREEN}[OK]${NC}   $1"; }
-print_warning() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-print_error()   { echo -e "${RED}[FAIL]${NC} $1"; }
-print_step()    { echo -e "\n${BLUE}=== $1 ===${NC}"; }
+print_info()    { echo -e "${BLUE}[INFO]${NC} $*"; }
+print_success() { echo -e "${GREEN}[OK]${NC}   $*"; }
+print_warning() { echo -e "${YELLOW}[WARN]${NC} $*"; }
+print_error()   { echo -e "${RED}[FAIL]${NC} $*"; }
+print_step()    { echo -e "\n${BLUE}=== $* ===${NC}"; }
 
 # ============================================================================
 # Prerequisites
@@ -110,7 +110,7 @@ else
     print_info "gh CLI: $(gh --version | head -1)"
 
     # Verify gh is authenticated to our GitHub Enterprise instance
-    if ! GH_HOST="${GH_HOST}" gh auth status --hostname "${GH_HOST}" &> /dev/null; then
+    if ! gh auth status --hostname "${GH_HOST}" &> /dev/null; then
         print_error "gh CLI is not authenticated to ${GH_HOST}"
         print_info "Run: gh auth login --hostname ${GH_HOST}"
         exit 1
@@ -126,6 +126,7 @@ print_step "Configuring GCS credentials"
 if [[ -n "${GCS_SERVICE_ACCOUNT_KEY:-}" ]]; then
     # CI mode: create config/private.yml from env var
     print_info "Using GCS_SERVICE_ACCOUNT_KEY from environment (CI mode)"
+    # shellcheck disable=SC2001
     cat > config/private.yml <<EOM
 ---
 blobstore:
@@ -138,6 +139,7 @@ elif [[ -f "${REPO_ROOT}/service_account.json" ]]; then
     # Local mode: create config/private.yml from service_account.json
     print_info "Using service_account.json (local mode)"
     SERVICE_ACCOUNT_CONTENT=$(cat "${REPO_ROOT}/service_account.json")
+    # shellcheck disable=SC2001
     cat > config/private.yml <<EOM
 ---
 blobstore:
@@ -165,7 +167,7 @@ if [[ -z "${CURRENT_BLOB_LINE}" ]]; then
     CURRENT_BLOB_PATH=""
 else
     # Extract the full blob path (e.g., "telemetry-cli/telemetry-cli-linux-2.4.0:")
-    CURRENT_BLOB_PATH=$(echo "${CURRENT_BLOB_LINE}" | sed 's/:$//')
+    CURRENT_BLOB_PATH="${CURRENT_BLOB_LINE%:}"
     # Extract version from the blob path
     CURRENT_VERSION=$(echo "${CURRENT_BLOB_PATH}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
     print_info "Current blob: ${CURRENT_BLOB_PATH}"

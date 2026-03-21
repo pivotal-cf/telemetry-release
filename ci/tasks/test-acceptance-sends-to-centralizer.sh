@@ -63,8 +63,8 @@ smith bosh -l testbed-lease/metadata >temp_env.sh
 echo "Source tempfile"
 source temp_env.sh
 
-eval $(smith bosh -l testbed-lease/metadata)
+eval "$(smith bosh -l testbed-lease/metadata)"
 echo "BOSH_ENVIRONMENT: $BOSH_ENVIRONMENT"
-eval $(smith om -l testbed-lease/metadata)
+eval "$(smith om -l testbed-lease/metadata)"
 
-$PWD/ci/ci/tasks/run-acceptance-tests.sh
+"$PWD"/ci/ci/tasks/run-acceptance-tests.sh

@@ -25,7 +25,7 @@ blobstore:
   options:
     credentials_source: static
     json_key: |
-      $(echo "$GCS_SERVICE_ACCOUNT_KEY")
+      $GCS_SERVICE_ACCOUNT_KEY
 EOM
 
 "${BOSH_CLI[0]}" vendor-package ruby-3.4 "${TASK_DIR}/ruby-release"
@@ -39,6 +39,8 @@ fi
 git add .
 
 package_version=$(cat "$TASK_DIR/ruby-release/packages/ruby-3.4/version")
+echo "${package_version}" > packages/ruby-3.4/VERSION
+git add packages/ruby-3.4/VERSION
 git config --global user.name "${GITHUB_NAME}"
 git config --global user.email "${GITHUB_EMAIL}"
 git commit -m "Update ruby-3.4 package to ${package_version} from ruby-release"

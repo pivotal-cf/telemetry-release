@@ -310,22 +310,26 @@ HTML_HEADER
 
 	# Add bash results
 	if [ -f "$BASH_RESULT_FILE" ]; then
-		echo "<div class='summary'>" >>"$HTML_FILE"
-		echo "<h2>Bash Script Tests (Collector)</h2>" >>"$HTML_FILE"
-		echo "<pre>" >>"$HTML_FILE"
-		cat "$BASH_RESULT_FILE" | sed 's/\x1b\[[0-9;]*m//g' >>"$HTML_FILE"
-		echo "</pre>" >>"$HTML_FILE"
-		echo "</div>" >>"$HTML_FILE"
+		{
+			echo "<div class='summary'>"
+			echo "<h2>Bash Script Tests (Collector)</h2>"
+			echo "<pre>"
+			sed 's/\x1b\[[0-9;]*m//g' "$BASH_RESULT_FILE"
+			echo "</pre>"
+			echo "</div>"
+		} >>"$HTML_FILE"
 	fi
 
 	# Add Ruby results
 	if [ -f "$RUBY_RESULT_FILE" ]; then
-		echo "<div class='summary'>" >>"$HTML_FILE"
-		echo "<h2>Ruby Tests (Filter Memory)</h2>" >>"$HTML_FILE"
-		echo "<pre>" >>"$HTML_FILE"
-		cat "$RUBY_RESULT_FILE" >>"$HTML_FILE"
-		echo "</pre>" >>"$HTML_FILE"
-		echo "</div>" >>"$HTML_FILE"
+		{
+			echo "<div class='summary'>"
+			echo "<h2>Ruby Tests (Filter Memory)</h2>"
+			echo "<pre>"
+			cat "$RUBY_RESULT_FILE"
+			echo "</pre>"
+			echo "</div>"
+		} >>"$HTML_FILE"
 	fi
 
 	# Add cost analysis
