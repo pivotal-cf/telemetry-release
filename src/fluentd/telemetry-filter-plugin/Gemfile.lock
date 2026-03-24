@@ -58,7 +58,7 @@ GEM
       zstd-ruby (~> 1.5)
     http_parser.rb (0.8.1)
     io-endpoint (0.17.2)
-    io-event (1.14.4)
+    io-event (1.14.5)
     io-stream (0.11.1)
     json (2.19.2)
     logger (1.7.0)
