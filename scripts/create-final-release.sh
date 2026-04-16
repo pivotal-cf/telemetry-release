@@ -204,14 +204,38 @@ CLI_VERSION=$(grep "^telemetry-cli/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+
 FLUENT_BIT_VERSION=$(grep "^fluent-bit/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
 KRB5_VERSION=$(grep "^krb5/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
 
+# Find previous versions to generate dynamic "What's New"
+PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+if [[ -n "$PREV_TAG" ]]; then
+    PREV_CLI_VERSION=$(git show "${PREV_TAG}:config/blobs.yml" 2>/dev/null | grep "^telemetry-cli/" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
+    PREV_FLUENT_BIT_VERSION=$(git show "${PREV_TAG}:config/blobs.yml" 2>/dev/null | grep "^fluent-bit/" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
+    PREV_KRB5_VERSION=$(git show "${PREV_TAG}:config/blobs.yml" 2>/dev/null | grep "^krb5/" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
+else
+    PREV_CLI_VERSION="unknown"
+    PREV_FLUENT_BIT_VERSION="unknown"
+    PREV_KRB5_VERSION="unknown"
+fi
+
+WHATS_NEW=""
+if [[ "$CLI_VERSION" != "$PREV_CLI_VERSION" ]]; then
+    WHATS_NEW="${WHATS_NEW}- Updated telemetry-cli to ${CLI_VERSION} (CVE patches in Go runtime and dependencies)\n"
+fi
+if [[ "$FLUENT_BIT_VERSION" != "$PREV_FLUENT_BIT_VERSION" ]]; then
+    WHATS_NEW="${WHATS_NEW}- Updated fluent-bit to ${FLUENT_BIT_VERSION}\n"
+fi
+if [[ "$KRB5_VERSION" != "$PREV_KRB5_VERSION" ]]; then
+    WHATS_NEW="${WHATS_NEW}- Updated krb5 to ${KRB5_VERSION} (security patches)\n"
+fi
+
+# Add standard boilerplate updates
+WHATS_NEW="${WHATS_NEW}- Updated Ruby gems across fluentd and test dependencies (CVE mitigation)\n"
+WHATS_NEW="${WHATS_NEW}- Updated Go modules in acceptance tests"
+
 RELEASE_NOTES=$(cat <<EOF
 ## Telemetry BOSH Release ${VERSION}
 
 ### What's New
-- Updated telemetry-cli to ${CLI_VERSION} (CVE patches in Go runtime and dependencies)
-- Updated krb5 to ${KRB5_VERSION} (security patches)
-- Updated Ruby gems across fluentd and test dependencies (CVE mitigation)
-- Updated Go modules in acceptance tests
+$(echo -e "$WHATS_NEW")
 
 ### Dependencies
 | Component | Version |
