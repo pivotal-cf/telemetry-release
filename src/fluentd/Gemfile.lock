@@ -66,7 +66,7 @@ GEM
       uri (>= 0.11.1)
     ostruct (0.6.3)
     protocol-hpack (1.5.1)
-    protocol-http (0.62.0)
+    protocol-http (0.62.2)
     protocol-http1 (0.39.0)
       protocol-http (~> 0.62)
     protocol-http2 (0.26.0)
