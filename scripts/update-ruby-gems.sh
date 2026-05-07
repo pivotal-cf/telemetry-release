@@ -164,9 +164,18 @@ if [[ "${RUBY_MAJOR_MINOR}" != "3.4" ]]; then
 fi
 print_info "Ruby: ${RUBY_VERSION_INSTALLED}"
 
-if ! gem list bundler --exact --silent -v "${BOSH_BUNDLER_VERSION}" 2>/dev/null; then
-    print_info "Bundler ${BOSH_BUNDLER_VERSION} not found, installing..."
+# Always install bundler explicitly -- `gem list --silent` returns 0 for
+# default gems (bundled with Ruby), but default gem executables live in the
+# Ruby installation tree and are not visible to rbenv shims.  A real `gem
+# install` places the binary where rbenv can find it after `rbenv rehash`.
+if ! gem list bundler --exact --silent -v "${BOSH_BUNDLER_VERSION}" 2>/dev/null || \
+   ! bundle "_${BOSH_BUNDLER_VERSION}_" --version &>/dev/null; then
+    print_info "Bundler ${BOSH_BUNDLER_VERSION} not activatable (may be a default gem), installing..."
     gem install bundler -v "${BOSH_BUNDLER_VERSION}"
+    # Regenerate rbenv shims so the newly installed `bundle` binary is on PATH.
+    if command -v rbenv &>/dev/null; then
+        rbenv rehash
+    fi
 fi
 
 # Verify the version is actually available (bundle --version may report a
