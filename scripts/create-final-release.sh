@@ -125,8 +125,7 @@ print_success "Version ${VERSION} is new (no existing release manifest)"
 # Check for existing GitHub Release
 if gh release view "${VERSION}" &> /dev/null; then
     print_warning "GitHub Release ${VERSION} already exists. It will be replaced."
-    read -p "Continue? (y/n) " -n 1 -r
-    echo
+    read -r -p "Continue? (y/n) " REPLY
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         print_info "Aborted."
         exit 0
@@ -187,8 +186,7 @@ print_success "Committed: Create final release ${VERSION}"
 # ============================================================================
 print_step "Pushing to origin"
 
-read -p "Push to origin? (y/n) " -n 1 -r
-echo
+read -r -p "Push to origin? (y/n) " REPLY
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     print_warning "Skipping push. You can push manually with: git push"
 else
@@ -259,8 +257,7 @@ print_info "Release notes:"
 echo "${RELEASE_NOTES}"
 echo ""
 
-read -p "Create GitHub Release '${RELEASE_NAME}' with these notes? (y/n) " -n 1 -r
-echo
+read -r -p "Create GitHub Release '${RELEASE_NAME}' with these notes? (y/n) " REPLY
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     print_warning "Skipping GitHub Release creation."
     print_info "You can create it manually with:"
