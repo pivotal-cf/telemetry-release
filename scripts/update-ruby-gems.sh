@@ -3,7 +3,7 @@
 # Update Ruby gem dependencies across all 5 Gemfile locations in telemetry-release.
 #
 # What it does:
-#   1. Discovers the Ruby/Bundler versions from the upstream BOSH ruby-3.4 package
+#   1. Discovers the Ruby/Bundler versions from the upstream BOSH ruby-4.0 package
 #   2. Runs `bundle update` + `bundle update --ruby` in each of the 5 Gemfile directories
 #   3. Rebuilds src/fluentd/vendor/cache (BOSH compile-time gems)
 #   4. Runs a compile-time simulation (bundle install --local) for src/fluentd
@@ -21,7 +21,7 @@
 # Invariants enforced:
 #   - PLATFORMS section must not change (hard fail)
 #   - BUNDLED WITH must match BOSH bundler for src/fluentd (hard fail; test-only lockfiles are unchecked)
-#   - RUBY VERSION must remain in the 3.4.x family (hard fail on major.minor change)
+#   - RUBY VERSION must remain in the 4.0.x family (hard fail on major.minor change)
 #
 # Exit codes:
 #   0 -- success (whether or not changes were made)
@@ -31,7 +31,7 @@
 #   ./scripts/update-ruby-gems.sh
 #
 # Prerequisites:
-#   - Ruby 3.4.x installed
+#   - Ruby 4.0.x installed
 #   - Network access to github.com (for BOSH version discovery)
 
 set -euo pipefail
@@ -64,15 +64,15 @@ RUBY_VERSION_BEFORE=""
 # ============================================================================
 # BOSH version discovery
 # ============================================================================
-BOSH_PACKAGING_URL="https://raw.githubusercontent.com/cloudfoundry/bosh-package-ruby-release/main/packages/ruby-3.4/packaging"
-BOSH_VERSION_URL="https://raw.githubusercontent.com/cloudfoundry/bosh-package-ruby-release/main/packages/ruby-3.4/version"
+BOSH_PACKAGING_URL="https://raw.githubusercontent.com/cloudfoundry/bosh-package-ruby-release/main/packages/ruby-4.0/packaging"
+BOSH_VERSION_URL="https://raw.githubusercontent.com/cloudfoundry/bosh-package-ruby-release/main/packages/ruby-4.0/version"
 
-print_step "Discovering BOSH ruby-3.4 versions"
+print_step "Discovering BOSH ruby-4.0 versions"
 
 bosh_packaging=""
 curl_stderr=$(mktemp)
 if ! bosh_packaging=$(curl -fsSL "${BOSH_PACKAGING_URL}" 2>"${curl_stderr}"); then
-    print_error "Failed to fetch BOSH ruby-3.4 packaging script from GitHub."
+    print_error "Failed to fetch BOSH ruby-4.0 packaging script from GitHub."
     print_error "Network error or GitHub is down. Cannot determine correct bundler version."
     print_error "URL: ${BOSH_PACKAGING_URL}"
     print_error "curl error: $(cat "${curl_stderr}")"
@@ -89,9 +89,12 @@ if [[ -z "${BOSH_RUBY_VERSION}" || -z "${BOSH_RUBYGEMS_VERSION}" ]]; then
     exit 1
 fi
 
-# RubyGems 3.6.N ships Bundler 2.6.N (co-released from the same monorepo).
-# This derivation is a convention, not a contract -- validate below.
-BOSH_BUNDLER_VERSION="${BOSH_RUBYGEMS_VERSION/3./2.}"
+# Prefer an explicit BUNDLER_VERSION line in the packaging script.
+# Fall back to the RubyGems 3.Y.N → Bundler 2.Y.N co-release convention if absent.
+BOSH_BUNDLER_VERSION=$(echo "${bosh_packaging}" | grep -E '^BUNDLER_VERSION=' | head -1 | cut -d= -f2)
+if [[ -z "${BOSH_BUNDLER_VERSION}" ]]; then
+    BOSH_BUNDLER_VERSION="${BOSH_RUBYGEMS_VERSION/3./2.}"
+fi
 
 if ! [[ "${BOSH_BUNDLER_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     print_error "Derived Bundler version '${BOSH_BUNDLER_VERSION}' from RubyGems ${BOSH_RUBYGEMS_VERSION} is not a valid semver."
@@ -112,12 +115,12 @@ else
 fi
 rm -f "${curl_stderr_v}"
 
-print_info "BOSH ruby-3.4 upstream: Ruby ${BOSH_RUBY_VERSION}, RubyGems ${BOSH_RUBYGEMS_VERSION}, Bundler ${BOSH_BUNDLER_VERSION}"
+print_info "BOSH ruby-4.0 upstream: Ruby ${BOSH_RUBY_VERSION}, RubyGems ${BOSH_RUBYGEMS_VERSION}, Bundler ${BOSH_BUNDLER_VERSION}"
 
 # Safety rails: abort on major version jumps
 bosh_ruby_major_minor="${BOSH_RUBY_VERSION%.*}"
-if [[ "${bosh_ruby_major_minor}" != "3.4" ]]; then
-    print_error "BOSH Ruby major.minor changed to ${bosh_ruby_major_minor} (expected 3.4). Manual review required."
+if [[ "${bosh_ruby_major_minor}" != "4.0" ]]; then
+    print_error "BOSH Ruby major.minor changed to ${bosh_ruby_major_minor} (expected 4.0). Manual review required."
     exit 1
 fi
 
@@ -132,18 +135,18 @@ print_success "BOSH version discovery OK."
 # ============================================================================
 # BOSH version drift advisory
 # ============================================================================
-VERSION_FILE="${REPO_ROOT}/packages/ruby-3.4/VERSION"
+VERSION_FILE="${REPO_ROOT}/packages/ruby-4.0/VERSION"
 if [[ -f "${VERSION_FILE}" ]]; then
     vendored_ruby_version=$(cat "${VERSION_FILE}" | tr -d '[:space:]')
     if [[ "${vendored_ruby_version}" != "${BOSH_RUBY_VERSION}" ]]; then
-        print_warning "Our vendored BOSH package is Ruby ${vendored_ruby_version} (per packages/ruby-3.4/VERSION)."
-        print_warning "Upstream BOSH ruby-3.4 is Ruby ${BOSH_RUBY_VERSION}."
-        print_warning "Consider running: bosh vendor-package ruby-3.4 <path-to-bosh-package-ruby-release>"
+        print_warning "Our vendored BOSH package is Ruby ${vendored_ruby_version} (per packages/ruby-4.0/VERSION)."
+        print_warning "Upstream BOSH ruby-4.0 is Ruby ${BOSH_RUBY_VERSION}."
+        print_warning "Consider running: bosh vendor-package ruby-4.0 <path-to-bosh-package-ruby-release>"
     else
         print_info "Vendored BOSH Ruby ${vendored_ruby_version} matches upstream. No drift."
     fi
 else
-    print_warning "packages/ruby-3.4/VERSION not found. Cannot check for BOSH Ruby version drift."
+    print_warning "packages/ruby-4.0/VERSION not found. Cannot check for BOSH Ruby version drift."
 fi
 
 # ============================================================================
@@ -152,14 +155,14 @@ fi
 print_step "Checking prerequisites"
 
 if ! command -v ruby &> /dev/null; then
-    print_error "Ruby is not installed. Install Ruby 3.4.x first."
+    print_error "Ruby is not installed. Install Ruby 4.0.x first."
     exit 1
 fi
 
 RUBY_VERSION_INSTALLED=$(ruby -e 'puts RUBY_VERSION')
 RUBY_MAJOR_MINOR="${RUBY_VERSION_INSTALLED%.*}"
-if [[ "${RUBY_MAJOR_MINOR}" != "3.4" ]]; then
-    print_error "Ruby ${RUBY_VERSION_INSTALLED} is installed, but 3.4.x is required."
+if [[ "${RUBY_MAJOR_MINOR}" != "4.0" ]]; then
+    print_error "Ruby ${RUBY_VERSION_INSTALLED} is installed, but 4.0.x is required."
     exit 1
 fi
 print_info "Ruby: ${RUBY_VERSION_INSTALLED}"
@@ -187,7 +190,7 @@ if [[ "${BUNDLER_VERSION_CHECK}" != "${BOSH_BUNDLER_VERSION}" ]]; then
     print_error "'bundle _${BOSH_BUNDLER_VERSION}_ --version' reports: ${BUNDLER_VERSION_CHECK:-nothing}"
     exit 1
 fi
-print_info "Bundler: ${BOSH_BUNDLER_VERSION} (matches BOSH ruby-3.4)"
+print_info "Bundler: ${BOSH_BUNDLER_VERSION} (matches BOSH ruby-4.0)"
 
 # Use versioned bundle invocation to ensure we use the correct bundler,
 # even when the current Gemfile.lock has a different BUNDLED WITH.
@@ -279,7 +282,7 @@ update_gemfile_lock() {
         gem_count=$(find vendor/cache -name '*.gem' 2>/dev/null | wc -l | tr -d '[:space:]')
         print_info "  ${gem_count} gems cached in vendor/cache"
 
-        # Simulate BOSH compile: mirrors bosh_bundle_local() from compile-3.4.env
+        # Simulate BOSH compile: mirrors bosh_bundle_local() from compile-4.0.env
         print_info "  Running compile-time simulation (bundle install --local)..."
         local tmpdir
         tmpdir=$(mktemp -d)
