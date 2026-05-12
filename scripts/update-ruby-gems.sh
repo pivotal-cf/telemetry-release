@@ -242,14 +242,14 @@ update_gemfile_lock() {
     fi
 
     # --- Run bundle update ---
-    if ! "${BUNDLE_CMD[@]}" update; then
-        print_error "bundle update failed in ${label}"
+    if ! "${BUNDLE_CMD[@]}" update --all; then
+        print_error "bundle update --all failed in ${label}"
         popd > /dev/null
         return 1
     fi
 
     # Update the locked RUBY VERSION to match the active interpreter.
-    # `bundle update` alone does NOT touch this field.
+    # `bundle update --all` does NOT touch this field.
     if ! "${BUNDLE_CMD[@]}" update --ruby; then
         print_error "bundle update --ruby failed in ${label}"
         popd > /dev/null
