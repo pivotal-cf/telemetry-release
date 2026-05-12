@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '~> 3.4'
+ruby '~> 4.0'
 
 group :test do
   gem 'base64', '~> 0.3'

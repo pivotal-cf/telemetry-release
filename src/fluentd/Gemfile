@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 # The root Gemfile/Gemfile.lock is for the local test harness ONLY.
 # Any gem pinned for security MUST be added here AND vendored (bundle package).
 
-ruby '~> 3.4'
+ruby '~> 4.0'
 
 gem 'fluentd', '~> 1.19'
 
