@@ -90,10 +90,18 @@ if [[ -z "${BOSH_RUBY_VERSION}" || -z "${BOSH_RUBYGEMS_VERSION}" ]]; then
 fi
 
 # Prefer an explicit BUNDLER_VERSION line in the packaging script.
-# Fall back to the RubyGems 3.Y.N → Bundler 2.Y.N co-release convention if absent.
-BOSH_BUNDLER_VERSION=$(echo "${bosh_packaging}" | grep -E '^BUNDLER_VERSION=' | head -1 | cut -d= -f2)
+# Fall back to version derivation:
+#   RubyGems 3.Y.N → Bundler 2.Y.N  (3.x era: Bundler major is one less than RubyGems major)
+#   RubyGems 4.Y.N → Bundler 4.Y.N  (4.x+ era: co-released at the same version)
+# The || true guards against grep's exit code 1 (no match) killing the script under set -e.
+BOSH_BUNDLER_VERSION=$(echo "${bosh_packaging}" | grep -E '^BUNDLER_VERSION=' | head -1 | cut -d= -f2 || true)
 if [[ -z "${BOSH_BUNDLER_VERSION}" ]]; then
-    BOSH_BUNDLER_VERSION="${BOSH_RUBYGEMS_VERSION/3./2.}"
+    rubygems_major="${BOSH_RUBYGEMS_VERSION%%.*}"
+    if [[ "${rubygems_major}" == "3" ]]; then
+        BOSH_BUNDLER_VERSION="${BOSH_RUBYGEMS_VERSION/3./2.}"
+    else
+        BOSH_BUNDLER_VERSION="${BOSH_RUBYGEMS_VERSION}"
+    fi
 fi
 
 if ! [[ "${BOSH_BUNDLER_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -121,12 +129,6 @@ print_info "BOSH ruby-4.0 upstream: Ruby ${BOSH_RUBY_VERSION}, RubyGems ${BOSH_R
 bosh_ruby_major_minor="${BOSH_RUBY_VERSION%.*}"
 if [[ "${bosh_ruby_major_minor}" != "4.0" ]]; then
     print_error "BOSH Ruby major.minor changed to ${bosh_ruby_major_minor} (expected 4.0). Manual review required."
-    exit 1
-fi
-
-bosh_bundler_major="${BOSH_BUNDLER_VERSION%%.*}"
-if [[ "${bosh_bundler_major}" != "2" ]]; then
-    print_error "BOSH Bundler major version changed to ${bosh_bundler_major} (expected 2). Manual review required."
     exit 1
 fi
 
