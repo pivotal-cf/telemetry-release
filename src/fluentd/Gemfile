@@ -1,5 +1,15 @@
 source 'https://rubygems.org'
 
+# This is the PRODUCTION Gemfile used by the BOSH package (bosh_bundle_local).
+# The root Gemfile/Gemfile.lock is for the local test harness ONLY.
+# Any gem pinned for security MUST be added here AND vendored (bundle package).
+
 ruby '~> 3.4'
 
 gem 'fluentd', '~> 1.19'
+
+# Explicitly pin default gems to override Ruby's bundled versions.
+# Without this, bosh_bundle_local falls back to whatever Ruby ships with,
+# ignoring any pins in the root Gemfile.lock.
+gem 'erb', '~> 6.0'       # CVE-2026-41316: Ruby default is 4.0.4 (vulnerable)
+gem 'fileutils', '~> 1.8' # Ruby default is 1.7.3; pin to stay ahead of version drift

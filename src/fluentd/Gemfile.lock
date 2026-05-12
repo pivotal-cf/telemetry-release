@@ -29,10 +29,12 @@ GEM
     cool.io (1.9.4)
     csv (3.3.5)
     drb (2.2.3)
+    erb (6.0.4)
     fiber-annotation (0.2.0)
     fiber-local (1.1.0)
       fiber-storage
     fiber-storage (1.0.1)
+    fileutils (1.8.0)
     fluentd (1.19.2)
       async-http (~> 0.86)
       base64 (~> 0.2)
@@ -96,6 +98,8 @@ PLATFORMS
   x86_64-linux-gnu
 
 DEPENDENCIES
+  erb (~> 6.0)
+  fileutils (~> 1.8)
   fluentd (~> 1.19)
 
 RUBY VERSION
