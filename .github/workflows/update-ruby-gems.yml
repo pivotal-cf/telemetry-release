@@ -1,5 +1,5 @@
 # This workflow:
-#   1. Discovers Ruby/Bundler versions from the upstream BOSH ruby-3.4 package
+#   1. Discovers Ruby/Bundler versions from the upstream BOSH ruby-4.0 package
 #   2. Runs `bundle update` across all 5 Gemfile locations in the repo
 #   3. Rebuilds the fluentd vendor/cache (BOSH compile-time gems)
 #   4. Runs a compile-time simulation (bundle install --local) for src/fluentd
@@ -8,9 +8,9 @@
 #   7. Commits and pushes if everything passes and there are changes
 #   8. Notifies Google Chat on failure
 #
-# Ruby version: Uses '3.4' which auto-resolves to the latest 3.4.x patch
+# Ruby version: Uses '4.0' which auto-resolves to the latest 4.0.x patch
 # available in ruby/setup-ruby. The script handles its own bundler version
-# based on what the BOSH ruby-3.4 package ships.
+# based on what the BOSH ruby-4.0 package ships.
 #
 # Triggers:
 #   - Daily at 08:00 UTC (1am PT), offset from CLI update at 07:00
@@ -38,7 +38,7 @@ jobs:
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.4'
+        ruby-version: '4.0'
 
     - name: Run update-ruby-gems script
       id: update

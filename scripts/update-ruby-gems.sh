@@ -139,16 +139,20 @@ print_success "BOSH version discovery OK."
 # ============================================================================
 VERSION_FILE="${REPO_ROOT}/packages/ruby-4.0/VERSION"
 if [[ -f "${VERSION_FILE}" ]]; then
-    vendored_ruby_version=$(cat "${VERSION_FILE}" | tr -d '[:space:]')
-    if [[ "${vendored_ruby_version}" != "${BOSH_RUBY_VERSION}" ]]; then
-        print_warning "Our vendored BOSH package is Ruby ${vendored_ruby_version} (per packages/ruby-4.0/VERSION)."
-        print_warning "Upstream BOSH ruby-4.0 is Ruby ${BOSH_RUBY_VERSION}."
-        print_warning "Consider running: bosh vendor-package ruby-4.0 <path-to-bosh-package-ruby-release>"
+    local_ruby_version=$(cat "${VERSION_FILE}" | tr -d '[:space:]')
+    if [[ "${local_ruby_version}" != "${BOSH_RUBY_VERSION}" ]]; then
+        print_warning "packages/ruby-4.0 is at Ruby ${local_ruby_version}; upstream is ${BOSH_RUBY_VERSION}."
+        print_warning "To upgrade:"
+        print_warning "  1. Download ruby-${BOSH_RUBY_VERSION}.tar.gz from ruby-lang.org and add as a blob."
+        print_warning "  2. Update RUBY_VERSION in packages/ruby-4.0/packaging."
+        print_warning "  3. Update packages/ruby-4.0/VERSION to ${BOSH_RUBY_VERSION}."
+        print_warning "  4. Check if RUBYGEMS_VERSION needs bumping (see upstream packaging script)."
+        print_warning "  5. bosh upload-blobs after adding new blobs."
     else
-        print_info "Vendored BOSH Ruby ${vendored_ruby_version} matches upstream. No drift."
+        print_info "packages/ruby-4.0 Ruby ${local_ruby_version} matches upstream. No drift."
     fi
 else
-    print_warning "packages/ruby-4.0/VERSION not found. Cannot check for BOSH Ruby version drift."
+    print_warning "packages/ruby-4.0/VERSION not found. Cannot check for Ruby version drift."
 fi
 
 # ============================================================================
