@@ -2,9 +2,11 @@
 
 set -e
 
-RUBY_VERSION=3.4.9
-RUBYGEMS_VERSION=3.6.9
+RUBY_VERSION=4.0.4
+RUBYGEMS_VERSION=4.0.11
 LIBYAML_VERSION=0.2.5
+NET_IMAP_OLD_VERSION=0.6.2
+NET_IMAP_NEW_VERSION=0.6.4
 
 if [ $(uname -s) == "Darwin" ]; then
   if brew --prefix openssl; then
@@ -67,13 +69,13 @@ mkdir "${BOSH_INSTALL_TARGET}/bosh"
 cp gemrc "${BOSH_INSTALL_TARGET}/bosh/gemrc"
 
 export PACKAGE_NAME="$(basename ${BOSH_INSTALL_TARGET})"
-sed "s#\${PACKAGE_NAME}#${PACKAGE_NAME}#" compile-3.4.env > "${BOSH_INSTALL_TARGET}/bosh/compile.env"
-sed "s#\${PACKAGE_NAME}#${PACKAGE_NAME}#" runtime-3.4.env > "${BOSH_INSTALL_TARGET}/bosh/runtime.env"
+sed "s#\${PACKAGE_NAME}#${PACKAGE_NAME}#" compile-4.0.env > "${BOSH_INSTALL_TARGET}/bosh/compile.env"
+sed "s#\${PACKAGE_NAME}#${PACKAGE_NAME}#" runtime-4.0.env > "${BOSH_INSTALL_TARGET}/bosh/runtime.env"
 
 source "${BOSH_INSTALL_TARGET}/bosh/runtime.env"
 
 if [ "$(gem --version)" != "${RUBYGEMS_VERSION}" ]; then
-  echo "Installing rubygems " "${RUBYGEMS_VERSION}"
+  echo "Installing rubygems ${RUBYGEMS_VERSION}"
   tar zxvf "rubygems-${RUBYGEMS_VERSION}.tgz"
   (
     set -e
@@ -94,8 +96,9 @@ fi
 ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/gem"
 ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/bundle"
 
-# Replace bundled net-imap (0.5.8, vulnerable to GHSA-vcgp-9326-pqcp et al.)
-# with a patched version. Ruby 3.4.x will include 0.5.14+ once 3.4.10 ships;
-# until then we override it here.
-gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-3.4/net-imap-0.5.14.gem" --no-document
-gem uninstall net-imap --version 0.5.8 --force --executables
+# Override the bundled net-imap gem with a patched version (CVE remediation).
+# Ruby ${RUBY_VERSION} ships with net-imap ${NET_IMAP_OLD_VERSION}; we replace it
+# with ${NET_IMAP_NEW_VERSION} so the compiled package blob is clean.
+echo "Installing net-imap ${NET_IMAP_NEW_VERSION} (replacing bundled ${NET_IMAP_OLD_VERSION})"
+gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/net-imap-${NET_IMAP_NEW_VERSION}.gem" --no-document
+gem uninstall net-imap --version "${NET_IMAP_OLD_VERSION}" --force --executables

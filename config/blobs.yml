@@ -6,18 +6,18 @@ krb5/krb5-1.22.2.tar.gz:
   size: 8747729
   object_id: ac56b023-5dce-41cc-4981-a48bfa4e7493
   sha: sha256:3243ffbc8ea4d4ac22ddc7dd2a1dc54c57874c40648b60ff97009763554eaf13
-packages/ruby-3.4/net-imap-0.5.14.gem:
-  size: 184832
-  object_id: cf21f583-908d-46e4-6a95-1fa0f8a5a35c
-  sha: sha256:1590ca018d65d4165b7324a3f046dd16fd9dd5e72deba4acf494c1becdb55a04
-ruby-3.4.9.tar.gz:
-  size: 22456968
-  object_id: 7b67d77f-a044-446c-6a97-a05524b5c59a
-  sha: sha256:7bb4d4f5e807cc27251d14d9d6086d182c5b25875191e44ab15b709cd7a7dd9c
-rubygems-3.6.9.tgz:
-  size: 967932
-  object_id: bff3edc7-0901-47e9-7e97-027016d1415c
-  sha: sha256:ffdd46c6adbecb9dac561cc003666406efd2ed93ca21b5fcc47062025007209d
+packages/ruby-4.0/net-imap-0.6.4.gem:
+  size: 189952
+  object_id: 8ee2287c-d5ca-4700-736b-dbfb3eb5f09d
+  sha: sha256:9a5598c67a3022c284d98430ef1d4948e7dbdb62596f61081ea8ca933270a02b
+ruby-4.0.4.tar.gz:
+  size: 23816838
+  object_id: 87286c31-134c-4062-6914-e80ec57ce5fe
+  sha: sha256:f35f6edfa3dabb3f723f9d0cf1906c6512ae77f4e412ab1e68cc6e91d230fa80
+rubygems-4.0.11.tgz:
+  size: 971240
+  object_id: 3ae8a456-5ffc-4b61-4526-be9d72646fce
+  sha: sha256:95fe9d9d5293d022ceb29afac56eee4e2d46f901de309ab46915ff84d5ec68e8
 telemetry-cli/telemetry-cli-linux-2.4.10:
   size: 17925407
   object_id: b4c8193c-ad98-4fb7-42f1-bcb8b10b7ad0
