@@ -25,7 +25,7 @@ templates:
 packages:
 - krb5
 - fluentd
-- ruby-3.4
+- ruby-4.0
 
 properties:
   audit_mode:
