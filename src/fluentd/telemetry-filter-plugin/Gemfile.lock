@@ -170,7 +170,7 @@ CHECKSUMS
   zstd-ruby (1.5.7.1) sha256=ded1fbf83afa32d613f28448a6d546129c578e5a9df3bd92f3f1e2542169fd21
 
 RUBY VERSION
-  ruby 4.0.4
+  ruby 4.0.5
 
 BUNDLED WITH
   4.0.11
