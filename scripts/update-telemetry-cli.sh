@@ -225,36 +225,6 @@ else
 fi
 
 # ============================================================================
-# Compare versions
-# ============================================================================
-print_step "Comparing versions"
-
-version_to_comparable() {
-    # Convert "2.4.1" to "002004001" for simple string comparison
-    echo "$1" | awk -F. '{printf "%03d%03d%03d\n", $1, $2, $3}'
-}
-
-CURRENT_COMPARABLE=$(version_to_comparable "${CURRENT_VERSION}")
-LATEST_COMPARABLE=$(version_to_comparable "${LATEST_VERSION}")
-
-if [[ "${CURRENT_COMPARABLE}" == "${LATEST_COMPARABLE}" ]]; then
-    print_success "Already up to date (version ${CURRENT_VERSION}). Nothing to do."
-    echo ""
-    echo "NO_UPDATE=true"
-    exit 0
-fi
-
-if [[ "${CURRENT_COMPARABLE}" > "${LATEST_COMPARABLE}" ]]; then
-    print_warning "Current version (${CURRENT_VERSION}) is NEWER than latest release (${LATEST_VERSION})."
-    print_warning "This is unexpected. Skipping update."
-    echo ""
-    echo "NO_UPDATE=true"
-    exit 0
-fi
-
-print_info "Update available: ${CURRENT_VERSION} -> ${LATEST_VERSION}"
-
-# ============================================================================
 # Download the Linux amd64 binary
 # ============================================================================
 print_step "Downloading telemetry-cli ${LATEST_VERSION}"
@@ -351,6 +321,46 @@ fi
 chmod +x "${BINARY_PATH}"
 BINARY_SIZE=$(stat -f%z "${BINARY_PATH}" 2>/dev/null || stat -c%s "${BINARY_PATH}")
 print_success "Downloaded binary (${BINARY_SIZE} bytes)"
+
+# ============================================================================
+# Compare versions and SHA hashes
+# ============================================================================
+print_step "Comparing versions and SHA hashes"
+
+version_to_comparable() {
+    # Convert "2.4.1" to "002004001" for simple string comparison
+    echo "$1" | awk -F. '{printf "%03d%03d%03d\n", $1, $2, $3}'
+}
+
+CURRENT_COMPARABLE=$(version_to_comparable "${CURRENT_VERSION}")
+LATEST_COMPARABLE=$(version_to_comparable "${LATEST_VERSION}")
+
+# Calculate downloaded binary's SHA256
+DOWNLOADED_SHA_HEX=$(sha256sum "${BINARY_PATH}" | awk '{print $1}')
+CURRENT_BLOB_SHA=$(grep -A 3 "${CURRENT_BLOB_PATH}:" config/blobs.yml | grep "sha:" | awk '{print $2}' || echo "")
+CURRENT_BLOB_SHA_HEX="${CURRENT_BLOB_SHA#sha256:}"
+
+if [[ "${CURRENT_COMPARABLE}" == "${LATEST_COMPARABLE}" ]]; then
+    if [[ "${DOWNLOADED_SHA_HEX}" == "${CURRENT_BLOB_SHA_HEX}" ]]; then
+        print_success "Already up to date (version ${CURRENT_VERSION}, SHA matches). Nothing to do."
+        echo ""
+        echo "NO_UPDATE=true"
+        exit 0
+    else
+        print_warning "Version matches current (${CURRENT_VERSION}) but binary SHA has changed!"
+        print_info "Current BOSH blob SHA:  ${CURRENT_BLOB_SHA_HEX}"
+        print_info "Downloaded binary SHA: ${DOWNLOADED_SHA_HEX}"
+        print_info "Proceeding with force update of version ${CURRENT_VERSION}."
+    fi
+elif [[ "${CURRENT_COMPARABLE}" > "${LATEST_COMPARABLE}" ]]; then
+    print_warning "Current version (${CURRENT_VERSION}) is NEWER than latest release (${LATEST_VERSION})."
+    print_warning "This is unexpected. Skipping update."
+    echo ""
+    echo "NO_UPDATE=true"
+    exit 0
+else
+    print_info "Update available: ${CURRENT_VERSION} -> ${LATEST_VERSION}"
+fi
 
 # ============================================================================
 # Update BOSH blob
