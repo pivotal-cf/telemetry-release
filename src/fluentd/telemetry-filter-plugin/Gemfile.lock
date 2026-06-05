@@ -95,7 +95,7 @@ GEM
       sigdump (~> 0.2.2)
     sigdump (0.2.5)
     strptime (0.2.5)
-    test-unit (3.7.7)
+    test-unit (3.7.8)
       power_assert
     traces (0.18.2)
     tzinfo (2.0.6)
@@ -160,7 +160,7 @@ CHECKSUMS
   serverengine (2.4.0) sha256=4a42a431f187fac9906834d1bacf00321e835b11bc7f7b8af5f9b5c8fbd246bc
   sigdump (0.2.5) sha256=bb706c1cce70458b285d2c3a57121e801ccb79f68be7f7377692eb40b5437242
   strptime (0.2.5) sha256=98ed77ff7717a47387ba473614f478e78b162d70a64072fd71d54f547e079af9
-  test-unit (3.7.7) sha256=3c89d5ff0690a16bef9946156c4624390402b9d54dfcf4ce9cbd5b06bead1e45
+  test-unit (3.7.8) sha256=689d1ca53f4d46f678b4e5d68d8e4294f87fc5e8b9238cc4de7c5727e8d65943
   traces (0.18.2) sha256=80f1649cb4daace1d7174b81f3b3b7427af0b93047759ba349960cb8f315e214
   tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b
   tzinfo-data (1.2026.2) sha256=7db0d3d3d53b8d7601fc183fccc8c6d056a3004e14eb59ea995bf6aec4ae10bc
