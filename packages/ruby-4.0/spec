@@ -12,4 +12,5 @@ files:
 - runtime-4.0.env
 - yaml-0.2.5.tar.gz
 - patches/libyaml-0.2.5.patch
+- packages/ruby-4.0/json-2.19.8.gem
 - packages/ruby-4.0/net-imap-0.6.4.gem

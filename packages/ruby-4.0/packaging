@@ -7,6 +7,8 @@ RUBYGEMS_VERSION=4.0.13
 LIBYAML_VERSION=0.2.5
 NET_IMAP_OLD_VERSION=0.6.2
 NET_IMAP_NEW_VERSION=0.6.4
+JSON_OLD_VERSION=2.18.0
+JSON_NEW_VERSION=2.19.8
 
 if [ $(uname -s) == "Darwin" ]; then
   if brew --prefix openssl; then
@@ -102,3 +104,10 @@ ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/bundle"
 echo "Installing net-imap ${NET_IMAP_NEW_VERSION} (replacing bundled ${NET_IMAP_OLD_VERSION})"
 gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/net-imap-${NET_IMAP_NEW_VERSION}.gem" --no-document
 gem uninstall net-imap --version "${NET_IMAP_OLD_VERSION}" --force --executables
+
+# Override the bundled json gem with a patched version (CVE remediation).
+# Ruby ${RUBY_VERSION} ships with json ${JSON_OLD_VERSION}; we replace it
+# with ${JSON_NEW_VERSION} so the compiled package blob is clean.
+echo "Installing json ${JSON_NEW_VERSION} (replacing bundled ${JSON_OLD_VERSION})"
+gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/json-${JSON_NEW_VERSION}.gem" --no-document
+gem uninstall json --version "${JSON_OLD_VERSION}" --force --executables

@@ -80,6 +80,21 @@ baked in and bosh-package-ruby-release updates to it.
 
 ---
 
+#### json 2.19.8 (applied June 2026)
+
+**CVEs addressed:** json CVEs affecting 2.18.0 (the version bundled with Ruby 4.0.5).
+
+**Background:** Ruby 4.0.5 bundles json 2.18.0. json 2.19.8 ships the fixes.
+
+**Upstream PR:** Submit to cloudfoundry/bosh-package-ruby-release with the same
+packaging script change (install json 2.19.8, uninstall 2.18.0).
+
+**Revert trigger:** When bosh-package-ruby-release cuts a release that includes
+the json 2.19.8 patch, or when a future Ruby 4.0.x ships with json 2.19.8+
+baked in and bosh-package-ruby-release updates to it.
+
+---
+
 ### History
 
 #### net-imap 0.5.14 in ruby-3.4 (applied May 2026, resolved when ruby-3.4 was removed)
