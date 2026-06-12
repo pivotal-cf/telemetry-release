@@ -60,7 +60,7 @@ GEM
     io-endpoint (0.17.2)
     io-event (1.16.1)
     io-stream (0.13.0)
-    json (2.19.8)
+    json (2.19.9)
     logger (1.7.0)
     metrics (0.15.0)
     msgpack (1.8.3)
@@ -140,7 +140,7 @@ CHECKSUMS
   io-endpoint (0.17.2) sha256=3feaf766c116b35839c11fac68b6aaadc47887bb488902a57bf8e1d288fb3338
   io-event (1.16.1) sha256=641686f1e919a4890f788b86393026f8ef1394ee4af4d2ab9c24c81e237736ed
   io-stream (0.13.0) sha256=ce24bccb302bdf3ecedef05e8669a687b461621a498d83622fdcab549c9c1636
-  json (2.19.8) sha256=6354310fd76ef69b87d5bd1f38b40d730613baf90b6803d2d0a48f618d32dfaa
+  json (2.19.9) sha256=9b9025b7cdddafa38d316eca0b2358488e42d417045c1b90d216a9fefe46b79a
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   metrics (0.15.0) sha256=61ded5bac95118e995b1bc9ed4a5f19bc9814928a312a85b200abbdac9039072
   msgpack (1.8.3) sha256=8bda4a6428d3244e50d6bd55854d354edbada88a4e1f4f5731a39a0f86bee6a1
