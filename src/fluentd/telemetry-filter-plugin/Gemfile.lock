@@ -58,7 +58,7 @@ GEM
       zstd-ruby (~> 1.5)
     http_parser.rb (0.8.1)
     io-endpoint (0.17.2)
-    io-event (1.16.1)
+    io-event (1.16.2)
     io-stream (0.13.0)
     json (2.19.9)
     logger (1.7.0)
@@ -138,7 +138,7 @@ CHECKSUMS
   fluentd (1.19.2) sha256=07106d8b9afce891452739d44978b2ac73f43b5166960ea190cd43e592eea8e4
   http_parser.rb (0.8.1) sha256=9ae8df145b39aa5398b2f90090d651c67bd8e2ebfe4507c966579f641e11097a
   io-endpoint (0.17.2) sha256=3feaf766c116b35839c11fac68b6aaadc47887bb488902a57bf8e1d288fb3338
-  io-event (1.16.1) sha256=641686f1e919a4890f788b86393026f8ef1394ee4af4d2ab9c24c81e237736ed
+  io-event (1.16.2) sha256=9f9cb0a96ea5c3850a672606c65f27bc96d7621399ef6196acbfe2be0cd1279c
   io-stream (0.13.0) sha256=ce24bccb302bdf3ecedef05e8669a687b461621a498d83622fdcab549c9c1636
   json (2.19.9) sha256=9b9025b7cdddafa38d316eca0b2358488e42d417045c1b90d216a9fefe46b79a
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
