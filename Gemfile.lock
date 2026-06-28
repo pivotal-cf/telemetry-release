@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    async (2.40.0)
+    async (2.41.0)
       console (~> 1.29)
       fiber-annotation
       io-event (~> 1.11)
@@ -120,7 +120,7 @@ DEPENDENCIES
   rspec (~> 3.13)
 
 CHECKSUMS
-  async (2.40.0) sha256=52c7cf92b7e12fec4054f721b2fc9df401940d65a076f7e771cd6af18947af66
+  async (2.41.0) sha256=c721ff2185760e9014639776aa1387a28012055c25aa960ff46f8478ed34acc5
   async-http (0.95.1) sha256=0c3dd458c204c06d5c4b20b01bbec4794a1203db627fb2ce536e1799ec14786c
   async-pool (0.11.2) sha256=0a43a17b02b04d9c451b7d12fafa9a50e55dc6dd00d4369aca00433f16a7e3ed
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
