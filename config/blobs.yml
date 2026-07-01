@@ -8,9 +8,11 @@ krb5/krb5-1.22.2.tar.gz:
   sha: sha256:3243ffbc8ea4d4ac22ddc7dd2a1dc54c57874c40648b60ff97009763554eaf13
 packages/ruby-4.0/json-2.20.0.gem:
   size: 109568
+  object_id: 57e7b064-375e-4992-7358-0fc2dac53a15
   sha: sha256:9362bc6e55a952b056abf9167cf053358181c904cb70cd6eee0808ea830fc32b
 packages/ruby-4.0/net-imap-0.6.4.1.gem:
   size: 190976
+  object_id: fc2eedc4-0381-4d64-5512-64c5630abe72
   sha: sha256:29f0360d75a7efd3539f16ac1957dea5c0a51ddeceb348db4553c3120914ea0d
 ruby-4.0.5.tar.gz:
   size: 23818557
@@ -18,10 +20,8 @@ ruby-4.0.5.tar.gz:
   sha: sha256:7d6149079a63f8ae1d326c9fa65c6019ba2dc3155eae7b39159817911c88958e
 rubygems-4.0.15.tgz:
   size: 981547
+  object_id: e11a4aaf-5afd-42f0-74c8-0632d92eddb1
   sha: sha256:ec63459a0746d6e33804c0d6cbbcd1bcc6359f44fcada267b0f489cc84083687
-telemetry-cli/telemetry-cli-linux-2.4.12-dev.20260701145214:
-  size: 17972729
-  sha: sha256:080518d7a70fea69b2341218f38a76599bba85d4b6dd29d2185ea64adef7e5ed
 yaml-0.2.5.tar.gz:
   size: 609454
   object_id: 22bac9f0-36fc-4056-50eb-e32985272f7f
