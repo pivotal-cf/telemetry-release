@@ -95,10 +95,10 @@ ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/gem"
 ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/bundle"
 
 # Override the bundled json gem with a patched version (CVE remediation).
-echo "Installing json 2.19.8 (replacing bundled version)"
+echo "Installing json 2.20.0 (replacing bundled version)"
 old_version=$(ruby -e "begin; puts Gem::Specification.find_by_name('json').version; rescue Exception; puts 'unknown'; end")
-gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/json-2.19.8.gem" --no-document
-if [[ "${old_version}" != "unknown" && "${old_version}" != "2.19.8" ]]; then
+gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/json-2.20.0.gem" --no-document
+if [[ "${old_version}" != "unknown" && "${old_version}" != "2.20.0" ]]; then
   gem uninstall json --version "${old_version}" --force --executables
 fi
 
