@@ -3,12 +3,8 @@
 set -e
 
 RUBY_VERSION=4.0.5
-RUBYGEMS_VERSION=4.0.13
+RUBYGEMS_VERSION=4.0.15
 LIBYAML_VERSION=0.2.5
-NET_IMAP_OLD_VERSION=0.6.2
-NET_IMAP_NEW_VERSION=0.6.4
-JSON_OLD_VERSION=2.18.0
-JSON_NEW_VERSION=2.19.8
 
 if [ $(uname -s) == "Darwin" ]; then
   if brew --prefix openssl; then
@@ -98,16 +94,18 @@ fi
 ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/gem"
 ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/bundle"
 
-# Override the bundled net-imap gem with a patched version (CVE remediation).
-# Ruby ${RUBY_VERSION} ships with net-imap ${NET_IMAP_OLD_VERSION}; we replace it
-# with ${NET_IMAP_NEW_VERSION} so the compiled package blob is clean.
-echo "Installing net-imap ${NET_IMAP_NEW_VERSION} (replacing bundled ${NET_IMAP_OLD_VERSION})"
-gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/net-imap-${NET_IMAP_NEW_VERSION}.gem" --no-document
-gem uninstall net-imap --version "${NET_IMAP_OLD_VERSION}" --force --executables
-
 # Override the bundled json gem with a patched version (CVE remediation).
-# Ruby ${RUBY_VERSION} ships with json ${JSON_OLD_VERSION}; we replace it
-# with ${JSON_NEW_VERSION} so the compiled package blob is clean.
-echo "Installing json ${JSON_NEW_VERSION} (replacing bundled ${JSON_OLD_VERSION})"
-gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/json-${JSON_NEW_VERSION}.gem" --no-document
-gem uninstall json --version "${JSON_OLD_VERSION}" --force --executables
+echo "Installing json 2.19.8 (replacing bundled version)"
+old_version=$(ruby -e "begin; puts Gem::Specification.find_by_name('json').version; rescue Exception; puts 'unknown'; end")
+gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/json-2.19.8.gem" --no-document
+if [[ "${old_version}" != "unknown" && "${old_version}" != "2.19.8" ]]; then
+  gem uninstall json --version "${old_version}" --force --executables
+fi
+
+# Override the bundled net-imap gem with a patched version (CVE remediation).
+echo "Installing net-imap 0.6.4 (replacing bundled version)"
+old_version=$(ruby -e "begin; puts Gem::Specification.find_by_name('net-imap').version; rescue Exception; puts 'unknown'; end")
+gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/net-imap-0.6.4.gem" --no-document
+if [[ "${old_version}" != "unknown" && "${old_version}" != "0.6.4" ]]; then
+  gem uninstall net-imap --version "${old_version}" --force --executables
+fi
