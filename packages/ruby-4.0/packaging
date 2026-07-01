@@ -103,9 +103,9 @@ if [[ "${old_version}" != "unknown" && "${old_version}" != "2.20.0" ]]; then
 fi
 
 # Override the bundled net-imap gem with a patched version (CVE remediation).
-echo "Installing net-imap 0.6.4 (replacing bundled version)"
+echo "Installing net-imap 0.6.4.1 (replacing bundled version)"
 old_version=$(ruby -e "begin; puts Gem::Specification.find_by_name('net-imap').version; rescue Exception; puts 'unknown'; end")
-gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/net-imap-0.6.4.gem" --no-document
-if [[ "${old_version}" != "unknown" && "${old_version}" != "0.6.4" ]]; then
+gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/net-imap-0.6.4.1.gem" --no-document
+if [[ "${old_version}" != "unknown" && "${old_version}" != "0.6.4.1" ]]; then
   gem uninstall net-imap --version "${old_version}" --force --executables
 fi
