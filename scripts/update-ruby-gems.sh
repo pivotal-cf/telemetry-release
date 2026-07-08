@@ -177,14 +177,15 @@ print_info "Ruby: ${RUBY_VERSION_INSTALLED}"
 # default gems (bundled with Ruby), but default gem executables live in the
 # Ruby installation tree and are not visible to rbenv shims.  A real `gem
 # install` places the binary where rbenv can find it after `rbenv rehash`.
-if ! gem list bundler --exact --silent -v "${BOSH_BUNDLER_VERSION}" 2>/dev/null || \
-   ! bundle "_${BOSH_BUNDLER_VERSION}_" --version &>/dev/null; then
-    print_info "Bundler ${BOSH_BUNDLER_VERSION} not activatable (may be a default gem), installing..."
-    gem install bundler -v "${BOSH_BUNDLER_VERSION}"
-    # Regenerate rbenv shims so the newly installed `bundle` binary is on PATH.
-    if command -v rbenv &>/dev/null; then
-        rbenv rehash
-    fi
+# We always run 'gem install' to ensure Bundler is installed as a formal gem
+# rather than a default gem. This guarantees that Bundler calculates and adds
+# its own checksum to Gemfile.lock, keeping local and CI environments in sync.
+print_info "Ensuring Bundler ${BOSH_BUNDLER_VERSION} is installed as a formal gem..."
+gem install bundler -v "${BOSH_BUNDLER_VERSION}" --no-document --quiet
+
+# Regenerate rbenv shims so the newly installed `bundle` binary is on PATH.
+if command -v rbenv &>/dev/null; then
+    rbenv rehash
 fi
 
 # Verify the version is actually available (bundle --version may report a
