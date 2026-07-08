@@ -1,0 +1,58 @@
+name: telemetry
+version: 2.4.12
+commit_hash: de9ad80
+uncommitted_changes: false
+jobs:
+- name: telemetry-agent
+  version: e940049885e0171c6a0dc2f88aacf278e4094f14ae39ea84a0534cf51cf16ad0
+  fingerprint: e940049885e0171c6a0dc2f88aacf278e4094f14ae39ea84a0534cf51cf16ad0
+  sha1: sha256:421939611837018ba1ad18960f3a93f7532331ae118b996dc617dd9bb3d7a70b
+  packages:
+  - fluent-bit
+- name: telemetry-centralizer
+  version: 59758dc1ffbe1046d68351bcd4f09e46b7e6cc3cf17788b463abd36549f7374c
+  fingerprint: 59758dc1ffbe1046d68351bcd4f09e46b7e6cc3cf17788b463abd36549f7374c
+  sha1: sha256:85da4168bf6b6507f7c92120c3ca936e4cd1050478fe180318bb797ba8984988
+  packages:
+  - krb5
+  - fluentd
+  - ruby-4.0
+- name: telemetry-collector
+  version: 900d5e3568887e95cf75ded2dafd97d872af373e4e34325330f1a481a601dfea
+  fingerprint: 900d5e3568887e95cf75ded2dafd97d872af373e4e34325330f1a481a601dfea
+  sha1: sha256:b9b5aa4760d515f3b335e02cf078b6ffeee11b61dc635a486ed3eefe1c1bd56e
+  packages:
+  - krb5
+  - telemetry-cli
+packages:
+- name: fluent-bit
+  version: 92b71dd50ace1a8f2eb09f488aa92ba7aa4f38133e315bab7c9481bd13b005e5
+  fingerprint: 92b71dd50ace1a8f2eb09f488aa92ba7aa4f38133e315bab7c9481bd13b005e5
+  sha1: sha256:d569be1301b66ea79cd2422d80308b362a030bde24af8ecf58a272a97b7f6d23
+  dependencies: []
+- name: fluentd
+  version: 882af737d650e2681d0cceb5ab063c8fc6de400c932c1c8efe59474acf726be1
+  fingerprint: 882af737d650e2681d0cceb5ab063c8fc6de400c932c1c8efe59474acf726be1
+  sha1: sha256:4d00baa66dc7013b15d2f729fa5024808b2ccfe72bedcd93b10906ce62255905
+  dependencies:
+  - ruby-4.0
+- name: krb5
+  version: dfae57338bd97a1dc2dbe951ae7adc40d42d0a7d6aa21ec787fd0a8993cd7cbc
+  fingerprint: dfae57338bd97a1dc2dbe951ae7adc40d42d0a7d6aa21ec787fd0a8993cd7cbc
+  sha1: sha256:973f53073268e9f436037fd67296d73c7c39dd933d61258abe4a8b90a7e612fc
+  dependencies: []
+- name: ruby-4.0
+  version: 93659c1717b18068b91a1ccec9710a72bcc7fd57fa04a08570faf9daa102ebc5
+  fingerprint: 93659c1717b18068b91a1ccec9710a72bcc7fd57fa04a08570faf9daa102ebc5
+  sha1: sha256:001837e56f9ef644987746f60114b7004c628de5eefa997a7bdac74abc1046a7
+  dependencies: []
+- name: telemetry-cli
+  version: 8c3e557355c55c1d44a9559042bd656215c2b6bbc1d906cb5f66de36b1039fd7
+  fingerprint: 8c3e557355c55c1d44a9559042bd656215c2b6bbc1d906cb5f66de36b1039fd7
+  sha1: sha256:3c9106e13bd8e2fab9a0ca4dc575f0a97ab0628902b79add1e02283cad8b3058
+  dependencies: []
+license:
+  version: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  fingerprint: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  sha1: sha256:6c5cf721475eff1c39ac926578ae96afd1713f3bf522d0fd3088c5a174459617
+no_compression: false
