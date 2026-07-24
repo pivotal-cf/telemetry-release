@@ -5,7 +5,7 @@ GEM
       console (~> 1.29)
       fiber-annotation
       io-event (~> 1.11)
-    async-http (0.96.0)
+    async-http (0.97.0)
       async (>= 2.35.1)
       async-pool (~> 0.11)
       io-endpoint (~> 0.14)
@@ -117,7 +117,7 @@ DEPENDENCIES
 
 CHECKSUMS
   async (2.43.0) sha256=c3a6bd7ebb56a02b19eaa3b8ca26fced4397554bcd8c5d5046be5ee5598c452d
-  async-http (0.96.0) sha256=92dabce47ba3cfb6569d0fdc799357e19a2d9813d056e1f807707685a340b46a
+  async-http (0.97.0) sha256=bd0f2a2857da68135a5f50d89c28deddae77ebdad987f5692bc01ffa0c9ca48c
   async-pool (0.11.2) sha256=0a43a17b02b04d9c451b7d12fafa9a50e55dc6dd00d4369aca00433f16a7e3ed
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   benchmark (0.5.0) sha256=465df122341aedcb81a2a24b4d3bd19b6c67c1530713fd533f3ff034e419236c
