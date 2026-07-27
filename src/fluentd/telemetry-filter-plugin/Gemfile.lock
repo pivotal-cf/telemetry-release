@@ -5,11 +5,11 @@ GEM
       console (~> 1.29)
       fiber-annotation
       io-event (~> 1.11)
-    async-http (0.98.0)
+    async-http (0.98.1)
       async (>= 2.35.1)
       async-pool (~> 0.11)
       io-endpoint (~> 0.14)
-      io-stream (~> 0.6)
+      io-stream (~> 0.14)
       protocol-http (~> 0.64)
       protocol-http1 (~> 0.39)
       protocol-http2 (~> 0.26)
@@ -24,7 +24,7 @@ GEM
       fiber-local (~> 1.1)
       json
     cool.io (1.9.4)
-    csv (3.3.5)
+    csv (3.3.6)
     diff-lcs (1.6.2)
     drb (2.2.3)
     fiber-annotation (0.2.0)
@@ -55,7 +55,7 @@ GEM
     http_parser.rb (0.8.1)
     io-endpoint (0.17.2)
     io-event (1.19.3)
-    io-stream (0.13.2)
+    io-stream (0.14.0)
       openssl (>= 3.3)
     json (2.21.1)
     logger (1.7.0)
@@ -117,7 +117,7 @@ DEPENDENCIES
 
 CHECKSUMS
   async (2.43.0) sha256=c3a6bd7ebb56a02b19eaa3b8ca26fced4397554bcd8c5d5046be5ee5598c452d
-  async-http (0.98.0) sha256=89b31f7c1c0651e07f7a875d69f2e0ad3ef8ba4851435854e15d7aa36551bee4
+  async-http (0.98.1) sha256=2f0456c564a4450ebe7eea50ef4132ebdff028808d7cee139f36718f77076def
   async-pool (0.11.2) sha256=0a43a17b02b04d9c451b7d12fafa9a50e55dc6dd00d4369aca00433f16a7e3ed
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   benchmark (0.5.0) sha256=465df122341aedcb81a2a24b4d3bd19b6c67c1530713fd533f3ff034e419236c
@@ -125,7 +125,7 @@ CHECKSUMS
   concurrent-ruby (1.3.8) sha256=b2f1be836e968ccc78ccfce277ea79c72a88633f22306782c16ff23fb415d1e1
   console (1.37.0) sha256=8093b286c2595a063849c098594fee5155ecc7967d36f3aa8cbe7569c8f3efd7
   cool.io (1.9.4) sha256=a5024a2e6f79555b0ee629a0e67c1f4e2410351923057ab712f2b8d77ff2ea53
-  csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
+  csv (3.3.6) sha256=aba61e7e507a66f03d45cb1f3c4b6359861c3504038b422962875dce099e4456
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
   fiber-annotation (0.2.0) sha256=7abfadf1d119f508867d4103bf231c0354d019cc39a5738945dec2edadaf6c03
@@ -135,7 +135,7 @@ CHECKSUMS
   http_parser.rb (0.8.1) sha256=9ae8df145b39aa5398b2f90090d651c67bd8e2ebfe4507c966579f641e11097a
   io-endpoint (0.17.2) sha256=3feaf766c116b35839c11fac68b6aaadc47887bb488902a57bf8e1d288fb3338
   io-event (1.19.3) sha256=0fe24f0fe334ad39cf61a290131c54f8848184c0d166cea86ffae2d6548339d3
-  io-stream (0.13.2) sha256=8c7ac4efbb0d91d951726bbc88dbf28a56f792ff388e82bb18aa5abc48f2fe36
+  io-stream (0.14.0) sha256=07d9b13ea2066ccbbc761fff8d69ad5a31e47561d31e02cc271f3ed9c1a8f1cd
   json (2.21.1) sha256=13a43df75d95641443f5702dff350f237164a9d811ff0f2c2800d4d980220583
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   msgpack (1.8.3) sha256=8bda4a6428d3244e50d6bd55854d354edbada88a4e1f4f5731a39a0f86bee6a1
