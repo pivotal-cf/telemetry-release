@@ -57,6 +57,13 @@ Both TAR files share the same `CollectionId` for downstream correlation.
 ### telemetry-centralizer:
 - Receives and centralizes data emitted from agent jobs.
 
+## GCS Blobstore & Resource Allocation
+
+The BOSH release blobstore and binary distributions are stored in GCP project `dtnz01-tpe-titan01` and tagged with standard cost allocation labels:
+- **BOSH Release Blobstore Bucket:** `gs://tpi-telemetry-release-blobs` (`system=artifact-distribution`, `environment=production`, `component-type=storage-bucket`, `workload-name=bosh-release`)
+- **CLI Release Source Bucket:** `gs://tpi-telemetry-cli-production-builds` (`system=artifact-distribution`, `environment=production`, `component-type=storage-bucket`, `workload-name=cli-release`)
+
+See `tpi-meta/docs/GCP_RESOURCE_INVENTORY.md` for full ecosystem resource inventory and billing query examples.
 
 ## Required Message Format in Logs
 Message must contain a JSON object (or one encoded as a string) with these fields:
