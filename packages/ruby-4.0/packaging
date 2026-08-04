@@ -2,11 +2,11 @@
 
 set -e
 
-RUBY_VERSION=4.0.5
-RUBYGEMS_VERSION=4.0.15
+RUBY_VERSION=4.0.6
+RUBYGEMS_VERSION=4.0.17
 LIBYAML_VERSION=0.2.5
 
-if [ $(uname -s) == "Darwin" ]; then
+if [ "$(uname -s)" == "Darwin" ]; then
   if brew --prefix openssl; then
     brew_prefix_openssl="$(brew --prefix openssl)"
     PATH="${brew_prefix_openssl}/bin:$PATH"
@@ -40,10 +40,6 @@ tar xzf "yaml-${LIBYAML_VERSION}.tar.gz"
 
   patch -p1 < ../patches/libyaml-0.2.5.patch
 
-  if [ "$(uname -m)" == "ppc64le" ]; then
-    cp "${BOSH_COMPILE_TARGET}"/config/config.{guess,sub} ./tool
-  fi
-
   ./configure --prefix="${BOSH_INSTALL_TARGET}"
   make
   make install
@@ -54,10 +50,6 @@ tar xzf "ruby-${RUBY_VERSION}.tar.gz"
   set -e
   cd "ruby-${RUBY_VERSION}"
 
-  if [ "$(uname -m)" == "ppc64le" ]; then
-    cp "${BOSH_COMPILE_TARGET}"/config/config.{guess,sub} ./tool
-  fi
-
   LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" ./configure --prefix="${BOSH_INSTALL_TARGET}" --disable-install-doc --with-opt-dir="${BOSH_INSTALL_TARGET}" --without-gmp $with_openssl_dir
   make
   make install
@@ -66,7 +58,8 @@ tar xzf "ruby-${RUBY_VERSION}.tar.gz"
 mkdir "${BOSH_INSTALL_TARGET}/bosh"
 cp gemrc "${BOSH_INSTALL_TARGET}/bosh/gemrc"
 
-export PACKAGE_NAME="$(basename ${BOSH_INSTALL_TARGET})"
+PACKAGE_NAME="$(basename "${BOSH_INSTALL_TARGET}")"
+export PACKAGE_NAME
 sed "s#\${PACKAGE_NAME}#${PACKAGE_NAME}#" compile-4.0.env > "${BOSH_INSTALL_TARGET}/bosh/compile.env"
 sed "s#\${PACKAGE_NAME}#${PACKAGE_NAME}#" runtime-4.0.env > "${BOSH_INSTALL_TARGET}/bosh/runtime.env"
 
@@ -95,17 +88,17 @@ ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/gem"
 ruby overwrite_shebang.rb "${BOSH_INSTALL_TARGET}/bin/bundle"
 
 # Override the bundled json gem with a patched version (CVE remediation).
-echo "Installing json 2.20.0 (replacing bundled version)"
+echo "Installing json 2.21.2 (replacing bundled version)"
 old_version=$(ruby -e "begin; puts Gem::Specification.find_by_name('json').version; rescue Exception; puts 'unknown'; end")
-gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/json-2.20.0.gem" --no-document
-if [[ "${old_version}" != "unknown" && "${old_version}" != "2.20.0" ]]; then
+gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/json-2.21.2.gem" --no-document
+if [[ "${old_version}" != "unknown" && "${old_version}" != "2.21.2" ]]; then
   gem uninstall json --version "${old_version}" --force --executables
 fi
 
 # Override the bundled net-imap gem with a patched version (CVE remediation).
-echo "Installing net-imap 0.6.4.1 (replacing bundled version)"
+echo "Installing net-imap 0.6.6 (replacing bundled version)"
 old_version=$(ruby -e "begin; puts Gem::Specification.find_by_name('net-imap').version; rescue Exception; puts 'unknown'; end")
-gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/net-imap-0.6.4.1.gem" --no-document
-if [[ "${old_version}" != "unknown" && "${old_version}" != "0.6.4.1" ]]; then
+gem install --local "${BOSH_COMPILE_TARGET}/packages/ruby-4.0/net-imap-0.6.6.gem" --no-document
+if [[ "${old_version}" != "unknown" && "${old_version}" != "0.6.6" ]]; then
   gem uninstall net-imap --version "${old_version}" --force --executables
 fi

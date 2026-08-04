@@ -3,21 +3,15 @@ fluent-bit/fluent-bit-5.0.9.tar.gz:
   object_id: af09163c-ee38-4f16-70fd-f21c68dcaa97
   sha: sha256:158e86d5fbf605e5aeced06ee94ce41a224b34311627f8f4083d722d1f6d7967
 krb5/krb5-1.22.2.tar.gz:
-  size: 8747729
-  object_id: ac56b023-5dce-41cc-4981-a48bfa4e7493
-  sha: sha256:3243ffbc8ea4d4ac22ddc7dd2a1dc54c57874c40648b60ff97009763554eaf13
-packages/ruby-4.0/json-2.20.0.gem:
-  size: 109568
-  object_id: 57e7b064-375e-4992-7358-0fc2dac53a15
-  sha: sha256:9362bc6e55a952b056abf9167cf053358181c904cb70cd6eee0808ea830fc32b
-packages/ruby-4.0/net-imap-0.6.4.1.gem:
-  size: 190976
-  object_id: fc2eedc4-0381-4d64-5512-64c5630abe72
-  sha: sha256:29f0360d75a7efd3539f16ac1957dea5c0a51ddeceb348db4553c3120914ea0d
-ruby-4.0.5.tar.gz:
   size: 23818557
   object_id: 7504bb54-7849-4148-47bd-98294b64e571
   sha: sha256:7d6149079a63f8ae1d326c9fa65c6019ba2dc3155eae7b39159817911c88958e
+packages/ruby-4.0/json-2.21.2.gem:
+  size: 112640
+  sha: sha256:1f1d3b7cf2b3ba1a69beca0bb6db13d5438b80bff3cd54cdaaa620b9b07c1c6a
+packages/ruby-4.0/net-imap-0.6.6.gem:
+  size: 193536
+  sha: sha256:96aa4ee50df3060203e649efc341f53480b791d49e150f2fdebf68beb141a8df
 rubygems-4.0.15.tgz:
   size: 981547
   object_id: e11a4aaf-5afd-42f0-74c8-0632d92eddb1
