@@ -3,9 +3,8 @@ fluent-bit/fluent-bit-5.0.9.tar.gz:
   object_id: af09163c-ee38-4f16-70fd-f21c68dcaa97
   sha: sha256:158e86d5fbf605e5aeced06ee94ce41a224b34311627f8f4083d722d1f6d7967
 krb5/krb5-1.22.2.tar.gz:
-  size: 23818557
-  object_id: 7504bb54-7849-4148-47bd-98294b64e571
-  sha: sha256:7d6149079a63f8ae1d326c9fa65c6019ba2dc3155eae7b39159817911c88958e
+  size: 8747729
+  sha: sha256:3243ffbc8ea4d4ac22ddc7dd2a1dc54c57874c40648b60ff97009763554eaf13
 packages/ruby-4.0/json-2.21.2.gem:
   size: 112640
   sha: sha256:1f1d3b7cf2b3ba1a69beca0bb6db13d5438b80bff3cd54cdaaa620b9b07c1c6a
@@ -16,10 +15,9 @@ rubygems-4.0.15.tgz:
   size: 981547
   object_id: e11a4aaf-5afd-42f0-74c8-0632d92eddb1
   sha: sha256:ec63459a0746d6e33804c0d6cbbcd1bcc6359f44fcada267b0f489cc84083687
-telemetry-cli/telemetry-cli-linux-2.4.12:
-  size: 18148553
-  object_id: b85b140c-deaf-4559-5142-9b9793675b4b
-  sha: sha256:24cd4dd611968c195650f8b3ddb774bab91dbb52d07e60b5d84f1c3440b7d7d2
+telemetry-cli/telemetry-cli-linux-20260806.0.0-build.6:
+  size: 18176450
+  sha: sha256:523314917280bfa7fa9d03a4707db90a9e15e2d299de5424a064ba4fd0f7f61e
 yaml-0.2.5.tar.gz:
   size: 609454
   object_id: 22bac9f0-36fc-4056-50eb-e32985272f7f
