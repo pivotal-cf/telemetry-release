@@ -269,6 +269,46 @@ describe 'telemetry-collector config file preservation' do
     expect(working_dir).not_to start_with('/var/vcap/data/telemetry-collector')
   end
 
+  it 'carries the source mtime onto the copy, so rendered= stays meaningful' do
+    # The collector logs the config file's mtime as "rendered=", to catch a
+    # collect.yml BOSH wrote long ago while the foundation changed underneath it.
+    # A plain cp gives the copy today's mtime and the field becomes worthless.
+    # This was seen on a live foundation before the touch was added.
+    #
+    # touch -r, not cp --preserve=timestamps (GNU-only, and these specs run the
+    # script on macOS) and not cp -p (would also carry the source's mode and undo
+    # the 0600).
+    # Assert only on the command we expect. Do NOT assert the absence of
+    # 'cp --preserve=timestamps' or 'cp -p' -- the comment above that line
+    # explains why we avoided them, so a text search matches the prose and the
+    # spec fails for no reason. The behavioural test below is what really covers
+    # this.
+    expect(template_content).to include('touch -r "${source_config}" "${working_config}"')
+  end
+
+  it 'still reports the ORIGINAL mtime through the working copy' do
+    # Mirror what the script does, and prove both properties hold together: the
+    # copy keeps the original's mtime AND keeps the restrictive mode.
+    Dir.mktmpdir do |dir|
+      src = File.join(dir, 'collect.yml')
+      dst = File.join(dir, 'copy.yml')
+      File.write(src, "---\n")
+      FileUtils.chmod(0640, src) # a deliberately different mode from the copy's
+      stale = Time.utc(2025, 11, 14, 3, 12, 7)
+      File.utime(stale, stale, src)
+
+      File.write(dst, '')
+      FileUtils.chmod(0600, dst)
+      system("cp #{src} #{dst}")
+      system("touch -r #{src} #{dst}")
+
+      expect(File.mtime(dst).utc.to_i).to eq(stale.to_i),
+        'the copy lost the original mtime, so rendered= would report the copy time'
+      expect(format('%o', File.stat(dst).mode)[-3..]).to eq('600'),
+        'the copy lost its restrictive mode'
+    end
+  end
+
   it 'restricts the working copy itself, not just its directory' do
     # cp leaves an existing destination's mode alone, so creating the file 0600
     # first means the copy is never readable by anyone else, even briefly.

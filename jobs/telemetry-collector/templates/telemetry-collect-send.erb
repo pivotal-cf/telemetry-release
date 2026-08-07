@@ -175,7 +175,23 @@ trap 'rm -f "${working_config}"' EXIT
 # today but only because the rendered config happens to be 0600.
 : > "${working_config}"
 chmod 600 "${working_config}"
+
 cp "${source_config}" "${working_config}"
+
+# Carry the source's modification time onto the copy.
+#
+# This matters more than it looks. The collector logs the mtime of the config it
+# was handed, as "rendered=", and that field exists to catch a collect.yml that
+# BOSH wrote long ago while the foundation changed underneath it -- the
+# TNZ-125612 failure. Without this the copy gets today's mtime, every run reports
+# rendered=<now>, and the field is worthless. Found on a live foundation, where
+# the first deploy logged rendered= as the copy's own creation time.
+#
+# touch -r rather than cp --preserve=timestamps, because the latter is GNU-only
+# and the specs run this script on macOS, where it fails and takes the whole
+# script down under set -e. And rather than cp -p, which would also carry the
+# source's mode across and undo the 0600 set above.
+touch -r "${source_config}" "${working_config}"
 create_or_update_options "${working_config}"
 set_spnego_enabled_flag "${working_config}"
 
