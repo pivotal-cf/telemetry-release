@@ -173,6 +173,24 @@ if [[ "${RUBY_MAJOR_MINOR}" != "4.0" ]]; then
 fi
 print_info "Ruby: ${RUBY_VERSION_INSTALLED}"
 
+# Pin the interpreter for the rest of the script.
+# rbenv picks the Ruby version from the .ruby-version file in the current
+# directory. The compile-time simulation below runs in a temp directory, which
+# has no .ruby-version file, so rbenv there falls back to the global version.
+# If the global version is not the version this repo pins, the simulation runs
+# under the wrong Ruby, and Bundler is missing because we installed it into the
+# repo's Ruby. Setting RBENV_VERSION makes every ruby and bundle call in this
+# script use the same interpreter no matter what directory it runs in.
+# We ask rbenv for the name it resolved, because an rbenv version name is a
+# directory name and does not have to equal the Ruby patch level.
+if command -v rbenv &> /dev/null; then
+    rbenv_resolved=$(rbenv version-name 2>/dev/null || true)
+    if [[ -n "${rbenv_resolved}" ]]; then
+        export RBENV_VERSION="${rbenv_resolved}"
+        print_info "Pinned RBENV_VERSION=${RBENV_VERSION} for this run."
+    fi
+fi
+
 # Always install bundler explicitly -- `gem list --silent` returns 0 for
 # default gems (bundled with Ruby), but default gem executables live in the
 # Ruby installation tree and are not visible to rbenv shims.  A real `gem
