@@ -57,6 +57,122 @@ Both TAR files share the same `CollectionId` for downstream correlation.
 ### telemetry-centralizer:
 - Receives and centralizes data emitted from agent jobs.
 
+### telemetry-collector: the two collection runs
+
+`bin/telemetry-collect-send` is invoked twice, with a different config file each time.
+The difference matters and is easy to break.
+
+| When | Config file | Contents | If `collect` exits non-zero |
+|------|-------------|----------|-----------------------------|
+| Once per deploy, from `bin/pre-start` | `config/pre-start-collect.yml` | Ops Manager config only. **No** usage service keys, and **no** `data-collection-multi-select-options`. | `bin/pre-start` fails, so the BOSH job fails, so **`apply changes` fails** |
+| On the `schedule` property, from the cron entry. **Default `random`, which is once a day** at a random hour and minute | `config/collect.yml` | Everything, including usage service config when TAS is staged | That run fails and retries on the next scheduled run |
+
+Two rules that follow from this:
+
+- **`pre-start-collect.yml` must not carry `data-collection-multi-select-options`.**
+  That run cannot collect operational data, so saying the operator selected it is
+  untrue, and it makes the collector's "operational data selected but no usage service
+  config" check fire on every apply-changes. There is a longer comment in
+  `pre-start-collect.yml.erb` and a spec pinning it in
+  `spec/jobs/telemetry_collector_collect_yml_spec.rb`.
+- **The script works from a copy, never the rendered file.**
+  `create_or_update_options` and `set_spnego_enabled_flag` both rewrite the file handed
+  to them. The rendered config belongs to BOSH. The script used to `sed -i` it directly
+  and permanently delete the usage service keys, which left the collector reading a file
+  that no longer matched the deployment.
+
+  The copy goes to `/var/vcap/data/tmp/telemetry-collector`, mode 700, and the file
+  itself is created 0600 before anything is copied into it. It is a verbatim copy of the
+  rendered config, so it holds the Ops Manager password and the usage service client
+  secret. Two places it must not go:
+
+  - not `/tmp`, which any user on the VM can list, and the `EXIT` trap does not run on
+    `SIGKILL`
+  - not `/var/vcap/data/telemetry-collector`, this job's own data directory, because
+    that is a **handoff point between products**. The collector writes its TAR files
+    there and a consumer picks them up. Do not put anything in it that is not a TAR.
+
+    Concretely, `hub-tas-agent` bind-mounts that directory into its own bpm container
+    (`shared: true`, `writable: false`) and watches it. It would not have *read* our
+    working copy -- its `fsnotify` watch is non-recursive and its filter requires the
+    `FoundationDetails_` prefix, so a subdirectory and a `.yml` inside it are both
+    ignored -- but there is no reason to put a file holding the Ops Manager password
+    and the usage service client secret inside another product's mount. Keep it out.
+
+## Known consumers of this release
+
+Anything that colocates the `telemetry-collector` job inherits the two rules above.
+Check this list before changing how the job is invoked or what it writes where.
+
+| Tile | Pins | How it uses the collector |
+|---|---|---|
+| `tpi-p-telemetry` (Telemetry tile) | tracks this repo | Normal path. Operator picks the data programs on the form. Sends. |
+| `platform-services-tile` | `telemetry` **2.4.12**, pinned in `Kilnfile.lock` | Colocates the job on its `hub_tas_agent` instance group. `audit_mode: true`, so it never sends — it writes TARs to `/var/vcap/data/telemetry-collector` and `hub-tas-agent` collects them. `split_tar_by_data_type: true`. Hardcodes `data_collection_multi_select_options` to **both** `operational_data` and `ceip_data`; there is no form for it. |
+
+Two things to know about `platform-services-tile` specifically:
+
+- **It pins a released version**, so changes here do not reach it until someone bumps
+  that pin. The CLI ships inside this release, so the script and the collector binary
+  always move together — there is no way to get a new collector with an old script.
+- **It always asks for operational data.** So the collector's "operational data was
+  selected but no usage service config arrived" warning is live for that tile. It stays
+  quiet in normal operation, because when `cf` is present the usage service values are
+  real, and when `cf` is absent this script strips the keys and the collector finds no
+  `cf` product to complain about. It fires only in the genuinely broken state, which is
+  the point.
+
+There is at least one more consumer that has never been identified. If you find it, add
+it here.
+
+### The TAR handoff contract, and where it is thin
+
+`hub-tas-agent` reads our output like this (`src/pkg/core/product-consumption-reporter/`):
+
+- at startup it globs `FoundationDetails_*_operational.tar` and `FoundationDetails_*_ceip.tar`
+- then it watches the directory with `fsnotify`, added via `w.Add(dir)` — **not recursive**
+  — and reacts only to `Create` events prefixed `<dir>/FoundationDetails_` and not ending
+  in `.partial`
+- it waits 5 seconds after the last event before sending, to let the write settle
+- it never reads `collect.yml`
+
+So the contract we have to keep is narrow and we already keep it: write
+`FoundationDetails_*_{operational,ceip}.tar` into that directory, build them as
+`.partial` and rename, and put nothing else in there.
+
+**The thin part is cleanup.** `hub-tas-agent` never deletes what it consumed, and cannot
+— its mount is `writable: false`. So this script deletes the previous run's TARs at the
+top of every run, and there is no signal telling us whether the file we are deleting was
+ever sent. If `hub-tas-agent` is down for longer than one collection interval, the next
+run deletes an unsent TAR.
+
+That is survivable, and it is not something we can fix from this side:
+
+- the TAR is a point-in-time snapshot, not a delta, so the next one largely supersedes a
+  lost one
+- `hub-tas-agent` re-globs on startup, so being down briefly loses nothing
+- an in-flight send is unaffected by our `rm`, because unlinking an open file on Linux
+  does not disturb the reader
+- not deleting is worse: the TARs would accumulate on a shared ephemeral disk forever
+
+Two things on the consumer side would close it properly, and both are theirs to make:
+
+1. **A failed send is never retried.** `sendFileWithTimeout` logs the error and returns.
+   The file is only re-attempted if a new TAR appears or the agent restarts.
+2. **The send timeout is a fixed 1 minute.** A TAR that grows past what the link can
+   transfer in 60 seconds would fail on every single run, forever, and nothing would
+   raise an alarm.
+
+Of the two, the missing retry matters more than the delete race.
+
+### Running the specs
+
+```bash
+rspec
+```
+
+`bundle exec rspec` does not currently work — the committed `Gemfile.lock` cannot
+resolve on a recent Ruby. Nothing in the build runs these specs, so run them by hand.
+
 ## GCS Blobstore & Resource Allocation
 
 The BOSH release blobstore and binary distributions are stored in GCP project `dtnz01-tpe-titan01` and tagged with standard cost allocation labels:

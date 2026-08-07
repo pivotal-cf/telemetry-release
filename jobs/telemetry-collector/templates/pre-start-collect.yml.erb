@@ -7,7 +7,23 @@ url: https://<%= p('opsmanager.auth.hostname') %>
 env-type: <%= p('telemetry.env_type') %>
 <% if_p('telemetry.foundation_nickname') do |p| %>foundation-nickname: <%= p %> <% end %>
 <% if_p('telemetry.hub_org_id') do |p| %>hub-org-id: <%= p %> <% end %>
-<% if_p('telemetry.data_collection_multi_select_options') do |p| %>data-collection-multi-select-options: <%= p %> <% end %>
+<%#
+  data-collection-multi-select-options is deliberately NOT written here.
+
+  This file drives the one collection that runs during pre-start, and it never
+  carries the four usage service keys (cf-api-url, usage-service-url,
+  usage-service-client-id, usage-service-client-secret). So this run can only
+  ever collect CEIP data, whatever the operator selected on the form.
+
+  Telling the collector "the operator selected operational_data" in a file that
+  structurally cannot collect operational data is just untrue, and the
+  collector now acts on it: it warns when operational data is selected, TAS is
+  installed, and no usage service config arrived. That is a real problem on the
+  hourly cron run against collect.yml, and a false alarm here on every single
+  apply-changes. Leaving the key out keeps this run quiet and honest.
+
+  The hourly run reads config/collect.yml, which does carry the key.
+%>
 <% if_p('telemetry.operational_data_only') do |p| %>operational-data-only: <%= p %> <% end %>
 <% if_p('telemetry.split_tar_by_data_type') do |p| %>split-tar-by-data-type: <%= p %> <% end %>
 <% if_p('telemetry.tas_installed_selector') do |p| %>tas-installed-selector: <%= p %> <% end %>

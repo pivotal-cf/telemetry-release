@@ -70,7 +70,12 @@ describe 'Telemetry Collector Pre-Start Integration' do
       }
 
       result = compile_erb_template(collect_send_template, properties)
-      expect(result).to include('--override-telemetry-endpoint https://custom-endpoint.com')
+      # The endpoint override is Base64-encoded in the rendered script (like
+      # the SPNEGO password) rather than appearing as literal text, so a
+      # value containing shell-significant characters can't break or
+      # reinterpret the send command.
+      expect(result).to include('--override-telemetry-endpoint "${ENDPOINT_OVERRIDE}"')
+      expect(result).to include("ENDPOINT_OVERRIDE_B64='#{Base64.strict_encode64('https://custom-endpoint.com')}'")
     end
   end
 

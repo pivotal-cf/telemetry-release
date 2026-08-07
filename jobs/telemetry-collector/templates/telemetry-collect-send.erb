@@ -54,13 +54,27 @@ create_or_update_options() {
         done
     fi
 
-    # Append `https://app-usage.` to usage-service-url if it
-    # has a value and doesn't already start with `http`.
-    local usage_service_value=$(grep "usage-service-url:" "${file_path}" | awk -F': ' '{print $2}' | tr -d ' ')
-    if [[ -n "${usage_service_value}" && ! "${usage_service_value}" =~ ^http ]]; then
-        local updated_value="https://app-usage.${usage_service_value}"
+    # Append `https://app-usage.` to usage-service-url if it has a value and
+    # doesn't already start with a scheme. This behavior is unchanged from
+    # before -- we don't have evidence either a real customer or one of the
+    # other tiles built on telemetry-release currently overrides this value
+    # with something that must NOT be prefixed, so this stays consistent
+    # with the historical behavior rather than guessing at a change.
+    #
+    # Use the same "blank $1, print the rest, strip spaces" extraction as
+    # multiselect_value/tas_installed_value above rather than `awk -F': '`,
+    # which would mis-split (and silently truncate) a value that itself
+    # contains a literal ": " substring.
+    local usage_service_value=$(grep "^usage-service-url:" "${file_path}" | awk '{$1=""; print $0}' | tr -d ' ')
 
-        sed -i.bak "s~usage-service-url: ${usage_service_value}~usage-service-url: ${updated_value}~" "${file_path}"
+    if [[ -n "${usage_service_value}" && ! "${usage_service_value}" =~ ^https?:// ]]; then
+        local updated_value="https://app-usage.${usage_service_value}"
+        # Escape sed/regex-significant characters in the replacement text
+        # (rather than embedding the raw value in the search pattern, as the
+        # old code did) so this can't be broken or misinterpreted by a
+        # domain containing '&', '|', or '\'.
+        local escaped_value=$(printf '%s' "${updated_value}" | sed -e 's/[\&|]/\\&/g')
+        sed -i.bak "s|^usage-service-url:.*\$|usage-service-url: ${escaped_value}|" "${file_path}"
     fi
 
 
@@ -113,17 +127,57 @@ set_spnego_enabled_flag() {
     rm -f "${file_path}.bak"
 }
 
-# Config paths
-pre_start_config="/var/vcap/jobs/telemetry-collector/config/pre-start-collect.yml"
-config="/var/vcap/jobs/telemetry-collector/config/collect.yml"
+# Config paths.
+#
+# Work from a copy. create_or_update_options and set_spnego_enabled_flag both
+# rewrite whatever file they are handed, and the file BOSH renders is not ours
+# to edit. This script used to delete the usage service keys straight out of
+# /var/vcap/jobs/telemetry-collector/config/collect.yml, which left the
+# collector reading a file that no longer matched what the deployment said.
+#
+# Where the copy goes matters, for two reasons.
+#
+# It holds the Ops Manager password and the usage service client secret, because
+# it is a verbatim copy of the rendered config. So not /tmp, which any user on
+# the VM can list, and the EXIT trap below does not run on SIGKILL.
+#
+# And NOT /var/vcap/data/telemetry-collector either, even though that is this
+# job's own data directory. That directory is a handoff point between products:
+# the collector writes its TAR files there, and at least one tile that consumes
+# this release -- the Platform Services tile -- runs the collector with
+# audit_mode true and has hub-tas-agent pick the TARs up from it. Dropping a file
+# full of credentials into a directory another product scans is not something we
+# can verify is safe, so we do not do it. /var/vcap/data/tmp is BOSH's own
+# scratch area for jobs and nothing collects from it.
+#
+# Both callers always pass the config path: bin/pre-start passes
+# config/pre-start-collect.yml and the cron entry passes config/collect.yml.
+# Require it rather than defaulting, so a caller that forgets fails here with
+# a clear message instead of collecting against the wrong file.
+if [ -z "${1:-}" ]; then
+  echo "ERROR: telemetry-collect-send requires a config file path as its first argument" >&2
+  exit 1
+fi
 
-# Check and update pre-start-collect.yml
-create_or_update_options "${pre_start_config}"
-set_spnego_enabled_flag "${pre_start_config}"
+source_config="${1}"
 
-# Check and update collect.yml
-create_or_update_options "${config}"
-set_spnego_enabled_flag "${config}"
+working_dir="/var/vcap/data/tmp/telemetry-collector"
+mkdir -p "${working_dir}"
+chown vcap:vcap "${working_dir}" 2>/dev/null || true
+chmod 700 "${working_dir}"
+
+working_config="${working_dir}/collect_run_$$.yml"
+trap 'rm -f "${working_config}"' EXIT
+
+# Create the file restricted first, then copy into it. cp leaves an existing
+# destination's mode alone, so the copy is never readable by anyone else, not
+# even for an instant. Relying on cp to carry the source mode across would work
+# today but only because the rendered config happens to be 0600.
+: > "${working_config}"
+chmod 600 "${working_config}"
+cp "${source_config}" "${working_config}"
+create_or_update_options "${working_config}"
+set_spnego_enabled_flag "${working_config}"
 
 # Calculate SPNEGO enabled flag for CLI
 proxy_username='<%= p('telemetry.proxy_settings.proxy_username') %>'
@@ -137,7 +191,7 @@ if [[ -n "${proxy_username}" && -n "${proxy_password}" && -n "${proxy_domain}" ]
 fi
 
 # Always collect data (must succeed)
-"${COLLECTOR_BIN}" collect --config "${1}" --tile-spnego-enabled="${SPNEGO_ENABLED}"
+"${COLLECTOR_BIN}" collect --config "${working_config}" --tile-spnego-enabled="${SPNEGO_ENABLED}"
 collect_exit_code="${?}"
 
 if [ "${collect_exit_code}" -ne 0 ]; then
@@ -216,14 +270,28 @@ if [ "${audit_mode}" != "true" ]; then
   # Track send results for all TAR files
   send_failures=0
   send_successes=0
-  
+
+  # Decode the API key (and endpoint override, if set) via Base64 rather than
+  # interpolating them directly into the command line -- same technique as
+  # the SPNEGO password above -- so a value containing spaces, quotes, or
+  # other shell-significant characters can't break or reinterpret the command.
+  API_KEY_B64='<%= Base64.strict_encode64(p('telemetry.api_key')) %>'
+  API_KEY=$(echo "${API_KEY_B64}" | base64 -d)
+
+  SEND_EXTRA_ARGS=()
+<% if_p('telemetry.endpoint_override') do |endpoint_override| %>
+  ENDPOINT_OVERRIDE_B64='<%= Base64.strict_encode64(endpoint_override) %>'
+  ENDPOINT_OVERRIDE=$(echo "${ENDPOINT_OVERRIDE_B64}" | base64 -d)
+  SEND_EXTRA_ARGS+=(--override-telemetry-endpoint "${ENDPOINT_OVERRIDE}")
+<% end %>
+
   # Loop through and send each TAR file
   for TAR_FILE in "${TAR_FILES[@]}"; do
     printf "DEBUG: Sending tarball: %s\n" "${TAR_FILE}" >&2
-    
+
     # Attempt send but don't fail if it errors
     set +e
-    send_output=$("${COLLECTOR_BIN}" send --path "${TAR_FILE}" --api-key <%= p('telemetry.api_key') %> <% if_p('telemetry.endpoint_override') do |endpoint_override| %> --override-telemetry-endpoint <%= endpoint_override %> <% end %> 2>&1)
+    send_output=$("${COLLECTOR_BIN}" send --path "${TAR_FILE}" --api-key "${API_KEY}" "${SEND_EXTRA_ARGS[@]}" 2>&1)
     send_exit_code="${?}"
     set -e
     
