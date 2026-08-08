@@ -165,6 +165,8 @@ builds:
     version: 0.0.11
   fa204d8e-394d-4142-5e35-2cbc7dbafc0a:
     version: 0.13.0-jammy
+  fe9a0ab3-0ada-4d32-7c5c-0789c06300d3:
+    version: 2.4.13
   ff221d40-4088-4011-4d70-9328554afd59:
     version: 0.0.40
 format-version: "2"
