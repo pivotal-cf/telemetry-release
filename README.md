@@ -212,13 +212,31 @@ not need write access, and it does not need access to any other bucket in
 this project (the CLI build buckets and `tpi-p-telemetry`'s bucket are for
 repos that aren't bosh releases, so this job never touches them).
 
-If that bucket is ever deleted and recreated (as happened during the
-us-central1 migration in August 2026), this permission has to be re-granted —
-it does not carry over. Note also that `dtnz01-tpe-titan01` has a Domain
-Restricted Sharing org policy that blocks adding IAM members from outside an
-allow-list of Cloud Identity customer IDs. Granting this service account
-access after a bucket recreation may require a support ticket to get the
-`ltnz001-tas-be` project's customer ID added to that allow-list first.
+**If this bucket is ever deleted and recreated, this permission always has to
+be re-granted, no matter what.** This is true even if the new bucket has the
+exact same name, in the exact same region. A bucket's IAM policy is attached
+to the bucket resource itself, not its name — deleting the bucket destroys
+that policy for good, and a new bucket (even a same-named one) starts with a
+blank slate. This isn't specific to the org policy below; it would be true
+regardless.
+
+Separately, `dtnz01-tpe-titan01` has a Domain Restricted Sharing org policy
+that blocks adding IAM members from outside an allow-list of Cloud Identity
+customer IDs. This is what actually stopped us in August 2026 — not the
+re-grant step itself (expected), but the fact that re-doing it hit this
+policy for the first time. The original grant, made years before this policy
+existed (or before it was enforced this strictly), had kept working the whole
+time — org policies like this block *new* bindings, they don't retroactively
+undo old ones. Once `ltnz001-tas-be`'s customer ID (or a scoped exception for
+this one service account) is added to the allow-list, that blocker goes away
+for good, and any future re-grant (after another bucket recreation, say) can
+be done directly with the command below — no support ticket needed:
+
+```
+gcloud storage buckets add-iam-policy-binding gs://tpi-telemetry-release-blobs \
+  --member="serviceAccount:tnz-bosh@ltnz001-tas-be.iam.gserviceaccount.com" \
+  --role="roles/storage.objectViewer"
+```
 
 The owner on record for our project (`dtnz01-tpe-titan01`) is
 **Satish Zanjurne** (`satish.zanjurne@broadcom.com`) — he's listed as
