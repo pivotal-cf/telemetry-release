@@ -181,6 +181,72 @@ The BOSH release blobstore and binary distributions are stored in GCP project `d
 
 See `tpi-meta/docs/GCP_RESOURCE_INVENTORY.md` for full ecosystem resource inventory and billing query examples.
 
+## How a finalized release gets into Artifactory
+
+After you finalize a release (tag it and create a GitHub release), an external
+Concourse pipeline picks it up, builds it, and pushes it to internal Artifactory
+(`tas-ecosystem-generic-prod-local/compiled-releases/`). This is not run by
+this repo's own GitHub Actions — it is owned by the `tas-ecosystem` team.
+
+**Where to check it:** the pipeline is `bosh-releases` on the `tas-ecosystem`
+Concourse team. The three jobs for this release are:
+- `ingest-telemetry_main` — reads the release's blobs out of GCS and uploads
+  the raw release tarball to Artifactory. This is the job that fetches from
+  `gs://tpi-telemetry-release-blobs`.
+- `scan-telemetry_main` — security scan of the uploaded tarball.
+- `compile-telemetry_main` — compiles the release against a stemcell and
+  uploads the compiled release to Artifactory. This job and the scan job pull
+  the tarball from Artifactory, not from GCS.
+
+Job URL (bookmark this):
+`https://tpe-concourse-rock.acc.broadcom.net/teams/tas-ecosystem/pipelines/bosh-releases/jobs/ingest-telemetry_main`
+
+If a release doesn't show up in Artifactory a few minutes after finalizing,
+check that job first — it fails fast (under two minutes) rather than hanging.
+
+**What the ingest job needs from GCP:** it authenticates as
+`tnz-bosh@ltnz001-tas-be.iam.gserviceaccount.com` and needs read access
+(`storage.objects.get`/`.list` — i.e. `roles/storage.objectViewer`) to
+`gs://tpi-telemetry-release-blobs` in project `dtnz01-tpe-titan01`. It does
+not need write access, and it does not need access to any other bucket in
+this project (the CLI build buckets and `tpi-p-telemetry`'s bucket are for
+repos that aren't bosh releases, so this job never touches them).
+
+If that bucket is ever deleted and recreated (as happened during the
+us-central1 migration in August 2026), this permission has to be re-granted —
+it does not carry over. Note also that `dtnz01-tpe-titan01` has a Domain
+Restricted Sharing org policy that blocks adding IAM members from outside an
+allow-list of Cloud Identity customer IDs. Granting this service account
+access after a bucket recreation may require a support ticket to get the
+`ltnz001-tas-be` project's customer ID added to that allow-list first.
+
+The owner on record for our project (`dtnz01-tpe-titan01`) is
+**Satish Zanjurne** (`satish.zanjurne@broadcom.com`) — he's listed as
+`project-owner-email` in the project's own GCP labels, and as the requestor
+on the ServiceNow ticket that created it (`ritm0466201`). He is not on the
+`tas-ecosystem`/CI side — he owns the project whose org policy is doing the
+blocking, i.e. our side, not the side that needs the access. If a support
+ticket about this org policy needs a name to start with, he's it.
+
+Org policy changes like this one are handled by Cloud Platform Engineering
+(CPE), not the normal IT support portal. File the request at
+`https://brdcmitsm-cloudops.wolkenservicedesk.com/`.
+
+For reference, here are the five blob objects (by their GCS object ID, not
+their bosh blob name) that build #51 of `ingest-telemetry_main` failed to
+read during the August 2026 incident, before the permission was fixed:
+- `f5ad4bd2-a6f8-47c7-7b5d-7f21e89be4f2` (9,147 bytes)
+- `1ce9ab5b-688e-4aa5-7079-d0a39cfc982f` (3,857 bytes)
+- `fa2199cf-7031-4a7f-4a4a-7005726ccfa7` (3,833,068 bytes)
+- `5ed0477e-8041-464c-49d3-66b4c8f5ad05` (2,191 bytes)
+- `c4eb0cf3-c8ac-4257-76f6-5a9d194ded94` (43,552,682 bytes)
+
+These correspond to the `telemetry-agent`, `telemetry-collector`,
+`telemetry-centralizer`, `fluentd`, and `fluent-bit` blobs. The object IDs are
+generated per upload and will be different for future releases — they're
+recorded here only as a worked example of what "the ingest job's blobs" means
+in practice, and to make old incident logs easier to cross-check.
+
 ## Required Message Format in Logs
 Message must contain a JSON object (or one encoded as a string) with these fields:
   - `telemetry-source`: [string] The source name for the telemetry data
