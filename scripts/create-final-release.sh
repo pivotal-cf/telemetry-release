@@ -201,6 +201,8 @@ fi
 CLI_VERSION=$(grep "^telemetry-cli/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
 FLUENT_BIT_VERSION=$(grep "^fluent-bit/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
 KRB5_VERSION=$(grep "^krb5/" config/blobs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' || echo "unknown")
+RUBY_PACKAGE_DIR=$(find packages -maxdepth 1 -type d -name 'ruby-*' | sort | tail -n1)
+RUBY_VERSION=$( [[ -n "$RUBY_PACKAGE_DIR" && -f "${RUBY_PACKAGE_DIR}/VERSION" ]] && cat "${RUBY_PACKAGE_DIR}/VERSION" || echo "unknown")
 
 # Find previous versions to generate dynamic "What's New"
 PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
@@ -241,7 +243,7 @@ $(echo -e "$WHATS_NEW")
 | telemetry-cli | ${CLI_VERSION} |
 | fluent-bit | ${FLUENT_BIT_VERSION} |
 | krb5 | ${KRB5_VERSION} |
-| ruby | 3.4 |
+| ruby | ${RUBY_VERSION} |
 
 ### Artifacts
 - **telemetry-${VERSION}.tgz** - BOSH release tarball
@@ -286,7 +288,7 @@ echo "  Components:"
 echo "    telemetry-cli:  ${CLI_VERSION}"
 echo "    fluent-bit:     ${FLUENT_BIT_VERSION}"
 echo "    krb5:           ${KRB5_VERSION}"
-echo "    ruby:           3.4"
+echo "    ruby:           ${RUBY_VERSION}"
 echo ""
 echo "  Next steps:"
 echo "    - GPP will detect .final_builds/ changes and update Kilnfile.lock in tpi-p-telemetry"
