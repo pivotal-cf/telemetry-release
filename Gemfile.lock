@@ -66,7 +66,7 @@ GEM
     openssl (4.0.2)
     ostruct (0.6.3)
     protocol-hpack (1.5.1)
-    protocol-http (0.69.0)
+    protocol-http (0.70.0)
     protocol-http1 (0.40.2)
       protocol-http (~> 0.68)
     protocol-http2 (0.26.2)
@@ -144,7 +144,7 @@ CHECKSUMS
   openssl (4.0.2) sha256=1037ad2868ae58df9ad917891c0c0f9815a1172f6846d4bcdd508e4c2ee747c2
   ostruct (0.6.3) sha256=95a2ed4a4bd1d190784e666b47b2d3f078e4a9efda2fccf18f84ddc6538ed912
   protocol-hpack (1.5.1) sha256=6feca238b8078da1cd295677d6f306c6001af92d75fe0643d33e6956cbc3ad91
-  protocol-http (0.69.0) sha256=787d3b722db663c8067a6e58dac08ed2c2d009b8064537173b8189e52a15ba25
+  protocol-http (0.70.0) sha256=3d7e881be723c57191fcdf04ad238570cabca81142a1d64516f676eafcb913ad
   protocol-http1 (0.40.2) sha256=add1191f06f16077b2e319ec5cf38c8623a2d2a9829f88a36ebaf8ecf80748a9
   protocol-http2 (0.26.2) sha256=1457cfaa31877512c349051e0094ea170b8913a62d966b82ff7cd14e4b1a3ede
   protocol-url (0.10.0) sha256=427ac29e6de221acc01def248d1c6f7e2c1ab7bc7a2380577acce93a7a669b0b
