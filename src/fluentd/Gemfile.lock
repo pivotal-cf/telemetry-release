@@ -71,7 +71,7 @@ GEM
     protocol-http2 (0.26.2)
       protocol-hpack (~> 1.4)
       protocol-http (~> 0.62)
-    protocol-url (0.10.0)
+    protocol-url (0.11.0)
     serverengine (2.4.0)
       base64 (~> 0.1)
       logger (~> 1.4)
@@ -129,7 +129,7 @@ CHECKSUMS
   protocol-http (0.70.0) sha256=3d7e881be723c57191fcdf04ad238570cabca81142a1d64516f676eafcb913ad
   protocol-http1 (0.40.2) sha256=add1191f06f16077b2e319ec5cf38c8623a2d2a9829f88a36ebaf8ecf80748a9
   protocol-http2 (0.26.2) sha256=1457cfaa31877512c349051e0094ea170b8913a62d966b82ff7cd14e4b1a3ede
-  protocol-url (0.10.0) sha256=427ac29e6de221acc01def248d1c6f7e2c1ab7bc7a2380577acce93a7a669b0b
+  protocol-url (0.11.0) sha256=eeac547dc2ba370b26d17861fd1c77455170e24d7bd5cfebb1123395deab7d54
   serverengine (2.4.0) sha256=4a42a431f187fac9906834d1bacf00321e835b11bc7f7b8af5f9b5c8fbd246bc
   sigdump (0.2.5) sha256=bb706c1cce70458b285d2c3a57121e801ccb79f68be7f7377692eb40b5437242
   strptime (0.2.5) sha256=98ed77ff7717a47387ba473614f478e78b162d70a64072fd71d54f547e079af9
