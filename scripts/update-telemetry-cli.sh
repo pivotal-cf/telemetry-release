@@ -182,10 +182,45 @@ print_step "Checking latest telemetry-cli release"
 if [[ "${CLI_SOURCE}" == "gcs" ]]; then
     # GCS mode: list tarballs in the bucket and find the latest version
     print_info "Listing CLI tarballs in gs://${GCS_CLI_BUCKET}/..."
-    TARBALL_LIST=$(gsutil ls "gs://${GCS_CLI_BUCKET}/telemetry-cli-*.tgz" 2>/dev/null || echo "")
+
+    # gsutil ls exits non-zero both when something real goes wrong (network,
+    # auth, a GCS server error) and when the pattern simply matches nothing
+    # ("matched no objects"). Only the second case means the bucket really
+    # has no tarballs. We tell them apart by the error text, and retry a
+    # couple of times on the first case -- this call is read-only, so a
+    # retry here can't cause any side effect like a duplicate upload.
+    LIST_ATTEMPTS=3
+    TARBALL_LIST=""
+    LIST_ERR=""
+    for attempt in $(seq 1 "${LIST_ATTEMPTS}"); do
+        ERR_FILE=$(mktemp)
+        if TARBALL_LIST=$(gsutil ls "gs://${GCS_CLI_BUCKET}/telemetry-cli-*.tgz" 2>"${ERR_FILE}"); then
+            rm -f "${ERR_FILE}"
+            LIST_ERR=""
+            break
+        fi
+        LIST_ERR=$(cat "${ERR_FILE}")
+        rm -f "${ERR_FILE}"
+
+        if echo "${LIST_ERR}" | grep -q "matched no objects"; then
+            # Real result, not a failure -- no point retrying.
+            break
+        fi
+
+        if [[ "${attempt}" -lt "${LIST_ATTEMPTS}" ]]; then
+            print_warning "gsutil ls failed (attempt ${attempt}/${LIST_ATTEMPTS}): ${LIST_ERR}"
+            sleep $((attempt * 2))
+        fi
+    done
 
     if [[ -z "${TARBALL_LIST}" ]]; then
-        print_error "No telemetry-cli tarballs found in gs://${GCS_CLI_BUCKET}/"
+        if [[ -n "${LIST_ERR}" ]] && ! echo "${LIST_ERR}" | grep -q "matched no objects"; then
+            print_error "gsutil ls failed after ${LIST_ATTEMPTS} attempts: ${LIST_ERR}"
+            print_info "This is a gsutil/network/auth problem, not the bucket's state. The bucket may still have all its tarballs -- check GCS_SERVICE_ACCOUNT_KEY and network access before assuming anything was deleted."
+        else
+            print_error "gsutil ls ran fine but found no files matching telemetry-cli-*.tgz in gs://${GCS_CLI_BUCKET}/"
+            print_info "This means the bucket really has no matching tarballs right now."
+        fi
         exit 1
     fi
 
