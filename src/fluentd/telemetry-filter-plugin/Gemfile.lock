@@ -72,7 +72,7 @@ GEM
     protocol-http2 (0.26.2)
       protocol-hpack (~> 1.4)
       protocol-http (~> 0.62)
-    protocol-url (0.12.0)
+    protocol-url (0.13.0)
     rspec (3.13.2)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -147,7 +147,7 @@ CHECKSUMS
   protocol-http (0.70.0) sha256=3d7e881be723c57191fcdf04ad238570cabca81142a1d64516f676eafcb913ad
   protocol-http1 (0.40.2) sha256=add1191f06f16077b2e319ec5cf38c8623a2d2a9829f88a36ebaf8ecf80748a9
   protocol-http2 (0.26.2) sha256=1457cfaa31877512c349051e0094ea170b8913a62d966b82ff7cd14e4b1a3ede
-  protocol-url (0.12.0) sha256=e1204c81447bc40f8dd545236d893d3223193757c190c1a69f5922451195b972
+  protocol-url (0.13.0) sha256=93a91d483a8bb141656836b8554e24d95933573290573e331dbbda8688f59f29
   rspec (3.13.2) sha256=206284a08ad798e61f86d7ca3e376718d52c0bc944626b2349266f239f820587
   rspec-core (3.13.6) sha256=a8823c6411667b60a8bca135364351dda34cd55e44ff94c4be4633b37d828b2d
   rspec-expectations (3.13.5) sha256=33a4d3a1d95060aea4c94e9f237030a8f9eae5615e9bd85718fe3a09e4b58836
