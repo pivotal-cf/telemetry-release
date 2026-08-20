@@ -5,13 +5,13 @@ GEM
       console (~> 1.29)
       fiber-annotation
       io-event (~> 1.11)
-    async-http (0.100.0)
+    async-http (0.101.0)
       async (>= 2.35.1)
       async-pool (~> 0.11)
       io-endpoint (~> 0.18)
       io-stream (~> 0.14)
       protocol-http (~> 0.66)
-      protocol-http1 (~> 0.39)
+      protocol-http1 (~> 0.41)
       protocol-http2 (~> 0.26)
       protocol-url (~> 0.2)
     async-pool (0.11.2)
@@ -68,7 +68,7 @@ GEM
     power_assert (3.1.0)
     protocol-hpack (1.5.1)
     protocol-http (0.71.0)
-    protocol-http1 (0.40.2)
+    protocol-http1 (0.41.0)
       protocol-http (~> 0.68)
     protocol-http2 (0.26.2)
       protocol-hpack (~> 1.4)
@@ -118,11 +118,11 @@ DEPENDENCIES
 
 CHECKSUMS
   async (2.44.1) sha256=079bce0d019fb27cc58ec110fd9b9af4991d97b801d1c6cc6def1d1954dcf9b2
-  async-http (0.100.0) sha256=d006270d3a72f1061e2a5c253e26b16393c2c23012640f4814f7c0a443f94dd6
+  async-http (0.101.0) sha256=435ca24bf3c0fd32d6117f950654bd955218666b0ae2badc66530a114ceed5b4
   async-pool (0.11.2) sha256=0a43a17b02b04d9c451b7d12fafa9a50e55dc6dd00d4369aca00433f16a7e3ed
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   benchmark (0.5.0) sha256=465df122341aedcb81a2a24b4d3bd19b6c67c1530713fd533f3ff034e419236c
-  bundler (4.0.18) sha256=02d9a17429de1847b4e0c9f27a9ee4b20c0a74c0a641b4e77195d6019e3618ac
+  bundler (4.0.19) sha256=b48056e4c77fb3853cc47775b5447ede44aaa4f53c32f168014ab4fe86587d47
   concurrent-ruby (1.3.8) sha256=b2f1be836e968ccc78ccfce277ea79c72a88633f22306782c16ff23fb415d1e1
   console (1.37.0) sha256=8093b286c2595a063849c098594fee5155ecc7967d36f3aa8cbe7569c8f3efd7
   cool.io (1.9.5) sha256=1f201c5670443942d0af49f73cce727b3e4188012e7ce9d815e18b0e2d0ebe33
@@ -146,7 +146,7 @@ CHECKSUMS
   power_assert (3.1.0) sha256=fefe98ed5d3140628138f3f9f9194d6ece01f1320e69700d3c928adca7518251
   protocol-hpack (1.5.1) sha256=6feca238b8078da1cd295677d6f306c6001af92d75fe0643d33e6956cbc3ad91
   protocol-http (0.71.0) sha256=38577bf3df0bf0c3f7ee7e21b43fcb4bd7624e36f697dbe9c3eea344f14bd9ba
-  protocol-http1 (0.40.2) sha256=add1191f06f16077b2e319ec5cf38c8623a2d2a9829f88a36ebaf8ecf80748a9
+  protocol-http1 (0.41.0) sha256=9863874a1228948a896c3e7ea16d13a680c8f3ed50706007c78b7033018b0ea3
   protocol-http2 (0.26.2) sha256=1457cfaa31877512c349051e0094ea170b8913a62d966b82ff7cd14e4b1a3ede
   protocol-url (0.18.0) sha256=b16f55983094b46d18e04b709333b260e4ab5962a32696728e33a6c396150ed6
   rspec (3.13.2) sha256=206284a08ad798e61f86d7ca3e376718d52c0bc944626b2349266f239f820587
@@ -169,4 +169,4 @@ RUBY VERSION
   ruby 4.0.6
 
 BUNDLED WITH
-  4.0.18
+  4.0.19
