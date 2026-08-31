@@ -14,7 +14,7 @@ GEM
       protocol-http1 (~> 0.41)
       protocol-http2 (~> 0.26)
       protocol-url (~> 0.2)
-    async-pool (0.11.2)
+    async-pool (0.12.0)
       async (>= 2.0)
     base64 (0.3.0)
     benchmark (0.5.0)
@@ -70,7 +70,7 @@ GEM
     protocol-http (0.71.0)
     protocol-http1 (0.41.0)
       protocol-http (~> 0.68)
-    protocol-http2 (0.26.2)
+    protocol-http2 (0.27.0)
       protocol-hpack (~> 1.4)
       protocol-http (~> 0.62)
     protocol-url (0.18.0)
@@ -119,7 +119,7 @@ DEPENDENCIES
 CHECKSUMS
   async (2.45.1) sha256=95849f7432eca535146c69f3078dab3c7228d0075ed71f48733f3e585dd7c267
   async-http (0.101.0) sha256=435ca24bf3c0fd32d6117f950654bd955218666b0ae2badc66530a114ceed5b4
-  async-pool (0.11.2) sha256=0a43a17b02b04d9c451b7d12fafa9a50e55dc6dd00d4369aca00433f16a7e3ed
+  async-pool (0.12.0) sha256=5580493dc024bd704dab2ed0bf1307100722e49cbb825c7965f8501194f58506
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   benchmark (0.5.0) sha256=465df122341aedcb81a2a24b4d3bd19b6c67c1530713fd533f3ff034e419236c
   bundler (4.0.19) sha256=b48056e4c77fb3853cc47775b5447ede44aaa4f53c32f168014ab4fe86587d47
@@ -147,7 +147,7 @@ CHECKSUMS
   protocol-hpack (1.5.1) sha256=6feca238b8078da1cd295677d6f306c6001af92d75fe0643d33e6956cbc3ad91
   protocol-http (0.71.0) sha256=38577bf3df0bf0c3f7ee7e21b43fcb4bd7624e36f697dbe9c3eea344f14bd9ba
   protocol-http1 (0.41.0) sha256=9863874a1228948a896c3e7ea16d13a680c8f3ed50706007c78b7033018b0ea3
-  protocol-http2 (0.26.2) sha256=1457cfaa31877512c349051e0094ea170b8913a62d966b82ff7cd14e4b1a3ede
+  protocol-http2 (0.27.0) sha256=54e651964388d5f990cca161b280abc4480a22845be8de1d55f25033a51e3bff
   protocol-url (0.18.0) sha256=b16f55983094b46d18e04b709333b260e4ab5962a32696728e33a6c396150ed6
   rspec (3.13.2) sha256=206284a08ad798e61f86d7ca3e376718d52c0bc944626b2349266f239f820587
   rspec-core (3.13.6) sha256=a8823c6411667b60a8bca135364351dda34cd55e44ff94c4be4633b37d828b2d
