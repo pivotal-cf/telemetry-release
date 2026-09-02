@@ -5,14 +5,14 @@ GEM
       console (~> 1.29)
       fiber-annotation
       io-event (~> 1.21)
-    async-http (0.101.0)
+    async-http (0.103.0)
       async (>= 2.35.1)
-      async-pool (~> 0.11)
+      async-pool (~> 0.12)
       io-endpoint (~> 0.18)
       io-stream (~> 0.14)
       protocol-http (~> 0.66)
       protocol-http1 (~> 0.41)
-      protocol-http2 (~> 0.26)
+      protocol-http2 (~> 0.28)
       protocol-url (~> 0.2)
     async-pool (0.12.0)
       async (>= 2.0)
@@ -69,7 +69,7 @@ GEM
     protocol-http (0.71.0)
     protocol-http1 (0.41.0)
       protocol-http (~> 0.68)
-    protocol-http2 (0.27.0)
+    protocol-http2 (0.28.0)
       protocol-hpack (~> 1.4)
       protocol-http (~> 0.62)
     protocol-url (0.18.0)
@@ -101,7 +101,7 @@ DEPENDENCIES
 
 CHECKSUMS
   async (2.45.1) sha256=95849f7432eca535146c69f3078dab3c7228d0075ed71f48733f3e585dd7c267
-  async-http (0.101.0) sha256=435ca24bf3c0fd32d6117f950654bd955218666b0ae2badc66530a114ceed5b4
+  async-http (0.103.0) sha256=137e3d5d419f7d72d5fa33cf04f30232e79c57b690025a650b8f9e48ece8bc41
   async-pool (0.12.0) sha256=5580493dc024bd704dab2ed0bf1307100722e49cbb825c7965f8501194f58506
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   bundler (4.0.19) sha256=b48056e4c77fb3853cc47775b5447ede44aaa4f53c32f168014ab4fe86587d47
@@ -129,7 +129,7 @@ CHECKSUMS
   protocol-hpack (1.5.1) sha256=6feca238b8078da1cd295677d6f306c6001af92d75fe0643d33e6956cbc3ad91
   protocol-http (0.71.0) sha256=38577bf3df0bf0c3f7ee7e21b43fcb4bd7624e36f697dbe9c3eea344f14bd9ba
   protocol-http1 (0.41.0) sha256=9863874a1228948a896c3e7ea16d13a680c8f3ed50706007c78b7033018b0ea3
-  protocol-http2 (0.27.0) sha256=54e651964388d5f990cca161b280abc4480a22845be8de1d55f25033a51e3bff
+  protocol-http2 (0.28.0) sha256=b7c6195dcfa80ec2484670e9fd8fc21024cc654a391aa0792433aff1188c1691
   protocol-url (0.18.0) sha256=b16f55983094b46d18e04b709333b260e4ab5962a32696728e33a6c396150ed6
   serverengine (2.4.0) sha256=4a42a431f187fac9906834d1bacf00321e835b11bc7f7b8af5f9b5c8fbd246bc
   sigdump (0.2.5) sha256=bb706c1cce70458b285d2c3a57121e801ccb79f68be7f7377692eb40b5437242
