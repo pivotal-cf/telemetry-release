@@ -8,12 +8,13 @@ krb5/krb5-1.22.2.tar.gz:
   sha: sha256:3243ffbc8ea4d4ac22ddc7dd2a1dc54c57874c40648b60ff97009763554eaf13
 packages/ruby-4.0/json-2.21.2.gem:
   size: 112640
-  object_id: a759e887-48f7-4b59-7582-d2513e17d71c
   sha: sha256:1f1d3b7cf2b3ba1a69beca0bb6db13d5438b80bff3cd54cdaaa620b9b07c1c6a
 packages/ruby-4.0/net-imap-0.6.6.gem:
   size: 193536
-  object_id: 8673dc98-b003-4945-4d01-a63d272f9180
   sha: sha256:96aa4ee50df3060203e649efc341f53480b791d49e150f2fdebf68beb141a8df
+packages/ruby-4.0/resolv-0.7.2.gem:
+  size: 30208
+  sha: sha256:626d044d975ab2daac759bf898416f1b51e2cb8dcd6727c2b5b5b28b97ead2e1
 ruby-4.0.6.tar.gz:
   size: 23904779
   object_id: 44e792ae-0ab7-46fc-7d72-415cfb980677

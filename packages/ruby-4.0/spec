@@ -1,14 +1,18 @@
 ---
 name: ruby-4.0
 
+dependencies:
+- rust-1-linux
+
 files:
 - compile-4.0.env
 - gemrc
 - overwrite_shebang.rb
 - ruby-4.0.6.tar.gz
-- rubygems-4.0.18.tgz
+- rubygems-4.0.19.tgz
 - runtime-4.0.env
 - yaml-0.2.5.tar.gz
 - patches/libyaml-0.2.5.patch
 - packages/ruby-4.0/json-2.21.2.gem
 - packages/ruby-4.0/net-imap-0.6.6.gem
+- packages/ruby-4.0/resolv-0.7.2.gem
