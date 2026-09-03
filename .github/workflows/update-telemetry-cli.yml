@@ -16,7 +16,7 @@
 #   - Manual via workflow_dispatch
 #
 # Required secrets:
-#   - GCS_SERVICE_ACCOUNT_KEY: GCP service account JSON for blobstore access
+#   - GCS_SERVICE_ACCOUNT_KEY_CF_CF: GCP service account JSON for blobstore access
 #   - GCS_CLI_BUCKET: Name of the GCS bucket containing CLI production builds
 #     (stored in Vault at: concourse/tanzu-portfolio-insights/tpi-telemetry-cli-repo
 #      key: cli-production-builds-bucket)
@@ -54,13 +54,13 @@ jobs:
       run: |
         # Write the service account key to a temp file for gcloud auth.
         # This secret expires every ~3 months and must be rotated manually.
-        echo '${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}' > /tmp/gcs-key.json
+        echo '${{ secrets.GCS_SERVICE_ACCOUNT_KEY_CF }}' > /tmp/gcs-key.json
 
         # --- Validate the key before attempting auth ---
         if ! python3 -c "import json, sys; json.load(open(sys.argv[1]))" /tmp/gcs-key.json 2>/dev/null; then
           echo ""
           echo "============================================================"
-          echo "ERROR: GCS_SERVICE_ACCOUNT_KEY is missing or invalid."
+          echo "ERROR: GCS_SERVICE_ACCOUNT_KEY_CF is missing or invalid."
           echo "============================================================"
           echo ""
           echo "The GCP service account key has likely EXPIRED (rotates every ~3 months)"
@@ -75,7 +75,7 @@ jobs:
           echo "       vault read concourse/tanzu-portfolio-insights/tpi-telemetry-cli-repo"
           echo "  2. Copy the GCP service account JSON value"
           echo "  3. Update the GitHub secret on github.com:"
-          echo "       gh secret set GCS_SERVICE_ACCOUNT_KEY -R pivotal-cf/telemetry-release"
+          echo "       gh secret set GCS_SERVICE_ACCOUNT_KEY_CF -R pivotal-cf/telemetry-release"
           echo "============================================================"
           exit 1
         fi
@@ -86,7 +86,7 @@ jobs:
     - name: Run update-telemetry-cli script
       id: update
       env:
-        GCS_SERVICE_ACCOUNT_KEY: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}
+        GCS_SERVICE_ACCOUNT_KEY_CF: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY_CF }}
         GCS_CLI_BUCKET: ${{ secrets.GCS_CLI_BUCKET }}
         CLI_SOURCE: gcs
       run: |
@@ -142,7 +142,7 @@ jobs:
           const message = {
             text: [
               `❌ *telemetry-release*: update-telemetry-cli workflow failed.`,
-              `If the failure is in "Authenticate to GCP", the GCS_SERVICE_ACCOUNT_KEY secret has likely expired (rotates every ~3 months). ` +
+              `If the failure is in "Authenticate to GCP", the GCS_SERVICE_ACCOUNT_KEY_CF secret has likely expired (rotates every ~3 months). ` +
               `Read the new key from Vault (concourse/tanzu-portfolio-insights/tpi-telemetry-cli-repo) and update the secret on github.com. ` +
               `This can't be automated because this repo is on github.com, not Broadcom GHE.`,
               `<${runUrl}|View run>`,

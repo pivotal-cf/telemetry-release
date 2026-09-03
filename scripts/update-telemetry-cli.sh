@@ -27,7 +27,7 @@
 # Environment variables:
 #   CLI_SOURCE               - "gcs" or "ghe" (default: auto-detect)
 #   GCS_CLI_BUCKET           - GCS bucket name containing CLI builds (required for gcs mode)
-#   GCS_SERVICE_ACCOUNT_KEY  - JSON string of GCP service account (CI only)
+#   GCS_SERVICE_ACCOUNT_KEY_GRAVITY  - JSON string of GCP service account (CI only)
 #   GH_HOST                  - GitHub Enterprise host (default: github.gwd.broadcom.net)
 #   SKIP_UPLOAD              - Set to "true" to skip bosh upload-blobs (for dry-run)
 #
@@ -35,7 +35,7 @@
 #   - bosh CLI installed
 #   - For GCS mode: gcloud CLI installed and authenticated, GCS_CLI_BUCKET set
 #   - For GHE mode: gh CLI installed and authenticated to github.gwd.broadcom.net
-#   - service_account.json in repo root (local) OR GCS_SERVICE_ACCOUNT_KEY env var (CI)
+#   - service_account.json in repo root (local) OR GCS_SERVICE_ACCOUNT_KEY_GRAVITY env var (CI)
 
 set -euo pipefail
 
@@ -123,9 +123,9 @@ fi
 # ============================================================================
 print_step "Configuring GCS credentials"
 
-if [[ -n "${GCS_SERVICE_ACCOUNT_KEY:-}" ]]; then
+if [[ -n "${GCS_SERVICE_ACCOUNT_KEY_GRAVITY:-}" ]]; then
     # CI mode: create config/private.yml from env var
-    print_info "Using GCS_SERVICE_ACCOUNT_KEY from environment (CI mode)"
+    print_info "Using GCS_SERVICE_ACCOUNT_KEY_GRAVITY from environment (CI mode)"
     # shellcheck disable=SC2001
     cat > config/private.yml <<EOM
 ---
@@ -133,7 +133,7 @@ blobstore:
   options:
     credentials_source: static
     json_key: |
-$(echo "${GCS_SERVICE_ACCOUNT_KEY}" | sed 's/^/      /')
+$(echo "${GCS_SERVICE_ACCOUNT_KEY_GRAVITY}" | sed 's/^/      /')
 EOM
 elif [[ -f "${REPO_ROOT}/service_account.json" ]]; then
     # Local mode: create config/private.yml from service_account.json
@@ -150,7 +150,7 @@ $(echo "${SERVICE_ACCOUNT_CONTENT}" | sed 's/^/      /')
 EOM
 else
     print_error "No GCS credentials found."
-    print_info "Either set GCS_SERVICE_ACCOUNT_KEY or place service_account.json in repo root."
+    print_info "Either set GCS_SERVICE_ACCOUNT_KEY_GRAVITY or place service_account.json in repo root."
     exit 1
 fi
 print_success "GCS credentials configured (config/private.yml)"
@@ -216,7 +216,7 @@ if [[ "${CLI_SOURCE}" == "gcs" ]]; then
     if [[ -z "${TARBALL_LIST}" ]]; then
         if [[ -n "${LIST_ERR}" ]] && ! echo "${LIST_ERR}" | grep -q "matched no objects"; then
             print_error "gsutil ls failed after ${LIST_ATTEMPTS} attempts: ${LIST_ERR}"
-            print_info "This is a gsutil/network/auth problem, not the bucket's state. The bucket may still have all its tarballs -- check GCS_SERVICE_ACCOUNT_KEY and network access before assuming anything was deleted."
+            print_info "This is a gsutil/network/auth problem, not the bucket's state. The bucket may still have all its tarballs -- check GCS_SERVICE_ACCOUNT_KEY_GRAVITY and network access before assuming anything was deleted."
         else
             print_error "gsutil ls ran fine but found no files matching telemetry-cli-*.tgz in gs://${GCS_CLI_BUCKET}/"
             print_info "This means the bucket really has no matching tarballs right now."
