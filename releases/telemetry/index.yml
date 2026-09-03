@@ -79,6 +79,8 @@ builds:
     version: 0.13.6-xenial
   5f1d6767-057c-4c74-5c20-19b4fd45871b:
     version: 0.0.17
+  6117736c-ddec-45bc-471e-adbb868d1bfb:
+    version: 2.4.15
   6569ac63-b568-4626-7d0b-d99e88d3743a:
     version: 0.0.15
   65aa3b16-5100-424c-5754-44ac77b56c8c:
