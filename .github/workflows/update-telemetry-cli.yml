@@ -16,7 +16,7 @@
 #   - Manual via workflow_dispatch
 #
 # Required secrets:
-#   - GCS_SERVICE_ACCOUNT_KEY_CF_CF: GCP service account JSON for blobstore access
+#   - GCS_SERVICE_ACCOUNT_KEY_CF: GCP service account JSON for blobstore access
 #   - GCS_CLI_BUCKET: Name of the GCS bucket containing CLI production builds
 #     (stored in Vault at: concourse/tanzu-portfolio-insights/tpi-telemetry-cli-repo
 #      key: cli-production-builds-bucket)
@@ -87,6 +87,7 @@ jobs:
       id: update
       env:
         GCS_SERVICE_ACCOUNT_KEY_CF: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY_CF }}
+        GCS_SERVICE_ACCOUNT_KEY_GRAVITY: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY_GRAVITY }}
         GCS_CLI_BUCKET: ${{ secrets.GCS_CLI_BUCKET }}
         CLI_SOURCE: gcs
       run: |
