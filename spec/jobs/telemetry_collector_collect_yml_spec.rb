@@ -43,6 +43,16 @@ describe 'telemetry-collector rendered config files' do
   let(:pre_start_yml) { compile_erb_template(pre_start_template, properties) }
 
   describe 'collect.yml, the hourly run' do
+    it 'carries the baseline opsmanager and telemetry configuration' do
+      expect(collect_yml).to include('url: https://opsman.example.com')
+      expect(collect_yml).to include('username: admin')
+      expect(collect_yml).to include('password: secret')
+      expect(collect_yml).to include('env-type: production')
+      expect(collect_yml).to include('output-dir: /var/vcap/data/telemetry-collector/')
+      expect(collect_yml).to include('tas-installed-selector: Enabled')
+      expect(collect_yml).to include('ops-manager-timeout: 30')
+    end
+
     it 'carries the four usage service keys' do
       expect(collect_yml).to include('cf-api-url: https://api.sys.example.com')
       expect(collect_yml).to include('usage-service-url: sys.example.com')
@@ -52,6 +62,50 @@ describe 'telemetry-collector rendered config files' do
 
     it 'carries data-collection-multi-select-options' do
       expect(collect_yml).to include('data-collection-multi-select-options: ["ceip_data", "operational_data"]')
+    end
+
+    it 'omits usage-service-timeout when usage_service.timeout is not provided' do
+      expect(collect_yml).not_to include('usage-service-timeout')
+    end
+
+    context 'when usage_service.timeout is provided' do
+      let(:properties) do
+        super().tap do |props|
+          props['usage_service']['timeout'] = 120
+        end
+      end
+
+      it 'renders usage-service-timeout into collect.yml' do
+        expect(collect_yml).to include('usage-service-timeout: 120')
+      end
+    end
+
+    context 'when optional properties are provided' do
+      let(:properties) do
+        super().tap do |props|
+          props['opsmanager']['auth']['uaa_client_name'] = 'client-id-val'
+          props['opsmanager']['auth']['uaa_client_secret'] = 'client-secret-val'
+          props['opsmanager']['insecure_skip_tls_verify'] = true
+          props['opsmanager']['request_timeout'] = 90
+          props['telemetry']['foundation_nickname'] = 'prod-nyc'
+          props['telemetry']['operational_data_only'] = true
+          props['telemetry']['split_tar_by_data_type'] = true
+          props['usage_service']['insecure_skip_tls_verify'] = true
+          props['credhub'] = { 'insecure_skip_tls_verify' => true }
+        end
+      end
+
+      it 'renders all optional fields into collect.yml' do
+        expect(collect_yml).to include('client-id: client-id-val')
+        expect(collect_yml).to include('client-secret: client-secret-val')
+        expect(collect_yml).to include('insecure-skip-tls-verify: true')
+        expect(collect_yml).to include('ops-manager-request-timeout: 90')
+        expect(collect_yml).to include('foundation-nickname: prod-nyc')
+        expect(collect_yml).to include('operational-data-only: true')
+        expect(collect_yml).to include('split-tar-by-data-type: true')
+        expect(collect_yml).to include('usage-service-insecure-skip-tls-verify: true')
+        expect(collect_yml).to include('credhub-insecure-skip-tls-verify: true')
+      end
     end
   end
 
@@ -63,6 +117,7 @@ describe 'telemetry-collector rendered config files' do
       expect(pre_start_yml).not_to include('usage-service-url')
       expect(pre_start_yml).not_to include('usage-service-client-id')
       expect(pre_start_yml).not_to include('usage-service-client-secret')
+      expect(pre_start_yml).not_to include('usage-service-timeout')
     end
 
     it 'does not carry data-collection-multi-select-options' do
