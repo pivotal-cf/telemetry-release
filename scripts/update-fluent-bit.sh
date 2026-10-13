@@ -26,6 +26,18 @@ print_error() {
   echo -e "${RED}✗ ${1}${NC}"
 }
 
+ask_yes_no() {   # usage: ask_yes_no "<prompt text>"   returns 0 for yes, 1 for no
+  local prompt="$1" reply
+  if [[ "${AUTO_APPROVE:-}" == "true" ]]; then
+    echo "Auto-approved: ${prompt}" >&2
+    return 0
+  fi
+  [[ -t 0 ]] || { echo "Error: stdin is not a terminal" >&2; exit 1; }
+  read -r -n 1 -p "${prompt} " reply || exit 1
+  echo
+  [[ "$reply" =~ ^[Yy]$ ]]
+}
+
 # Usage message
 usage() {
   cat <<EOF
@@ -169,10 +181,7 @@ if [ -n "$OLD_BLOB" ]; then
 
   echo
   print_warning "About to remove old blob: $OLD_BLOB"
-  read -p "Continue? (y/n) " -n 1 -r
-  echo
-
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
+  if ask_yes_no "Continue? (y/n)"; then
     if bosh remove-blob "$OLD_BLOB"; then
       print_success "Old blob removed"
     else
@@ -202,9 +211,7 @@ echo "  • Size: $FILE_SIZE bytes"
 echo
 
 # Offer to create test release
-read -p "Create a test BOSH release? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+if ask_yes_no "Create a test BOSH release? (y/n)"; then
   print_info "Creating test release..."
 
   TEST_TARBALL="/tmp/telemetry-test-fluent-bit-$VERSION.tgz"
