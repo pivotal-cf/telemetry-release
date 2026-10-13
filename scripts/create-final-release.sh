@@ -44,6 +44,17 @@ print_warning() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 print_error()   { echo -e "${RED}[FAIL]${NC} $*"; }
 print_step()    { echo -e "\n${BLUE}=== $* ===${NC}"; }
 
+ask_yes_no() {   # usage: ask_yes_no "<prompt text>"   returns 0 for yes, 1 for no
+    local prompt="$1" reply
+    if [[ "${AUTO_APPROVE:-}" == "true" ]]; then
+        echo "Auto-approved: ${prompt}" >&2
+        return 0
+    fi
+    [[ -t 0 ]] || { echo "Error: stdin is not a terminal" >&2; exit 1; }
+    read -r -p "${prompt} " reply || exit 1
+    [[ "$reply" =~ ^[Yy]$ ]]
+}
+
 # ============================================================================
 # Read version
 # ============================================================================
@@ -107,10 +118,8 @@ print_success "GCS credentials: config/private.yml exists"
 
 # Clean git state
 if [[ -n "$(git status --porcelain)" ]]; then
-    print_error "Git working directory is not clean. Commit or stash changes first."
-    echo ""
-    git status --short
-    exit 1
+    echo "Error: repository ${REPO_ROOT} has uncommitted changes" >&2
+    exit 60
 fi
 print_success "Git working directory is clean"
 
@@ -125,8 +134,7 @@ print_success "Version ${VERSION} is new (no existing release manifest)"
 # Check for existing GitHub Release
 if gh release view "${VERSION}" &> /dev/null; then
     print_warning "GitHub Release ${VERSION} already exists. It will be replaced."
-    read -r -p "Continue? (y/n) " REPLY
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    if ! ask_yes_no "Continue? (y/n)"; then
         print_info "Aborted."
         exit 0
     fi
@@ -176,7 +184,9 @@ echo ""
 # ============================================================================
 print_step "Committing changes"
 
-git add .
+[[ -d releases ]] && git add releases/
+[[ -d .final_builds ]] && git add .final_builds/
+[[ -f config/blobs.yml ]] && git add config/blobs.yml
 git commit -m "Create final release ${VERSION}"
 
 print_success "Committed: Create final release ${VERSION}"
@@ -186,8 +196,7 @@ print_success "Committed: Create final release ${VERSION}"
 # ============================================================================
 print_step "Pushing to origin"
 
-read -r -p "Push to origin? (y/n) " REPLY
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+if ! ask_yes_no "Push to origin? (y/n)"; then
     print_warning "Skipping push. You can push manually with: git push"
 else
     git push
@@ -259,8 +268,7 @@ print_info "Release notes:"
 echo "${RELEASE_NOTES}"
 echo ""
 
-read -r -p "Create GitHub Release '${RELEASE_NAME}' with these notes? (y/n) " REPLY
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+if ! ask_yes_no "Create GitHub Release '${RELEASE_NAME}' with these notes? (y/n)"; then
     print_warning "Skipping GitHub Release creation."
     print_info "You can create it manually with:"
     echo "  gh release create ${VERSION} ${TARBALL_PATH} --title '${RELEASE_NAME}' --notes '...'"
