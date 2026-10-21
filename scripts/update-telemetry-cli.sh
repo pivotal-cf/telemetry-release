@@ -74,6 +74,11 @@ print_warning() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 print_error()   { echo -e "${RED}[FAIL]${NC} $*"; }
 print_step()    { echo -e "\n${BLUE}=== $* ===${NC}"; }
 
+if [[ -n "${CLI_VERSION:-}" && "${CLI_SOURCE}" != "ghe" ]]; then
+    print_error "CLI_VERSION exact mode requires CLI_SOURCE=ghe"
+    exit 1
+fi
+
 # ============================================================================
 # Prerequisites
 # ============================================================================
@@ -169,7 +174,7 @@ else
     # Extract the full blob path (e.g., "telemetry-cli/telemetry-cli-linux-2.4.0:")
     CURRENT_BLOB_PATH="${CURRENT_BLOB_LINE%:}"
     # Extract version from the blob path
-    CURRENT_VERSION=$(echo "${CURRENT_BLOB_PATH}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
+    CURRENT_VERSION=$(echo "${CURRENT_BLOB_PATH}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(-[[:alnum:].-]+)?' || echo "0.0.0")
     print_info "Current blob: ${CURRENT_BLOB_PATH}"
     print_info "Current version: ${CURRENT_VERSION}"
 fi
@@ -238,13 +243,45 @@ if [[ "${CLI_SOURCE}" == "gcs" ]]; then
 
     LATEST_TAG="${LATEST_VERSION}"
     print_info "Latest version in GCS: ${LATEST_VERSION}"
+elif [[ -n "${CLI_VERSION:-}" ]]; then
+    RELEASE_DATA=$(GH_HOST="${GH_HOST}" gh release view "${CLI_VERSION}" \
+        --repo "${CLI_REPO}" --json tagName,isPrerelease,assets 2>/dev/null || echo "")
+    if [[ -z "${RELEASE_DATA}" ]]; then
+        RELEASE_DATA=$(GH_HOST="${GH_HOST}" gh release view "v${CLI_VERSION}" \
+            --repo "${CLI_REPO}" --json tagName,isPrerelease,assets 2>/dev/null || echo "")
+    fi
+
+    if [[ -z "${RELEASE_DATA}" ]]; then
+        print_error "Could not find exact release ${CLI_VERSION} in ${GH_HOST}/${CLI_REPO}"
+        exit 1
+    fi
+
+    LATEST_TAG=$(echo "${RELEASE_DATA}" | jq -r '.tagName // empty')
+    if [[ -z "${LATEST_TAG}" ]]; then
+        print_error "Release metadata for ${CLI_VERSION} has no tag name"
+        exit 1
+    fi
+    LATEST_VERSION="${LATEST_TAG#v}"
+    if [[ "${LATEST_VERSION}" != "${CLI_VERSION}" ]]; then
+        print_error "Release tag ${LATEST_TAG} does not match requested version ${CLI_VERSION}"
+        exit 1
+    fi
+
+    RELEASE_DIGEST=$(echo "${RELEASE_DATA}" | jq -r '.assets[] | select(.name == "telemetry-cli-linux-amd64") | .digest // empty')
+    if [[ -z "${RELEASE_DIGEST}" ]]; then
+        print_error "Release ${LATEST_TAG} has no digest for telemetry-cli-linux-amd64"
+        exit 1
+    fi
+    RELEASE_DIGEST_HEX="${RELEASE_DIGEST#sha256:}"
+    print_info "Exact release tag: ${LATEST_TAG}"
+    print_info "Exact version: ${LATEST_VERSION}"
 else
     # GHE mode: query GitHub Enterprise releases
     LATEST_TAG=$(GH_HOST="${GH_HOST}" gh release list \
         --repo "${CLI_REPO}" \
-        --limit 1 \
-        --json tagName \
-        --jq '.[0].tagName' 2>/dev/null || echo "")
+        --limit 1000 \
+        --json tagName,isPrerelease \
+        --jq '[.[] | select(.isPrerelease != true and (.tagName | test("-dev\\.[0-9]+$") | not))][0].tagName // empty' 2>/dev/null || echo "")
 
     if [[ -z "${LATEST_TAG}" ]]; then
         print_error "Could not determine latest release from ${GH_HOST}/${CLI_REPO}"
@@ -363,8 +400,8 @@ print_success "Downloaded binary (${BINARY_SIZE} bytes)"
 print_step "Comparing versions and SHA hashes"
 
 version_to_comparable() {
-    # Convert "2.4.1" to "002004001" for simple string comparison
-    echo "$1" | awk -F. '{printf "%03d%03d%03d\n", $1, $2, $3}'
+    # Pad the numeric components and retain the pre-release suffix for ordering.
+    echo "$1" | awk -F- '{split($1, version, "."); printf "%03d%03d%03d", version[1], version[2], version[3]; if ($2 == "") printf "~"; else printf "-%s", $2; printf "\n"}'
 }
 
 CURRENT_COMPARABLE=$(version_to_comparable "${CURRENT_VERSION}")
@@ -375,7 +412,19 @@ DOWNLOADED_SHA_HEX=$(sha256sum "${BINARY_PATH}" | awk '{print $1}')
 CURRENT_BLOB_SHA=$(grep -A 3 "${CURRENT_BLOB_PATH}:" config/blobs.yml | grep "sha:" | awk '{print $2}' || echo "")
 CURRENT_BLOB_SHA_HEX="${CURRENT_BLOB_SHA#sha256:}"
 
-if [[ "${CURRENT_COMPARABLE}" == "${LATEST_COMPARABLE}" ]]; then
+if [[ -n "${CLI_VERSION:-}" ]]; then
+    if [[ "${DOWNLOADED_SHA_HEX}" != "${RELEASE_DIGEST_HEX}" ]]; then
+        print_error "Downloaded digest does not match release ${LATEST_TAG}"
+        exit 1
+    fi
+    if [[ "${CURRENT_VERSION}" == "${LATEST_VERSION}" && "${CURRENT_BLOB_SHA_HEX}" == "${RELEASE_DIGEST_HEX}" ]]; then
+        print_success "Exact version ${LATEST_VERSION} and release digest are already installed. Nothing to do."
+        echo ""
+        echo "NO_UPDATE=true"
+        exit 0
+    fi
+    print_info "Installing exact version: ${CURRENT_VERSION} -> ${LATEST_VERSION}"
+elif [[ "${CURRENT_COMPARABLE}" == "${LATEST_COMPARABLE}" ]]; then
     if [[ "${DOWNLOADED_SHA_HEX}" == "${CURRENT_BLOB_SHA_HEX}" ]]; then
         print_success "Already up to date (version ${CURRENT_VERSION}, SHA matches). Nothing to do."
         echo ""
@@ -413,6 +462,16 @@ fi
 # Add new blob
 print_info "Adding new blob: ${NEW_BLOB_PATH}"
 bosh add-blob "${BINARY_PATH}" "${NEW_BLOB_PATH}"
+
+if [[ -n "${CLI_VERSION:-}" ]]; then
+    INSTALLED_BLOB_LINE=$(grep -F "${NEW_BLOB_PATH}:" config/blobs.yml || echo "")
+    INSTALLED_BLOB_SHA=$(grep -A 3 -F "${NEW_BLOB_PATH}:" config/blobs.yml | grep "sha:" | awk '{print $2}' || echo "")
+    INSTALLED_BLOB_SHA_HEX="${INSTALLED_BLOB_SHA#sha256:}"
+    if [[ -z "${INSTALLED_BLOB_LINE}" || "${INSTALLED_BLOB_SHA_HEX}" != "${RELEASE_DIGEST_HEX}" ]]; then
+        print_error "Installed blob version or digest does not match release ${LATEST_TAG}"
+        exit 1
+    fi
+fi
 
 # Upload blobs to GCS
 if [[ "${SKIP_UPLOAD:-false}" == "true" ]]; then
