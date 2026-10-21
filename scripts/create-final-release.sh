@@ -65,7 +65,11 @@ if [[ -z "${VERSION}" ]]; then
 fi
 
 TARBALL_PATH="/tmp/telemetry-${VERSION}.tgz"
+REPO_TARBALL_PATH="releases/telemetry/telemetry-${VERSION}.tgz"
 RELEASE_NAME="Telemetry Release ${VERSION}"
+IS_DEV_RELEASE=false
+[[ "${VERSION}" =~ -dev\.[0-9]+$ ]] && IS_DEV_RELEASE=true
+IS_RETRY=false
 
 echo ""
 echo "=========================================="
@@ -78,12 +82,14 @@ echo ""
 # ============================================================================
 print_step "Checking prerequisites"
 
-# bosh CLI
-if ! command -v bosh &> /dev/null; then
-    print_error "bosh CLI is not installed."
-    exit 1
+# Keep the stable release prerequisite order unchanged.
+if [[ "${IS_DEV_RELEASE}" == false ]]; then
+    if ! command -v bosh &> /dev/null; then
+        print_error "bosh CLI is not installed."
+        exit 1
+    fi
+    print_info "bosh CLI: $(bosh --version 2>&1 | head -1)"
 fi
-print_info "bosh CLI: $(bosh --version 2>&1 | head -1)"
 
 # gh CLI
 if ! command -v gh &> /dev/null; then
@@ -92,14 +98,13 @@ if ! command -v gh &> /dev/null; then
 fi
 print_info "gh CLI: $(gh --version | head -1)"
 
-# GCS credentials
-if [[ ! -f config/private.yml ]]; then
-    # Try to create from service_account.json
-    if [[ -f service_account.json ]]; then
-        print_warning "config/private.yml not found. Creating from service_account.json..."
-        SERVICE_ACCOUNT_CONTENT=$(cat service_account.json)
-        # shellcheck disable=SC2001
-        cat > config/private.yml <<EOM
+if [[ "${IS_DEV_RELEASE}" == false ]]; then
+    if [[ ! -f config/private.yml ]]; then
+        if [[ -f service_account.json ]]; then
+            print_warning "config/private.yml not found. Creating from service_account.json..."
+            SERVICE_ACCOUNT_CONTENT=$(cat service_account.json)
+            # shellcheck disable=SC2001
+            cat > config/private.yml <<EOM
 ---
 blobstore:
   options:
@@ -107,14 +112,15 @@ blobstore:
     json_key: |
 $(echo "${SERVICE_ACCOUNT_CONTENT}" | sed 's/^/      /')
 EOM
-        print_success "Created config/private.yml from service_account.json"
-    else
-        print_error "config/private.yml not found and no service_account.json available."
-        print_info "Run ./scripts/update-telemetry-cli.sh first, or create config/private.yml manually."
-        exit 1
+            print_success "Created config/private.yml from service_account.json"
+        else
+            print_error "config/private.yml not found and no service_account.json available."
+            print_info "Run ./scripts/update-telemetry-cli.sh first, or create config/private.yml manually."
+            exit 1
+        fi
     fi
+    print_success "GCS credentials: config/private.yml exists"
 fi
-print_success "GCS credentials: config/private.yml exists"
 
 # Clean git state
 if [[ -n "$(git status --porcelain)" ]]; then
@@ -123,21 +129,98 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 print_success "Git working directory is clean"
 
-# Check that this version doesn't already have a release manifest
-if [[ -f "releases/telemetry/telemetry-${VERSION}.yml" ]]; then
-    print_error "releases/telemetry/telemetry-${VERSION}.yml already exists!"
-    print_error "Version ${VERSION} has already been finalized. Bump ci/VERSION first."
+BRANCH="$(git symbolic-ref --quiet --short HEAD || true)"
+if [[ -z "${BRANCH}" ]]; then
+    print_error "Could not determine the current branch."
     exit 1
 fi
-print_success "Version ${VERSION} is new (no existing release manifest)"
+if [[ "${IS_DEV_RELEASE}" == true && "${BRANCH}" != dev/* ]]; then
+    print_error "Dev releases must run on a dev/* branch (current branch: ${BRANCH})."
+    exit 1
+elif [[ "${IS_DEV_RELEASE}" == false && "${BRANCH}" == dev/* ]]; then
+    print_error "Stable releases cannot run on dev/* branches (current branch: ${BRANCH})."
+    exit 1
+fi
+
+if [[ "${IS_DEV_RELEASE}" == true ]]; then
+    REMOTE_REF="refs/heads/${BRANCH}"
+    LOCAL_SHA="$(git rev-parse HEAD)"
+    REMOTE_SHA="$(git ls-remote origin "${REMOTE_REF}" | awk 'NR == 1 {print $1}')"
+    if [[ -z "${REMOTE_SHA}" || "${REMOTE_SHA}" != "${LOCAL_SHA}" ]]; then
+        print_error "Dev release build commit ${LOCAL_SHA} must exist on origin at ${REMOTE_REF} before building."
+        exit 1
+    fi
+fi
+
+MANIFEST_PATH="releases/telemetry/telemetry-${VERSION}.yml"
+if [[ -f "${MANIFEST_PATH}" && "${IS_DEV_RELEASE}" == true ]]; then
+    if ! git ls-tree --name-only HEAD -- "${MANIFEST_PATH}" | grep -q . ||
+        ! git ls-tree --name-only HEAD -- "${REPO_TARBALL_PATH}" | grep -q . ||
+        [[ ! -f "${REPO_TARBALL_PATH}" ]]; then
+        print_error "Dev release retry requires the committed manifest and tarball for ${VERSION}."
+        exit 1
+    fi
+    if [[ "${REMOTE_SHA}" != "${LOCAL_SHA}" ]]; then
+        print_error "Dev release commit ${LOCAL_SHA} is not verified on origin at ${REMOTE_REF}."
+        exit 1
+    fi
+    cp "${REPO_TARBALL_PATH}" "${TARBALL_PATH}"
+    IS_RETRY=true
+elif [[ -f "${MANIFEST_PATH}" ]]; then
+    print_error "${MANIFEST_PATH} already exists!"
+    print_error "Version ${VERSION} has already been finalized. Bump ci/VERSION first."
+    exit 1
+else
+    print_success "Version ${VERSION} is new (no existing release manifest)"
+fi
 
 # Check for existing GitHub Release
 if gh release view "${VERSION}" &> /dev/null; then
+    if [[ "${IS_DEV_RELEASE}" == true ]]; then
+        if [[ "$(gh release view "${VERSION}" --json isPrerelease --jq '.isPrerelease')" != true ]]; then
+            print_error "GitHub Release ${VERSION} exists but is not a pre-release."
+            exit 1
+        fi
+        print_info "GitHub pre-release ${VERSION} already exists. No changes made."
+        exit 0
+    fi
     print_warning "GitHub Release ${VERSION} already exists. It will be replaced."
     if ! ask_yes_no "Continue? (y/n)"; then
         print_info "Aborted."
         exit 0
     fi
+fi
+
+if [[ "${IS_RETRY}" == false && "${IS_DEV_RELEASE}" == true ]]; then
+    # bosh CLI
+    if ! command -v bosh &> /dev/null; then
+        print_error "bosh CLI is not installed."
+        exit 1
+    fi
+    print_info "bosh CLI: $(bosh --version 2>&1 | head -1)"
+
+    # GCS credentials
+    if [[ ! -f config/private.yml ]]; then
+        if [[ -f service_account.json ]]; then
+            print_warning "config/private.yml not found. Creating from service_account.json..."
+            SERVICE_ACCOUNT_CONTENT=$(cat service_account.json)
+            # shellcheck disable=SC2001
+            cat > config/private.yml <<EOM
+---
+blobstore:
+  options:
+    credentials_source: static
+    json_key: |
+$(echo "${SERVICE_ACCOUNT_CONTENT}" | sed 's/^/      /')
+EOM
+            print_success "Created config/private.yml from service_account.json"
+        else
+            print_error "config/private.yml not found and no service_account.json available."
+            print_info "Run ./scripts/update-telemetry-cli.sh first, or create config/private.yml manually."
+            exit 1
+        fi
+    fi
+    print_success "GCS credentials: config/private.yml exists"
 fi
 
 print_success "All prerequisites met."
@@ -147,21 +230,23 @@ print_success "All prerequisites met."
 # ============================================================================
 print_step "Creating BOSH final release ${VERSION}"
 
-print_info "Running: bosh create-release --final --version ${VERSION} --tarball ${TARBALL_PATH}"
-echo ""
+if [[ "${IS_RETRY}" == false ]]; then
+    print_info "Running: bosh create-release --final --version ${VERSION} --tarball ${TARBALL_PATH}"
+    echo ""
 
-bosh create-release --final --version "${VERSION}" --tarball "${TARBALL_PATH}"
+    bosh create-release --final --version "${VERSION}" --tarball "${TARBALL_PATH}"
 
-echo ""
-print_success "Final release created."
-print_info "Tarball: ${TARBALL_PATH} ($(du -h "${TARBALL_PATH}" | awk '{print $1}'))"
+    echo ""
+    print_success "Final release created."
+    print_info "Tarball: ${TARBALL_PATH} ($(du -h "${TARBALL_PATH}" | awk '{print $1}'))"
+fi
 
 # ============================================================================
 # Verify outputs
 # ============================================================================
 print_step "Verifying release artifacts"
 
-if [[ ! -f "releases/telemetry/telemetry-${VERSION}.yml" ]]; then
+if [[ ! -f "${MANIFEST_PATH}" ]]; then
     print_error "Expected releases/telemetry/telemetry-${VERSION}.yml was not created!"
     exit 1
 fi
@@ -173,6 +258,15 @@ if [[ ! -f "${TARBALL_PATH}" ]]; then
 fi
 print_success "Tarball exists at ${TARBALL_PATH}"
 
+if [[ "${IS_RETRY}" == false ]]; then
+    cp "${TARBALL_PATH}" "${REPO_TARBALL_PATH}"
+fi
+if [[ ! -f "${REPO_TARBALL_PATH}" ]]; then
+    print_error "Expected tarball ${REPO_TARBALL_PATH} was not created!"
+    exit 1
+fi
+print_success "Tarball copied to ${REPO_TARBALL_PATH}"
+
 # Show what changed
 echo ""
 print_info "Files modified by bosh create-release --final:"
@@ -182,6 +276,7 @@ echo ""
 # ============================================================================
 # Commit
 # ============================================================================
+if [[ "${IS_RETRY}" == false ]]; then
 print_step "Committing changes"
 
 [[ -d releases ]] && git add releases/
@@ -196,11 +291,28 @@ print_success "Committed: Create final release ${VERSION}"
 # ============================================================================
 print_step "Pushing to origin"
 
-if ! ask_yes_no "Push to origin? (y/n)"; then
-    print_warning "Skipping push. You can push manually with: git push"
+if [[ "${IS_DEV_RELEASE}" == true ]]; then
+    if ! ask_yes_no "Push dev release to origin? (y/n)"; then
+        print_error "Dev release push is required; refusing to continue."
+        exit 1
+    fi
+    git push origin "HEAD:refs/heads/${BRANCH}"
+    RELEASE_SHA="$(git rev-parse HEAD)"
+    REMOTE_SHA="$(git ls-remote origin "${REMOTE_REF}" | awk 'NR == 1 {print $1}')"
+    if [[ "${REMOTE_SHA}" != "${RELEASE_SHA}" ]]; then
+        print_error "Release commit ${RELEASE_SHA} was not verified on origin at ${REMOTE_REF}."
+        exit 1
+    fi
 else
-    git push
-    print_success "Pushed to origin."
+    if ! ask_yes_no "Push to origin? (y/n)"; then
+        print_warning "Skipping push. You can push manually with: git push"
+    else
+        git push
+        print_success "Pushed to origin."
+    fi
+fi
+else
+    RELEASE_SHA="${LOCAL_SHA}"
 fi
 
 # ============================================================================
@@ -268,15 +380,24 @@ print_info "Release notes:"
 echo "${RELEASE_NOTES}"
 echo ""
 
+RELEASE_CREATE_FLAGS=""
+if [[ "${IS_DEV_RELEASE}" == true ]]; then
+    RELEASE_CREATE_FLAGS="--prerelease --target ${RELEASE_SHA}"
+fi
+
 if ! ask_yes_no "Create GitHub Release '${RELEASE_NAME}' with these notes? (y/n)"; then
     print_warning "Skipping GitHub Release creation."
     print_info "You can create it manually with:"
-    echo "  gh release create ${VERSION} ${TARBALL_PATH} --title '${RELEASE_NAME}' --notes '...'"
+    echo "  gh release create ${VERSION} ${TARBALL_PATH} ${RELEASE_CREATE_FLAGS[*]} --title '${RELEASE_NAME}' --notes '...'"
 else
-    gh release create "${VERSION}" \
-        "${TARBALL_PATH}" \
-        --title "${RELEASE_NAME}" \
-        --notes "${RELEASE_NOTES}"
+    if [[ "${IS_DEV_RELEASE}" == true ]]; then
+        gh release create "${VERSION}" "${TARBALL_PATH}" \
+            --prerelease --target "${RELEASE_SHA}" \
+            --title "${RELEASE_NAME}" --notes "${RELEASE_NOTES}"
+    else
+        gh release create "${VERSION}" "${TARBALL_PATH}" \
+            --title "${RELEASE_NAME}" --notes "${RELEASE_NOTES}"
+    fi
 
     print_success "GitHub Release '${RELEASE_NAME}' created."
     print_info "View at: $(gh release view "${VERSION}" --json url --jq '.url')"
