@@ -30,6 +30,7 @@
 #   GCS_SERVICE_ACCOUNT_KEY_GRAVITY  - JSON string of GCP service account (CI only)
 #   GH_HOST                  - GitHub Enterprise host (default: github.gwd.broadcom.net)
 #   SKIP_UPLOAD              - Set to "true" to skip bosh upload-blobs (for dry-run)
+#   CLI_VERSION              - Install this exact GitHub release version
 #
 # Prerequisites:
 #   - bosh CLI installed
@@ -267,9 +268,14 @@ elif [[ -n "${CLI_VERSION:-}" ]]; then
         exit 1
     fi
 
-    RELEASE_DIGEST=$(echo "${RELEASE_DATA}" | jq -r '.assets[] | select(.name == "telemetry-cli-linux-amd64") | .digest // empty')
+    if [[ "${CLI_VERSION}" =~ -dev\.[0-9]+$ && "$(echo "${RELEASE_DATA}" | jq -r '.isPrerelease')" != true ]]; then
+        print_error "Exact dev release ${LATEST_TAG} is not a pre-release"
+        exit 1
+    fi
+    TARBALL_NAME="telemetry-cli-${CLI_VERSION}.tgz"
+    RELEASE_DIGEST=$(echo "${RELEASE_DATA}" | jq -r --arg name "${TARBALL_NAME}" '.assets[] | select(.name == $name) | .digest // empty')
     if [[ -z "${RELEASE_DIGEST}" ]]; then
-        print_error "Release ${LATEST_TAG} has no digest for telemetry-cli-linux-amd64"
+        print_error "Release ${LATEST_TAG} has no digest for ${TARBALL_NAME}"
         exit 1
     fi
     RELEASE_DIGEST_HEX="${RELEASE_DIGEST#sha256:}"
@@ -346,7 +352,28 @@ else
     # GHE mode: download from GitHub Enterprise release
     print_info "Downloading linux-amd64 binary from GitHub Release ${LATEST_TAG}..."
 
-    if ! GH_HOST="${GH_HOST}" gh release download "${LATEST_TAG}" \
+    EXACT_TARBALL_PATH="${TEMP_DIR}/telemetry-cli-${LATEST_VERSION}.tgz"
+    if [[ -n "${CLI_VERSION:-}" ]]; then
+        if ! GH_HOST="${GH_HOST}" gh release download "${LATEST_TAG}" \
+            --repo "${CLI_REPO}" --pattern "telemetry-cli-${CLI_VERSION}.tgz" \
+            --output "${EXACT_TARBALL_PATH}" 2>/dev/null; then
+            print_error "Could not download exact release tarball ${TARBALL_NAME}"
+            exit 1
+        fi
+        TARBALL_SHA_HEX=$(sha256sum "${EXACT_TARBALL_PATH}" | awk '{print $1}')
+        if [[ "${TARBALL_SHA_HEX}" != "${RELEASE_DIGEST_HEX}" ]]; then
+            print_error "Downloaded tarball digest does not match release ${LATEST_TAG}"
+            exit 1
+        fi
+        tar xzf "${EXACT_TARBALL_PATH}" -C "${TEMP_DIR}" --include='*telemetry-cli-linux-amd64' 2>/dev/null \
+            || tar xzf "${EXACT_TARBALL_PATH}" -C "${TEMP_DIR}" 2>/dev/null
+        EXTRACTED_BINARY=$(find "${TEMP_DIR}" -name "telemetry-cli-linux-amd64" -type f | head -1)
+        if [[ -z "${EXTRACTED_BINARY}" ]]; then
+            print_error "Could not find linux-amd64 binary in release tarball."
+            exit 1
+        fi
+        mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
+    elif ! GH_HOST="${GH_HOST}" gh release download "${LATEST_TAG}" \
         --repo "${CLI_REPO}" \
         --pattern "telemetry-cli-linux-amd64" \
         --output "${BINARY_PATH}" 2>/dev/null; then
@@ -413,11 +440,7 @@ CURRENT_BLOB_SHA=$(grep -A 3 "${CURRENT_BLOB_PATH}:" config/blobs.yml | grep "sh
 CURRENT_BLOB_SHA_HEX="${CURRENT_BLOB_SHA#sha256:}"
 
 if [[ -n "${CLI_VERSION:-}" ]]; then
-    if [[ "${DOWNLOADED_SHA_HEX}" != "${RELEASE_DIGEST_HEX}" ]]; then
-        print_error "Downloaded digest does not match release ${LATEST_TAG}"
-        exit 1
-    fi
-    if [[ "${CURRENT_VERSION}" == "${LATEST_VERSION}" && "${CURRENT_BLOB_SHA_HEX}" == "${RELEASE_DIGEST_HEX}" ]]; then
+    if [[ "${CURRENT_VERSION}" == "${LATEST_VERSION}" && "${CURRENT_BLOB_SHA_HEX}" == "${DOWNLOADED_SHA_HEX}" ]]; then
         print_success "Exact version ${LATEST_VERSION} and release digest are already installed. Nothing to do."
         echo ""
         echo "NO_UPDATE=true"
@@ -467,7 +490,7 @@ if [[ -n "${CLI_VERSION:-}" ]]; then
     INSTALLED_BLOB_LINE=$(grep -F "${NEW_BLOB_PATH}:" config/blobs.yml || echo "")
     INSTALLED_BLOB_SHA=$(grep -A 3 -F "${NEW_BLOB_PATH}:" config/blobs.yml | grep "sha:" | awk '{print $2}' || echo "")
     INSTALLED_BLOB_SHA_HEX="${INSTALLED_BLOB_SHA#sha256:}"
-    if [[ -z "${INSTALLED_BLOB_LINE}" || "${INSTALLED_BLOB_SHA_HEX}" != "${RELEASE_DIGEST_HEX}" ]]; then
+    if [[ -z "${INSTALLED_BLOB_LINE}" || "${INSTALLED_BLOB_SHA_HEX}" != "${DOWNLOADED_SHA_HEX}" ]]; then
         print_error "Installed blob version or digest does not match release ${LATEST_TAG}"
         exit 1
     fi
