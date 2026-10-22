@@ -346,7 +346,9 @@ if [[ "${CLI_SOURCE}" == "gcs" ]]; then
             exit 1
         fi
 
-        mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
+        if [[ "${EXTRACTED_BINARY}" != "${BINARY_PATH}" ]]; then
+            mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
+        fi
     fi
 else
     # GHE mode: download from GitHub Enterprise release
@@ -372,7 +374,9 @@ else
             print_error "Could not find linux-amd64 binary in release tarball."
             exit 1
         fi
-        mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
+        if [[ "${EXTRACTED_BINARY}" != "${BINARY_PATH}" ]]; then
+            mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
+        fi
     elif ! GH_HOST="${GH_HOST}" gh release download "${LATEST_TAG}" \
         --repo "${CLI_REPO}" \
         --pattern "telemetry-cli-linux-amd64" \
@@ -413,7 +417,9 @@ else
             exit 1
         fi
 
-        mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
+        if [[ "${EXTRACTED_BINARY}" != "${BINARY_PATH}" ]]; then
+            mv "${EXTRACTED_BINARY}" "${BINARY_PATH}"
+        fi
     fi
 fi
 

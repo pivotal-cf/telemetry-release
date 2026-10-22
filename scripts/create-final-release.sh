@@ -412,7 +412,9 @@ if ! ask_yes_no "Create GitHub Release '${RELEASE_NAME}' with these notes? (y/n)
     print_warning "Skipping GitHub Release creation."
     print_info "You can create it manually with:"
     printf '  gh release create %q %q' "${VERSION}" "${TARBALL_PATH}"
-    printf ' %q' ${RELEASE_CREATE_FLAGS[@]+"${RELEASE_CREATE_FLAGS[@]}"}
+    if ((${#RELEASE_CREATE_FLAGS[@]} > 0)); then
+        printf ' %q' "${RELEASE_CREATE_FLAGS[@]}"
+    fi
     printf " --title %q --notes '...'\n" "${RELEASE_NAME}"
 else
     gh release create "${VERSION}" "${TARBALL_PATH}" ${RELEASE_CREATE_FLAGS[@]+"${RELEASE_CREATE_FLAGS[@]}"} \
