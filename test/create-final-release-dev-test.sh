@@ -81,6 +81,20 @@ run_script() {
         ./scripts/create-final-release.sh) > "${CASE_DIR}/out" 2> "${CASE_DIR}/err"
 }
 
+run_script_manual() {
+    (cd "${WORK}" && export TEST_PATH="${BIN_DIR}:${PATH}" && expect > "${CASE_DIR}/out" 2> "${CASE_DIR}/err" <<'EOF'
+spawn env PATH=$env(TEST_PATH) ./scripts/create-final-release.sh
+expect "Push to origin? (y/n)"
+send "y\r"
+expect "Create GitHub Release*"
+send "n\r"
+expect eof
+catch wait result
+exit [lindex $result 3]
+EOF
+    )
+}
+
 cleanup_case() { rm -rf "${CASE_DIR}"; }
 
 echo 'Running: remote release tag verification accepts matching and missing tags'
@@ -131,8 +145,18 @@ cleanup_case
 
 echo 'Running: stable release omits prerelease flag'
 TEST_BRANCH=main TEST_VERSION=1.2.3 setup_case
-if run_script && ! grep -q -- '--prerelease' "${GH_CREATE_LOG}"; then pass 'stable release has no prerelease flag';
-else fail 'stable release flags' "$(cat "${CASE_DIR}/out" "${CASE_DIR}/err" "${GH_CREATE_LOG}")"; fi
+if run_script_manual; then
+    pass 'stable release manual command is printed'
+else
+    fail 'stable manual command is printed' "$(cat "${CASE_DIR}/out" "${CASE_DIR}/err")"
+fi
+if grep -q "gh release create 1.2.3 .* ''" "${CASE_DIR}/out"; then
+    fail 'stable manual command has no empty argument' "$(grep 'gh release create' "${CASE_DIR}/out")"
+elif grep -q 'gh release create 1.2.3 ' "${CASE_DIR}/out"; then
+    pass 'stable manual command has no empty argument'
+else
+    fail 'stable manual command is present' "$(cat "${CASE_DIR}/out" "${CASE_DIR}/err")"
+fi
 cleanup_case
 
 echo 'Running: existing dev GitHub pre-release is left unchanged'
