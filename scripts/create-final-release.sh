@@ -55,6 +55,25 @@ ask_yes_no() {   # usage: ask_yes_no "<prompt text>"   returns 0 for yes, 1 for 
     [[ "$reply" =~ ^[Yy]$ ]]
 }
 
+verify_remote_release_tag() {
+    local version="$1" expected_commit="$2" tag_ref peeled_ref tag_output tag_commit
+    tag_ref="refs/tags/${version}"
+    peeled_ref="${tag_ref}^{}"
+    tag_output=$(git ls-remote origin "${tag_ref}" "${peeled_ref}") || {
+        print_error "Could not verify remote tag ${version}."
+        return 1
+    }
+    [[ -z "${tag_output}" ]] && return 0
+    tag_commit=$(awk -v peeled="${peeled_ref}" '$2 == peeled {print $1; found=1} END {if (!found) exit 1}' <<<"${tag_output}" || true)
+    if [[ -z "${tag_commit}" ]]; then
+        tag_commit=$(awk -v ref="${tag_ref}" '$2 == ref {print $1; exit}' <<<"${tag_output}")
+    fi
+    if [[ "${tag_commit}" != "${expected_commit}" ]]; then
+        print_error "Remote tag ${version} points to ${tag_commit:-unknown}, expected ${expected_commit}."
+        return 1
+    fi
+}
+
 # ============================================================================
 # Read version
 # ============================================================================
@@ -280,6 +299,7 @@ if [[ "${IS_RETRY}" == false ]]; then
 print_step "Committing changes"
 
 [[ -d releases ]] && git add releases/
+[[ -f "${REPO_TARBALL_PATH}" ]] && git add -f "${REPO_TARBALL_PATH}"
 [[ -d .final_builds ]] && git add .final_builds/
 [[ -f config/blobs.yml ]] && git add config/blobs.yml
 git commit -m "Create final release ${VERSION}"
@@ -380,24 +400,23 @@ print_info "Release notes:"
 echo "${RELEASE_NOTES}"
 echo ""
 
-RELEASE_CREATE_FLAGS=""
+RELEASE_CREATE_FLAGS=()
 if [[ "${IS_DEV_RELEASE}" == true ]]; then
-    RELEASE_CREATE_FLAGS="--prerelease --target ${RELEASE_SHA}"
+    RELEASE_CREATE_FLAGS+=(--prerelease --target "${RELEASE_SHA}")
+fi
+if [[ "${IS_DEV_RELEASE}" == true ]] && ! verify_remote_release_tag "${VERSION}" "${RELEASE_SHA}"; then
+    exit 1
 fi
 
 if ! ask_yes_no "Create GitHub Release '${RELEASE_NAME}' with these notes? (y/n)"; then
     print_warning "Skipping GitHub Release creation."
     print_info "You can create it manually with:"
-    echo "  gh release create ${VERSION} ${TARBALL_PATH} ${RELEASE_CREATE_FLAGS[*]} --title '${RELEASE_NAME}' --notes '...'"
+    printf '  gh release create %q %q' "${VERSION}" "${TARBALL_PATH}"
+    printf ' %q' ${RELEASE_CREATE_FLAGS[@]+"${RELEASE_CREATE_FLAGS[@]}"}
+    printf " --title %q --notes '...'\n" "${RELEASE_NAME}"
 else
-    if [[ "${IS_DEV_RELEASE}" == true ]]; then
-        gh release create "${VERSION}" "${TARBALL_PATH}" \
-            --prerelease --target "${RELEASE_SHA}" \
-            --title "${RELEASE_NAME}" --notes "${RELEASE_NOTES}"
-    else
-        gh release create "${VERSION}" "${TARBALL_PATH}" \
-            --title "${RELEASE_NAME}" --notes "${RELEASE_NOTES}"
-    fi
+    gh release create "${VERSION}" "${TARBALL_PATH}" ${RELEASE_CREATE_FLAGS[@]+"${RELEASE_CREATE_FLAGS[@]}"} \
+        --title "${RELEASE_NAME}" --notes "${RELEASE_NOTES}"
 
     print_success "GitHub Release '${RELEASE_NAME}' created."
     print_info "View at: $(gh release view "${VERSION}" --json url --jq '.url')"

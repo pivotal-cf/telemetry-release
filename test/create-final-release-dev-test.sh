@@ -23,6 +23,7 @@ setup_case() {
     echo "${TEST_VERSION:-1.2.3-dev.7}" > "${WORK}/ci/VERSION"
     echo "blobstore: {}" > "${WORK}/config/private.yml"
     echo "---" > "${WORK}/config/blobs.yml"
+    echo 'releases/**/*.tgz' > "${WORK}/.gitignore"
     cp "${REPO_ROOT}/scripts/create-final-release.sh" "${WORK}/scripts/"
     "${REAL_GIT}" -C "${WORK}" add .
     "${REAL_GIT}" -C "${WORK}" commit -q -m initial
@@ -81,6 +82,23 @@ run_script() {
 }
 
 cleanup_case() { rm -rf "${CASE_DIR}"; }
+
+echo 'Running: remote release tag verification accepts matching and missing tags'
+HELPERS_FILE="$(mktemp)"
+sed -n '/^verify_remote_release_tag() {/,/^}$/p' "${REPO_ROOT}/scripts/create-final-release.sh" > "${HELPERS_FILE}"
+source "${HELPERS_FILE}"
+print_error() { echo "$*" >&2; }
+git() {
+    if [[ "${REMOTE_TAG_OUTPUT:-}" == '__MISSING__' ]]; then return 0; fi
+    printf '%s\n' "${REMOTE_TAG_OUTPUT:-}"
+}
+REMOTE_TAG_OUTPUT=$'release-sha\trefs/tags/2.4.17-dev.1\nrelease-sha\trefs/tags/2.4.17-dev.1^{}'
+verify_remote_release_tag 2.4.17-dev.1 release-sha || fail 'matching remote tag' 'expected success'
+REMOTE_TAG_OUTPUT=$'other-sha\trefs/tags/2.4.17-dev.1\nother-sha\trefs/tags/2.4.17-dev.1^{}'
+if verify_remote_release_tag 2.4.17-dev.1 release-sha; then fail 'mismatched remote tag' 'expected failure'; else pass 'mismatched remote tag is rejected'; fi
+REMOTE_TAG_OUTPUT=__MISSING__
+verify_remote_release_tag 2.4.17-dev.1 release-sha || fail 'missing remote tag' 'expected success'
+rm -f "${HELPERS_FILE}"
 
 echo 'Running: dev release uses prerelease and verified target, and pushes only its branch'
 setup_case

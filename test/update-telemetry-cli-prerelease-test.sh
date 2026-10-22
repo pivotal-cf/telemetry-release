@@ -60,7 +60,7 @@ if [[ "$1" == "release" && "$2" == "view" ]]; then
 fi
 if [[ "$1" == "release" && "$2" == "download" ]]; then
     while (($#)); do
-        if [[ "$1" == "--output" ]]; then printf '%s' "$RELEASE_CONTENT" > "$2"; exit 0; fi
+        if [[ "$1" == "--output" ]]; then cp "$RELEASE_TARBALL" "$2"; exit 0; fi
         shift
     done
 fi
@@ -86,13 +86,17 @@ cleanup_run() {
     rm -rf "${RUN_DIR}" "${RUN_BINDIR}"
 }
 
-RELEASE_CONTENT='pre-release-binary'
-RELEASE_SHA="$(printf '%s' "${RELEASE_CONTENT}" | sha256sum | awk '{print $1}')"
-export RELEASE_CONTENT
+FIXTURE_DIR="$(mktemp -d)"
+mkdir -p "${FIXTURE_DIR}/release"
+printf '%s' 'pre-release-binary' > "${FIXTURE_DIR}/release/telemetry-cli-linux-amd64"
+tar czf "${FIXTURE_DIR}/telemetry-cli-2.4.17-dev.1.tgz" -C "${FIXTURE_DIR}/release" telemetry-cli-linux-amd64
+RELEASE_TARBALL="${FIXTURE_DIR}/telemetry-cli-2.4.17-dev.1.tgz"
+RELEASE_SHA="$(sha256sum "${RELEASE_TARBALL}" | awk '{print $1}')"
+export RELEASE_TARBALL
 
 echo "Running: stable release selection filters prereleases before choosing latest"
 RELEASES_JSON='[{"tagName":"2.4.17-dev.1","isPrerelease":true},{"tagName":"2.4.16","isPrerelease":false}]'
-RELEASE_JSON='{"tagName":"2.4.17-dev.1","isPrerelease":true,"assets":[{"name":"telemetry-cli-linux-amd64","digest":"sha256:PLACEHOLDER"}]}'
+RELEASE_JSON='{"tagName":"2.4.17-dev.1","isPrerelease":true,"assets":[{"name":"telemetry-cli-2.4.17-dev.1.tgz","digest":"sha256:PLACEHOLDER"}]}'
 export RELEASES_JSON RELEASE_JSON
 run_update "2.4.15" "old" || true
 if [[ "${RUN_RC}" -eq 0 && "${RUN_BLOBS}" == *"telemetry-cli-linux-2.4.16:"* ]]; then
@@ -104,13 +108,24 @@ cleanup_run
 
 echo "Running: exact mode installs the requested prerelease"
 RELEASES_JSON='[]'
-RELEASE_JSON="$(printf '{\"tagName\":\"2.4.17-dev.1\",\"isPrerelease\":true,\"assets\":[{\"name\":\"telemetry-cli-linux-amd64\",\"digest\":\"sha256:%s\"}]}' "${RELEASE_SHA}")"
+RELEASE_JSON="$(printf '{\"tagName\":\"2.4.17-dev.1\",\"isPrerelease\":true,\"assets\":[{\"name\":\"telemetry-cli-2.4.17-dev.1.tgz\",\"digest\":\"sha256:%s\"}]}' "${RELEASE_SHA}")"
 export RELEASES_JSON RELEASE_JSON
 CLI_VERSION=2.4.17-dev.1 run_update "2.4.16" "old" || true
 if [[ "${RUN_RC}" -eq 0 && "${RUN_BLOBS}" == *"telemetry-cli-linux-2.4.17-dev.1:"* ]]; then
     pass "exact mode installs prerelease 2.4.17-dev.1"
 else
     fail "exact mode installs requested prerelease" "rc=${RUN_RC}; output: ${RUN_OUT}; blobs: ${RUN_BLOBS}"
+fi
+cleanup_run
+
+echo "Running: exact dev mode rejects a stable GitHub release"
+RELEASE_JSON="$(printf '{\"tagName\":\"2.4.17-dev.1\",\"isPrerelease\":false,\"assets\":[{\"name\":\"telemetry-cli-2.4.17-dev.1.tgz\",\"digest\":\"sha256:%s\"}]}' "${RELEASE_SHA}")"
+export RELEASE_JSON
+CLI_VERSION=2.4.17-dev.1 run_update "2.4.16" "old" || true
+if [[ "${RUN_RC}" -ne 0 && "${RUN_OUT}" == *"is not a pre-release"* ]]; then
+    pass "exact dev mode rejects a stable release"
+else
+    fail "exact dev release must be prerelease" "rc=${RUN_RC}; output: ${RUN_OUT}"
 fi
 cleanup_run
 
@@ -126,7 +141,7 @@ fi
 cleanup_run
 
 echo "Running: exact mode rejects an installed digest mismatch"
-RELEASE_JSON="$(printf '{\"tagName\":\"2.4.17-dev.1\",\"isPrerelease\":true,\"assets\":[{\"name\":\"telemetry-cli-linux-amd64\",\"digest\":\"sha256:%s\"}]}' "${RELEASE_SHA}")"
+RELEASE_JSON="$(printf '{\"tagName\":\"2.4.17-dev.1\",\"isPrerelease\":true,\"assets\":[{\"name\":\"telemetry-cli-2.4.17-dev.1.tgz\",\"digest\":\"sha256:%s\"}]}' "${RELEASE_SHA}")"
 export RELEASE_JSON
 CLI_VERSION=2.4.17-dev.1 run_update "2.4.16" "old" true || true
 if [[ "${RUN_RC}" -ne 0 ]]; then
@@ -138,9 +153,7 @@ cleanup_run
 
 echo "Running: prerelease suffix remains part of version comparison"
 RELEASES_JSON='[{"tagName":"2.4.17","isPrerelease":false}]'
-RELEASE_CONTENT='stable-binary'
-RELEASE_SHA="$(printf '%s' "${RELEASE_CONTENT}" | sha256sum | awk '{print $1}')"
-export RELEASES_JSON RELEASE_CONTENT
+export RELEASES_JSON
 CLI_VERSION= run_update "2.4.17-dev.1" "${RELEASE_SHA}" || true
 if [[ "${RUN_RC}" -eq 0 && "${RUN_BLOBS}" == *"telemetry-cli-linux-2.4.17:"* && "${RUN_OUT}" != *"NO_UPDATE=true"* ]]; then
     pass "2.4.17-dev.1 compares distinctly from 2.4.17"
