@@ -114,7 +114,8 @@ if ! verify; then
 fi
 
 # A held-back module is listed here as still outdated. That is expected.
-remaining=$(outdated | while read -r path current latest; do echo "${path} ${current} -> ${latest}"; done)
+# This list is only for the report. A failure here must not fail the update.
+remaining=$(outdated | while read -r path current latest; do echo "${path} ${current} -> ${latest}"; done || true)
 if [[ -n "${remaining}" ]]; then
     echo "[go-update] still outdated after the update:"
     echo "${remaining}" | sed 's/^/[go-update]   /'
