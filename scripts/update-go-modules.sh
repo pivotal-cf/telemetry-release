@@ -3,7 +3,9 @@
 # Update Go module dependencies for acceptance test receivers.
 #
 # What it does:
-#   1. Runs `go get -u ./...` + `go mod tidy` in each Go module directory
+#   1. Runs scripts/update-go-module-safely.sh in each Go module directory.
+#      It updates every dependency (test-only ones too), runs build, vet and
+#      tests, and undoes any update that breaks them.
 #
 # Go module locations:
 #   src/acceptance_tests/telemetry_receiver/
@@ -68,20 +70,11 @@ update_go_module() {
     local label="$2"
 
     print_info "Updating ${label}..."
-    pushd "${dir}" > /dev/null
-
-    if ! go get -u ./...; then
-        print_warning "  go get -u had warnings in ${label} (continuing)"
-    fi
-
-    if ! go mod tidy; then
-        print_error "go mod tidy failed in ${label}"
-        popd > /dev/null
+    if ! "${SCRIPT_DIR}/update-go-module-safely.sh" "${dir}"; then
+        print_error "Safe update failed in ${label}"
         return 1
     fi
-
     print_success "${label} updated."
-    popd > /dev/null
     return 0
 }
 
