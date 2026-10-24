@@ -64,6 +64,48 @@ else
     curl -fsSL "https://raw.githubusercontent.com/cloudfoundry/bosh-package-ruby-release/main/packages/ruby-4.0/packaging" > "${PACKAGING_FILE}"
 fi
 
+# The spec above now makes ruby-4.0 a local source package. A local package
+# needs every file its spec lists: small files in src/ and big files as blobs.
+# 'bosh vendor-package' only wrote a fingerprint reference, so add them here.
+# The old spec.lock holds the fingerprint of the plain upstream build. Delete
+# it. 'bosh create-release --final' writes the correct one.
+rm -f packages/ruby-4.0/spec.lock
+if [[ -n "${RUBY_RELEASE_PATH}" && -d "${RUBY_RELEASE_PATH}" ]]; then
+    echo "Adding the files that the upstream spec lists..."
+    (cd "${RUBY_RELEASE_PATH}" && bosh sync-blobs </dev/null)
+    while IFS= read -r spec_entry; do
+        [[ -z "${spec_entry}" ]] && continue
+        case "${spec_entry}" in packages/*) continue ;; esac
+        if [[ -f "${RUBY_RELEASE_PATH}/src/${spec_entry}" ]]; then
+            mkdir -p "src/$(dirname "${spec_entry}")"
+            cp "${RUBY_RELEASE_PATH}/src/${spec_entry}" "src/${spec_entry}"
+            echo "  Copied src/${spec_entry}"
+        elif [[ -f "${RUBY_RELEASE_PATH}/blobs/${spec_entry}" ]]; then
+            # Remove older versions of the same blob (ruby-4.0.7.tar.gz when
+            # adding ruby-4.0.9.tar.gz), then register the new one.
+            blob_prefix="${spec_entry%%[0-9]*}"
+            old_keys=$(BLOB_PREFIX="${blob_prefix}" BLOB_KEEP="${spec_entry}" \
+                yq -r 'keys | .[] | select(test("^" + strenv(BLOB_PREFIX)) and . != strenv(BLOB_KEEP))' config/blobs.yml)
+            while IFS= read -r old_key; do
+                [[ -z "${old_key}" ]] && continue
+                echo "  Removing old blob entry: ${old_key}"
+                bosh remove-blob "${old_key}" || true
+            done <<< "${old_keys}"
+            ours=$(BLOB_KEY="${spec_entry}" yq -r '.[strenv(BLOB_KEY)].sha // ""' config/blobs.yml)
+            theirs=$(BLOB_KEY="${spec_entry}" yq -r '.[strenv(BLOB_KEY)].sha // ""' "${RUBY_RELEASE_PATH}/config/blobs.yml")
+            if [[ "${ours}" != "${theirs}" ]]; then
+                bosh add-blob "${RUBY_RELEASE_PATH}/blobs/${spec_entry}" "${spec_entry}"
+                echo "  Registered blob ${spec_entry}"
+            fi
+        else
+            echo "Error: spec lists '${spec_entry}' but it is not in upstream src/ or blobs/." >&2
+            exit 1
+        fi
+    done < <(yq -r '.files[]' "${SPEC_FILE}")
+else
+    echo "Warning: no local bosh-package-ruby-release path. Source files and blobs were not added." >&2
+fi
+
 # Clean up any stray gem files left in packages/ruby-4.0/ by older versions of
 # this script. NOTE: packages/<name>/ is not one of BOSH's file-resolution
 # roots for a package's 'files:' entries (only blobs/ and src/ are searched),
@@ -79,7 +121,7 @@ for gem_name in ${keys}; do
 
     # Remove any stale blob entry left by a previous version of this gem
     if [[ -f config/blobs.yml ]]; then
-        stale_keys=$(yq -r --arg prefix "packages/ruby-4.0/${gem_name}-" 'keys[] | select(startswith($prefix))' config/blobs.yml 2>/dev/null || true)
+        stale_keys=$(GEM_PREFIX="packages/ruby-4.0/${gem_name}-" yq -r 'keys | .[] | select(test("^" + strenv(GEM_PREFIX)))' config/blobs.yml)
         while IFS= read -r stale_key; do
             [[ -z "${stale_key}" ]] && continue
             echo "  Removing stale blob entry: ${stale_key}"
