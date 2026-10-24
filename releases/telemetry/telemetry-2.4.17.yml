@@ -1,0 +1,64 @@
+name: telemetry
+version: 2.4.17
+commit_hash: a90e3d1
+uncommitted_changes: false
+jobs:
+- name: telemetry-agent
+  version: e940049885e0171c6a0dc2f88aacf278e4094f14ae39ea84a0534cf51cf16ad0
+  fingerprint: e940049885e0171c6a0dc2f88aacf278e4094f14ae39ea84a0534cf51cf16ad0
+  sha1: sha256:421939611837018ba1ad18960f3a93f7532331ae118b996dc617dd9bb3d7a70b
+  packages:
+  - fluent-bit
+- name: telemetry-centralizer
+  version: 59758dc1ffbe1046d68351bcd4f09e46b7e6cc3cf17788b463abd36549f7374c
+  fingerprint: 59758dc1ffbe1046d68351bcd4f09e46b7e6cc3cf17788b463abd36549f7374c
+  sha1: sha256:85da4168bf6b6507f7c92120c3ca936e4cd1050478fe180318bb797ba8984988
+  packages:
+  - krb5
+  - fluentd
+  - ruby-4.0
+- name: telemetry-collector
+  version: e89428052f114dc384020f4bce5ec938b29cd05fc5e1872efb156486922a1de6
+  fingerprint: e89428052f114dc384020f4bce5ec938b29cd05fc5e1872efb156486922a1de6
+  sha1: sha256:3a2e99dd7082ca0898bc99f369500253849f3e1f5474611d1e89d4ad427368b7
+  packages:
+  - krb5
+  - telemetry-cli
+packages:
+- name: fluent-bit
+  version: b09e265ab4a061eb4fbbe841493f5ffa7d40afc381e5c27e0918a246408ef984
+  fingerprint: b09e265ab4a061eb4fbbe841493f5ffa7d40afc381e5c27e0918a246408ef984
+  sha1: sha256:3d0d6c25525138a9c425da73d25dc6b91c14f14fb6b5437d52f51ffaef0917b1
+  dependencies: []
+- name: fluentd
+  version: c6ef2aebda8818b45d5ceae546df63f4a7724432b1aa3b79228522728547a088
+  fingerprint: c6ef2aebda8818b45d5ceae546df63f4a7724432b1aa3b79228522728547a088
+  sha1: sha256:1af4090822c5d871d9a65830726a5c8992e277c1f33679d578767d6a49ac2b0d
+  dependencies:
+  - ruby-4.0
+- name: krb5
+  version: dfae57338bd97a1dc2dbe951ae7adc40d42d0a7d6aa21ec787fd0a8993cd7cbc
+  fingerprint: dfae57338bd97a1dc2dbe951ae7adc40d42d0a7d6aa21ec787fd0a8993cd7cbc
+  sha1: sha256:973f53073268e9f436037fd67296d73c7c39dd933d61258abe4a8b90a7e612fc
+  dependencies: []
+- name: ruby-4.0
+  version: 17cbbf9bed4c713aa7d67d3d20f62503df6af22f786854c3d9e6076bad03e965
+  fingerprint: 17cbbf9bed4c713aa7d67d3d20f62503df6af22f786854c3d9e6076bad03e965
+  sha1: sha256:59400de9e421774418d47760b69edb221cc0b40ce02d3ae7049db371f8c1f002
+  dependencies:
+  - rust-1-linux
+- name: rust-1-linux
+  version: 803e1d6b1b442300b4328af52c0adc3bbc814209d951fd212c18d40b5d9a53e2
+  fingerprint: 803e1d6b1b442300b4328af52c0adc3bbc814209d951fd212c18d40b5d9a53e2
+  sha1: sha256:f872ace2e77a3b15a4d116ad444ccab28803cc44a7ec6200baf88f3da933f2f0
+  dependencies: []
+- name: telemetry-cli
+  version: ad63314d046beb88e1c88fe5560bf5fa2d80bf364aefdb9168ceed794919fc1a
+  fingerprint: ad63314d046beb88e1c88fe5560bf5fa2d80bf364aefdb9168ceed794919fc1a
+  sha1: sha256:c55b0328e150c83a5fae42fef5ada29f95acb6afe2ee89d05f7890e9c343a679
+  dependencies: []
+license:
+  version: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  fingerprint: 7f053c345cdcc3941cfe8a2abd28e439043f8d365016e4aaca05086d721d34c5
+  sha1: sha256:6c5cf721475eff1c39ac926578ae96afd1713f3bf522d0fd3088c5a174459617
+no_compression: false
