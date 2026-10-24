@@ -6,5 +6,5 @@ applications:
     buildpacks:
     - https://github.com/cloudfoundry/go-buildpack.git#master
     env:
-      GOVERSION: go1.23
+      GOVERSION: go1.27
       MESSAGE_LIMIT: "50"
