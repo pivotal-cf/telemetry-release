@@ -4,11 +4,11 @@
 #
 # What it does:
 #   1. Discovers the Ruby/Bundler versions from the upstream BOSH ruby-4.0 package
-#   2. Runs `bundle update` + `bundle update --ruby` in each of the 5 Gemfile directories
-#   3. Rebuilds src/fluentd/vendor/cache (BOSH compile-time gems)
-#   4. Runs a compile-time simulation (bundle install --local) for src/fluentd
-#   5. Validates PLATFORMS, BUNDLED WITH (production only), and RUBY VERSION invariants
-#   6. Runs root-level and filter-plugin rspec tests
+#   2. Runs root-level and filter-plugin rspec tests before any update
+#   3. Tries all updates together, then restores and tries outdated gems one at a time
+#   4. Rebuilds src/fluentd/vendor/cache (BOSH compile-time gems)
+#   5. Runs a compile-time simulation (bundle install --local) for src/fluentd
+#   6. Validates PLATFORMS, BUNDLED WITH (production only), and RUBY VERSION invariants
 #   7. Reports BOSH Ruby version drift if the vendored package is behind upstream
 #
 # Gemfile locations:
@@ -25,7 +25,7 @@
 #
 # Exit codes:
 #   0 -- success (whether or not changes were made)
-#   1 -- error (update failure, validation failure, test failure)
+#   1 -- baseline tests fail, or the final state fails validation or tests
 #
 # Usage:
 #   ./scripts/update-ruby-gems.sh
@@ -251,6 +251,7 @@ update_gemfile_lock() {
     local dir="$1"
     local label="$2"
     local is_fluentd="${3:-}"
+    local gem_name="${4:-}"
 
     print_info "Updating ${label}..."
     pushd "${dir}" > /dev/null
@@ -265,7 +266,13 @@ update_gemfile_lock() {
     fi
 
     # --- Run bundle update ---
-    if ! "${BUNDLE_CMD[@]}" update --all; then
+    if [[ -n "${gem_name}" ]]; then
+        if ! "${BUNDLE_CMD[@]}" update "${gem_name}" --conservative; then
+            print_error "bundle update ${gem_name} --conservative failed in ${label}"
+            popd > /dev/null
+            return 1
+        fi
+    elif ! "${BUNDLE_CMD[@]}" update --all; then
         print_error "bundle update --all failed in ${label}"
         popd > /dev/null
         return 1
@@ -283,9 +290,13 @@ update_gemfile_lock() {
     if [[ "${is_fluentd}" == "fluentd" ]]; then
         print_info "  Rebuilding vendor/cache (BOSH compile-time gems)..."
 
-        "${BUNDLE_CMD[@]}" config set --local cache_all true
-        "${BUNDLE_CMD[@]}" config set --local cache_path ./vendor/cache
-        "${BUNDLE_CMD[@]}" config set --local no_install true
+        if ! "${BUNDLE_CMD[@]}" config set --local cache_all true ||
+            ! "${BUNDLE_CMD[@]}" config set --local cache_path ./vendor/cache ||
+            ! "${BUNDLE_CMD[@]}" config set --local no_install true; then
+            print_error "Could not set vendor/cache options in ${label}"
+            popd > /dev/null
+            return 1
+        fi
         if ! BUNDLE_WITHOUT=development:test "${BUNDLE_CMD[@]}" package --all-platforms; then
             print_error "bundle package failed in ${label}"
             "${BUNDLE_CMD[@]}" config unset --local cache_all 2>/dev/null || true
@@ -296,9 +307,14 @@ update_gemfile_lock() {
             return 1
         fi
 
-        "${BUNDLE_CMD[@]}" config unset --local cache_all
-        "${BUNDLE_CMD[@]}" config unset --local cache_path
-        "${BUNDLE_CMD[@]}" config unset --local no_install
+        if ! "${BUNDLE_CMD[@]}" config unset --local cache_all ||
+            ! "${BUNDLE_CMD[@]}" config unset --local cache_path ||
+            ! "${BUNDLE_CMD[@]}" config unset --local no_install; then
+            print_error "Could not clear vendor/cache options in ${label}"
+            rm -rf .bundle/ 2>/dev/null || true
+            popd > /dev/null
+            return 1
+        fi
         rm -rf ./vendor/cache/ruby 2>/dev/null || true
         rm -rf ./vendor/cache/vendor 2>/dev/null || true
         rm -rf .bundle/ 2>/dev/null || true
@@ -386,71 +402,162 @@ update_gemfile_lock() {
     return 0
 }
 
-# ============================================================================
-# Update all 5 Gemfile locations (abort on first failure)
-# ============================================================================
-print_step "Step 1/5: Root Gemfile"
-update_gemfile_lock "${REPO_ROOT}" "root"
+GEM_DIRS=(
+    "${REPO_ROOT}"
+    "${REPO_ROOT}/src/fluentd"
+    "${REPO_ROOT}/src/fluentd/telemetry-filter-plugin"
+    "${REPO_ROOT}/src/acceptance_tests"
+    "${REPO_ROOT}/src/acceptance_tests_audit_mode"
+)
+GEM_LABELS=(root src/fluentd src/fluentd/telemetry-filter-plugin src/acceptance_tests src/acceptance_tests_audit_mode)
 
-print_step "Step 2/5: src/fluentd (Gemfile + vendor/cache)"
-update_gemfile_lock "${REPO_ROOT}/src/fluentd" "src/fluentd" "fluentd"
+run_tests() {
+    print_step "Running tests: root rspec"
+    cd "${REPO_ROOT}"
+    if ! "${BUNDLE_CMD[@]}" exec rspec; then
+        print_error "Root rspec tests FAILED."
+        return 1
+    fi
+    print_success "Root rspec tests passed."
 
-print_step "Step 3/5: src/fluentd/telemetry-filter-plugin"
-update_gemfile_lock "${REPO_ROOT}/src/fluentd/telemetry-filter-plugin" "src/fluentd/telemetry-filter-plugin"
+    print_step "Running tests: filter-plugin rspec"
+    cd "${REPO_ROOT}/src/fluentd/telemetry-filter-plugin"
+    if ! "${BUNDLE_CMD[@]}" exec rspec; then
+        print_error "Filter-plugin rspec tests FAILED."
+        return 1
+    fi
+    print_success "Filter-plugin rspec tests passed."
+}
 
-print_step "Step 4/5: src/acceptance_tests"
-update_gemfile_lock "${REPO_ROOT}/src/acceptance_tests" "src/acceptance_tests"
+SNAPSHOT_DIR="$(mktemp -d)"
+cleanup_snapshot() { rm -rf "${SNAPSHOT_DIR}"; }
+trap 'cleanup; cleanup_snapshot' EXIT
 
-print_step "Step 5/5: src/acceptance_tests_audit_mode"
-update_gemfile_lock "${REPO_ROOT}/src/acceptance_tests_audit_mode" "src/acceptance_tests_audit_mode"
+snapshot_state() {
+    local destination="$1" index path
+    rm -rf "${destination}"
+    mkdir -p "${destination}"
+    for index in "${!GEM_DIRS[@]}"; do
+        path="${GEM_DIRS[$index]}/Gemfile.lock"
+        if [[ -e "${path}" ]]; then
+            mkdir -p "${destination}/${index}"
+            cp -a "${path}" "${destination}/${index}/Gemfile.lock"
+            : > "${destination}/${index}/lock-present"
+        fi
+    done
+    path="${REPO_ROOT}/src/fluentd/vendor/cache"
+    if [[ -e "${path}" ]]; then
+        mkdir -p "${destination}/vendor"
+        cp -a "${path}" "${destination}/vendor/cache"
+        : > "${destination}/vendor-present"
+    fi
+}
 
-# ============================================================================
-# Log RUBY VERSION change if it happened
-# ============================================================================
+restore_state() {
+    local source="$1" index path
+    for index in "${!GEM_DIRS[@]}"; do
+        path="${GEM_DIRS[$index]}/Gemfile.lock"
+        rm -f "${path}"
+        if [[ -f "${source}/${index}/lock-present" ]]; then
+            cp -a "${source}/${index}/Gemfile.lock" "${path}"
+        fi
+    done
+    path="${REPO_ROOT}/src/fluentd/vendor/cache"
+    rm -rf "${path}"
+    if [[ -f "${source}/vendor-present" ]]; then
+        mkdir -p "$(dirname "${path}")"
+        cp -a "${source}/vendor/cache" "${path}"
+    fi
+}
+
+outdated_gems() {
+    local index dir output line gem_name old latest
+    for index in "${!GEM_DIRS[@]}"; do
+        dir="${GEM_DIRS[$index]}"
+        output="$(cd "${dir}" && "${BUNDLE_CMD[@]}" outdated --parseable 2>/dev/null || true)"
+        while IFS= read -r line; do
+            # Bundler --parseable rows use: name (newest x, installed y).
+            if [[ "${line}" =~ ^([^[:space:]]+)[[:space:]]+\(newest[[:space:]]+([^,]+),[[:space:]]+installed[[:space:]]+([^,\)]+) ]]; then
+                gem_name="${BASH_REMATCH[1]}"
+                latest="${BASH_REMATCH[2]}"
+                old="${BASH_REMATCH[3]}"
+                printf '%s\t%s\t%s\t%s\n' "${index}" "${gem_name}" "${old}" "${latest}"
+            fi
+        done <<< "${output}"
+    done
+}
+
+print_step "Checking existing tests before any update"
+if ! run_tests; then
+    print_error "The code already fails its baseline tests. No gems were updated."
+    exit 1
+fi
+
+snapshot_state "${SNAPSHOT_DIR}/baseline"
+outdated_list="${SNAPSHOT_DIR}/outdated.tsv"
+outdated_gems > "${outdated_list}"
+
+print_step "Trying all gem updates"
+all_updates_passed=true
+for index in "${!GEM_DIRS[@]}"; do
+    is_fluentd=""
+    [[ "${index}" == 1 ]] && is_fluentd="fluentd"
+    if ! update_gemfile_lock "${GEM_DIRS[$index]}" "${GEM_LABELS[$index]}" "${is_fluentd}"; then
+        all_updates_passed=false
+        break
+    fi
+done
+
+held_back=()
+if [[ "${all_updates_passed}" == true ]] && run_tests; then
+    print_success "All gem updates passed the checks."
+else
+    print_warning "All-at-once update failed. Restoring the original lockfiles and vendor/cache."
+    restore_state "${SNAPSHOT_DIR}/baseline"
+
+    while IFS=$'\t' read -r index gem_name old latest; do
+        [[ -z "${gem_name}" ]] && continue
+        step_snapshot="${SNAPSHOT_DIR}/step"
+        snapshot_state "${step_snapshot}"
+        is_fluentd=""
+        [[ "${index}" == 1 ]] && is_fluentd="fluentd"
+        if update_gemfile_lock "${GEM_DIRS[$index]}" "${GEM_LABELS[$index]}" "${is_fluentd}" "${gem_name}" && run_tests; then
+            print_success "Kept ${GEM_LABELS[$index]} ${gem_name} ${old} -> ${latest}."
+        else
+            restore_state "${step_snapshot}"
+            held_back+=("${GEM_LABELS[$index]} ${gem_name} ${old} (latest ${latest})")
+            print_warning "HELD BACK ${GEM_LABELS[$index]} ${gem_name} ${old} (latest ${latest})"
+        fi
+    done < "${outdated_list}"
+fi
+
+if ((${#held_back[@]} > 0)); then
+    print_info "Held back:"
+    printf '  %s\n' "${held_back[@]}"
+else
+    print_info "Held back: none"
+fi
+
+if ! run_tests; then
+    print_error "The final state fails its tests."
+    exit 1
+fi
+
 if [[ -n "${RUBY_VERSION_BEFORE}" ]]; then
     post_ruby=$(extract_ruby_version "${REPO_ROOT}/Gemfile.lock")
     print_info "Ruby version in Gemfile.lock updated: ${RUBY_VERSION_BEFORE} -> ${post_ruby}"
 fi
 
-# ============================================================================
-# Run tests
-# ============================================================================
-print_step "Running tests: root rspec"
-cd "${REPO_ROOT}"
-if ! "${BUNDLE_CMD[@]}" exec rspec; then
-    print_error "Root rspec tests FAILED."
-    print_error "Dependencies were updated but tests failed. No commit should be made."
-    exit 1
-fi
-print_success "Root rspec tests passed."
-
-print_step "Running tests: filter-plugin rspec"
-cd "${REPO_ROOT}/src/fluentd/telemetry-filter-plugin"
-if ! "${BUNDLE_CMD[@]}" exec rspec; then
-    print_error "Filter-plugin rspec tests FAILED."
-    print_error "Dependencies were updated but tests failed. No commit should be made."
-    exit 1
-fi
-print_success "Filter-plugin rspec tests passed."
-
-# ============================================================================
-# Summary
-# ============================================================================
-cd "${REPO_ROOT}"
-if [[ -z "$(git status --porcelain 2>/dev/null)" ]]; then
-    echo ""
-    echo "NO_UPDATE=true"
-    print_info "All gems are already up to date. Nothing to commit."
+still_outdated="${SNAPSHOT_DIR}/still-outdated.txt"
+outdated_gems | while IFS=$'\t' read -r index gem_name old latest; do
+    [[ -z "${gem_name}" ]] && continue
+    printf '%s %s %s -> %s\n' "${GEM_LABELS[$index]}" "${gem_name}" "${old}" "${latest}"
+done > "${still_outdated}" || true
+if [[ -s "${still_outdated}" ]]; then
+    print_info "Still outdated:"
+    sed 's/^/  /' "${still_outdated}"
 else
-    echo ""
-    echo -e "${GREEN}RUBY GEM UPDATE COMPLETE${NC}"
-    echo ""
-    echo "  All 5 Gemfile.lock files updated, all tests passed."
-    echo ""
-    echo "  Review changes:"
-    echo "    git diff --stat"
-    echo ""
-    echo "  If everything looks good, commit:"
-    echo "    git add -A"
-    echo "    git commit -m \"chore: update Ruby gem dependencies\""
+    print_info "Still outdated: none"
 fi
+
+print_success "Ruby gem update process complete."
