@@ -174,9 +174,8 @@ fi
 MANIFEST_PATH="releases/telemetry/telemetry-${VERSION}.yml"
 if [[ -f "${MANIFEST_PATH}" && "${IS_DEV_RELEASE}" == true ]]; then
     if ! git ls-tree --name-only HEAD -- "${MANIFEST_PATH}" | grep -q . ||
-        ! git ls-tree --name-only HEAD -- "${REPO_TARBALL_PATH}" | grep -q . ||
         [[ ! -f "${REPO_TARBALL_PATH}" ]]; then
-        print_error "Dev release retry requires the committed manifest and tarball for ${VERSION}."
+        print_error "Dev release retry requires the committed manifest and the local tarball ${REPO_TARBALL_PATH}."
         exit 1
     fi
     if [[ "${REMOTE_SHA}" != "${LOCAL_SHA}" ]]; then
@@ -299,7 +298,6 @@ if [[ "${IS_RETRY}" == false ]]; then
 print_step "Committing changes"
 
 [[ -d releases ]] && git add releases/
-[[ -f "${REPO_TARBALL_PATH}" ]] && git add -f "${REPO_TARBALL_PATH}"
 [[ -d .final_builds ]] && git add .final_builds/
 [[ -f config/blobs.yml ]] && git add config/blobs.yml
 git commit -m "Create final release ${VERSION}"

@@ -121,8 +121,9 @@ if run_script; then
     if grep -q -- '--prerelease' "${GH_CREATE_LOG}" && grep -q -- "--target ${sha}" "${GH_CREATE_LOG}" &&
         ! grep -qx 'push' "${GIT_LOG}" && grep -q "push origin HEAD:refs/heads/dev/x" "${GIT_LOG}" &&
         grep -q 'ls-remote origin refs/heads/dev/x' "${GIT_LOG}" &&
-        [[ -f "${WORK}/releases/telemetry/telemetry-${VERSION}.tgz" ]]; then
-        pass 'dev release flags, explicit push, remote verification, and repository tarball'
+        [[ -f "${WORK}/releases/telemetry/telemetry-${VERSION}.tgz" ]] &&
+        [[ -z "$("${REAL_GIT}" -C "${WORK}" ls-tree -r --name-only HEAD | grep '\.tgz$' || true)" ]]; then
+        pass 'dev release flags, explicit push, remote verification, local tarball kept out of git'
     else
         fail 'dev release behavior' "git: $(cat "${GIT_LOG}"); gh: $(cat "${GH_CREATE_LOG}")"
     fi
