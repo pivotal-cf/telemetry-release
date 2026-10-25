@@ -26,6 +26,21 @@ print_error() {
   echo -e "${RED}✗ ${1}${NC}"
 }
 
+# ask_yes_no "<prompt>" <default>   (default is "y" or "n")
+# No terminal: use the default and do not read. A caller with no terminal
+# (such as tpi release bump-all) has already approved the bump itself.
+ask_yes_no() {
+  local prompt="$1" default="$2" reply
+  if [[ ! -t 0 ]]; then
+    echo "No terminal. Using default '${default}' for: ${prompt}" >&2
+    [[ "$default" == "y" ]]
+    return
+  fi
+  read -p "${prompt} (y/n) " -n 1 -r reply
+  echo
+  [[ "$reply" =~ ^[Yy]$ ]]
+}
+
 # Usage message
 usage() {
   cat <<EOF
@@ -204,10 +219,7 @@ if [ -n "$OLD_BLOB" ]; then
 
   echo
   print_warning "About to remove old blob: $OLD_BLOB"
-  read -p "Continue? (y/n) " -n 1 -r
-  echo
-
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
+  if ask_yes_no "Continue?" y; then
     if bosh remove-blob "$OLD_BLOB"; then
       print_success "Old blob removed"
     else
@@ -237,9 +249,7 @@ echo "  • Size: $FILE_SIZE bytes"
 echo
 
 # Offer to create test release
-read -p "Create a test BOSH release? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+if ask_yes_no "Create a test BOSH release?" n; then
   print_info "Creating test release..."
 
   TEST_TARBALL="/tmp/telemetry-test-krb5-$VERSION.tgz"
