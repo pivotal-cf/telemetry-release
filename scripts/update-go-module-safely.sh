@@ -43,16 +43,32 @@ cd "${MODULE_DIR}"
 SNAP_DIR="$(mktemp -d)"
 trap 'rm -rf "${SNAP_DIR}"' EXIT
 
-snapshot() { cp go.mod "${SNAP_DIR}/go.mod"; cp go.sum "${SNAP_DIR}/go.sum" 2>/dev/null || : > "${SNAP_DIR}/go.sum"; }
-restore()  { cp "${SNAP_DIR}/go.mod" go.mod; cp "${SNAP_DIR}/go.sum" go.sum; }
+snapshot() {
+    cp go.mod "${SNAP_DIR}/go.mod"
+    cp go.sum "${SNAP_DIR}/go.sum" 2>/dev/null || : > "${SNAP_DIR}/go.sum"
+    rm -rf "${SNAP_DIR}/vendor"
+    if [[ -d vendor ]]; then cp -R vendor "${SNAP_DIR}/vendor"; fi
+}
+restore() {
+    cp "${SNAP_DIR}/go.mod" go.mod
+    cp "${SNAP_DIR}/go.sum" go.sum
+    rm -rf vendor
+    if [[ -d "${SNAP_DIR}/vendor" ]]; then cp -R "${SNAP_DIR}/vendor" vendor; fi
+}
 verify()   { bash -c "${VERIFY_CMD}" > "${SNAP_DIR}/verify.log" 2>&1; }
+
+# Tidy go.mod and go.sum. If the module vendors its dependencies, refresh vendor/ too.
+tidy() {
+    go mod tidy
+    if [[ -d vendor ]]; then go mod vendor; fi
+}
 
 # Outdated modules that go.mod itself requires. Go's module graph also lists
 # modules that go.mod does not need. Those are not part of this build.
 outdated() {
     local required
     required="$(go mod edit -json | jq -r '.Require[].Path')"
-    go list -m -u -f '{{if and .Update (not .Main)}}{{.Path}} {{.Version}} {{.Update.Version}}{{end}}' all 2>/dev/null \
+    go list -mod=mod -m -u -f '{{if and .Update (not .Main)}}{{.Path}} {{.Version}} {{.Update.Version}}{{end}}' all 2>/dev/null \
         | while read -r path current latest; do
             [[ -z "${path}" ]] && continue
             if grep -qxF -- "${path}" <<< "${required}"; then echo "${path} ${current} ${latest}"; fi
@@ -79,7 +95,7 @@ update_one_by_one() {
     while read -r path current latest; do
         [[ -z "${path}" ]] && continue
         snapshot
-        if go get "${path}@${latest}" > "${SNAP_DIR}/get.log" 2>&1 && go mod tidy >> "${SNAP_DIR}/get.log" 2>&1 && verify; then
+        if go get "${path}@${latest}" > "${SNAP_DIR}/get.log" 2>&1 && tidy >> "${SNAP_DIR}/get.log" 2>&1 && verify; then
             echo "[go-update]   ${path} ${current} -> ${latest}"
         else
             restore
@@ -90,7 +106,7 @@ update_one_by_one() {
 }
 
 echo "[go-update] trying all updates at once"
-if go get -u -t ./... > "${SNAP_DIR}/get.log" 2>&1 && go mod tidy >> "${SNAP_DIR}/get.log" 2>&1 && verify; then
+if go get -u -t ./... > "${SNAP_DIR}/get.log" 2>&1 && tidy >> "${SNAP_DIR}/get.log" 2>&1 && verify; then
     echo "[go-update] all updates passed the check"
 else
     echo "[go-update] all-at-once failed. Undoing it."
@@ -106,7 +122,7 @@ if ((${#held_back[@]} > 0)); then
 fi
 
 # Final state must be tidy and must pass the check.
-go mod tidy
+tidy
 if ! verify; then
     echo "[go-update] FAIL: the final state does not pass the check. Last lines:" >&2
     tail -n 20 "${SNAP_DIR}/verify.log" >&2
