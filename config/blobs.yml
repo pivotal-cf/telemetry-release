@@ -2,10 +2,10 @@ fluent-bit/fluent-bit-5.2.0.tar.gz:
   size: 45404873
   object_id: 6084c4dd-2d24-4fff-54a6-21e98e9700b7
   sha: sha256:7f1b92ed09e43c33d8c572bc1643ad0e797f129286468faf85ac56beed6cccad
-krb5/krb5-1.22.2.tar.gz:
-  size: 8747729
-  object_id: 7cdbc740-3999-43a7-7f34-78f7e546b9fd
-  sha: sha256:3243ffbc8ea4d4ac22ddc7dd2a1dc54c57874c40648b60ff97009763554eaf13
+krb5/krb5-1.22.3.tar.gz:
+  size: 8758584
+  object_id: 542db5f6-4a77-48bf-7324-87d729410d22
+  sha: sha256:fe90af8441ad9fa9b064b8e53077cefb782a96f8a68276b031dc54af1789ff0b
 packages/ruby-4.0/json-3.1.0.gem:
   size: 107520
   object_id: a1ca808e-db3a-4532-6dbd-38d3bc6dd234
