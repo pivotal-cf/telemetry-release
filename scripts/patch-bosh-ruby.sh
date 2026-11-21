@@ -169,4 +169,14 @@ fi
 EOF
 done
 
+# 'bosh add-blob' records a blob with no object_id. Only 'bosh upload-blobs'
+# adds the object_id. Warn about every blob that is still missing one, so
+# nobody commits config/blobs.yml before the upload has run.
+unuploaded=$(yq -r 'to_entries[] | select(.value.object_id == null) | .key' config/blobs.yml)
+if [[ -n "${unuploaded}" ]]; then
+    echo "WARNING: these blobs have no object_id (not uploaded yet):" >&2
+    echo "${unuploaded}" | sed 's/^/  /' >&2
+    echo "Run 'bosh upload-blobs' and check again before you commit config/blobs.yml." >&2
+fi
+
 echo "=== Patching Complete ==="
