@@ -26,10 +26,10 @@ rubygems-4.0.24.tgz:
   size: 978513
   object_id: 7bc30bd5-f9c3-411f-41f2-b8a6949e655b
   sha: sha256:09538daea556c642ea3479bef9a3c5f8b1cfec410b0da8a02351b9c3575f1c6e
-telemetry-cli/telemetry-cli-linux-2.4.17:
-  size: 19366301
-  object_id: 2ebc3f26-8d73-4de7-7eb8-e4388dbac1ac
-  sha: sha256:0f3ac8781b54dbc019db009bb584b5a555cda17208d352eae040ce0d6b4396d7
+telemetry-cli/telemetry-cli-linux-2.4.18:
+  size: 19353193
+  object_id: 9a9be119-7de7-4202-756c-7cba3263877b
+  sha: sha256:721a15bd7f5a9be6b5bd3a5ae0a67ede332deffac9bb07c7256dfb2a717beb03
 yaml-0.2.5.tar.gz:
   size: 609454
   object_id: 52d88903-9d9b-485f-5d88-0aeb29f1eb4e
