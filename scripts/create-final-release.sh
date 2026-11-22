@@ -300,7 +300,13 @@ print_step "Committing changes"
 [[ -d releases ]] && git add releases/
 [[ -d .final_builds ]] && git add .final_builds/
 [[ -f config/blobs.yml ]] && git add config/blobs.yml
-git commit -m "Create final release ${VERSION}"
+# The commit-msg hook rejects commits without the AI trailer block (see AGENTS.md).
+# This repo cannot call tpi's ai_trailers helper, so the block is written out here.
+git commit -m "Create final release ${VERSION}" -m "ai-assisted=yes
+AI-Tool-Used: Claude
+AI-Tool-Use-Level: High
+AI-Code-Category: Production
+Co-Authored-By: Claude <noreply@anthropic.com>"
 
 print_success "Committed: Create final release ${VERSION}"
 
